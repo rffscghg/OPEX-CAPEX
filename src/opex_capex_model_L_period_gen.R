@@ -13,6 +13,9 @@ set.seed(1)
 # Discount rate
 r = 0.1
 
+# Plot parameter
+n_colors = 200
+
 #### Capital costs
 ## Green cost parameters
 # Capital
@@ -241,19 +244,20 @@ iter
 
 V.out = V.calc(V)
 
+delta_V = V.out$npvcost['green',,]-V.out$npvcost['fossil',,]
+delta_V_breaks = c(seq(min(delta_V),0,length = n_colors/2), 0, seq(0,max(delta_V),length=n_colors/2))
+
 # Examine solved model
 png(filename = paste0('output/figures/npv_value_L',L,'_',Sys.Date(),'.png'), width = 480*3, height=480, pointsize = 24)
 par(mfrow=c(1,3))
-image(z=-V.out$Vnew, x=c.f.grid, y=k.g.grid, main='NPV of costs (optimal)', col=hcl.colors(200, palette='Heat'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
-points(x=c.f.0, y=k.g.0, pch=19, cex=3, col=4)
+image(z=-V.out$Vnew, x=c.f.grid, y=k.g.grid, main='NPV of costs (optimal)', col=hcl.colors(n_colors, palette='Heat'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
 
-image(V.out$npvcost['green',,]-V.out$npvcost['fossil',,], x=c.f.grid, y=k.g.grid,
+image(delta_V, x=c.f.grid, y=k.g.grid,
       main='Green advantage\n(difference in $ NPV cost)',
       xlab='Fossil Operating Cost', ylab='Green Capital Cost',
-      col=rev(hcl.colors(200, palette='Green-Orange')))
+      col=rev(hcl.colors(n_colors, palette='Green-Orange')), breaks = delta_V_breaks)
 
-image(-V.out$opt.strat, x=c.f.grid, y=k.g.grid, main='Optimal current-period strategy', col=hcl.colors(200, palette='Green-Orange'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
-points(x=c.f.0, y=k.g.0, pch=19, cex=3, col=4)
+image(-V.out$opt.strat, x=c.f.grid, y=k.g.grid, main='Optimal current-period strategy', col=hcl.colors(n_colors, palette='Green-Orange'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
 dev.off()
 
 # because our c.f.0 and k.g.0 values equated the expectation and variance of costs
@@ -376,7 +380,6 @@ points(x=c.f.0, y=k.g.0, pch=19, cex=3, col=4)
 green.value = V.out$Vnew - V.f$Vnew
 fossil.value = V.out$Vnew - V.g$Vnew
 delta_value = green.value - fossil.value # negative means green is better
-n_colors = 200
 
 delta_breaks = c(seq(min(delta_value),0,length = n_colors/2), 0, seq(0,max(delta_value),length=n_colors/2))
 
