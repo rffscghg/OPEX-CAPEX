@@ -255,7 +255,7 @@ image(z=-V.out$Vnew, x=c.f.grid, y=k.g.grid, main='NPV of costs (optimal)', col=
 image(delta_V, x=c.f.grid, y=k.g.grid,
       main='Green advantage\n(difference in $ NPV cost)',
       xlab='Fossil Operating Cost', ylab='Green Capital Cost',
-      col=rev(hcl.colors(n_colors, palette='Green-Orange')), breaks = delta_V_breaks)
+      col=hcl.colors(n_colors, palette='Green-Orange'), breaks = delta_V_breaks)
 
 image(-V.out$opt.strat, x=c.f.grid, y=k.g.grid, main='Optimal current-period strategy', col=hcl.colors(n_colors, palette='Green-Orange'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
 dev.off()
