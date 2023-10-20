@@ -242,6 +242,7 @@ iter
 V.out = V.calc(V)
 
 # Examine solved model
+png(filename = paste0('output/figures/npv_value_L',L,'_',Sys.Date(),'.png'), width = 480*3, height=480, pointsize = 24)
 par(mfrow=c(1,3))
 image(z=-V.out$Vnew, x=c.f.grid, y=k.g.grid, main='NPV of costs (optimal)', col=hcl.colors(200, palette='Heat'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
 points(x=c.f.0, y=k.g.0, pch=19, cex=3, col=4)
@@ -249,10 +250,11 @@ points(x=c.f.0, y=k.g.0, pch=19, cex=3, col=4)
 image(V.out$npvcost['green',,]-V.out$npvcost['fossil',,], x=c.f.grid, y=k.g.grid,
       main='Green advantage\n(difference in $ NPV cost)',
       xlab='Fossil Operating Cost', ylab='Green Capital Cost',
-      col=rev(hcl.colors(200, palette='Red-Green')))
+      col=rev(hcl.colors(200, palette='Green-Orange')))
 
 image(-V.out$opt.strat, x=c.f.grid, y=k.g.grid, main='Optimal current-period strategy', col=hcl.colors(200, palette='Green-Orange'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
 points(x=c.f.0, y=k.g.0, pch=19, cex=3, col=4)
+dev.off()
 
 # because our c.f.0 and k.g.0 values equated the expectation and variance of costs
 # between the two assets, we are on an edge case where very small changes in either
