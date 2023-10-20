@@ -382,12 +382,12 @@ fossil.value = V.out$Vnew - V.g$Vnew
 delta_value = green.value - fossil.value # negative means green is better
 
 delta_breaks = c(seq(min(delta_value),0,length = n_colors/2), 0, seq(0,max(delta_value),length=n_colors/2))
+value_breaks = seq(min(c(green.value, fossil.value)), max(c(green.value, fossil.value)), length=n_colors + 1)
 
 png(filename = paste0('output/figures/option_value_L',L,'_',Sys.Date(),'.png'), width = 480*3, height=480, pointsize = 24)
-# png(filename = paste0('output/figures/option_value_L',L,'_drift_',Sys.Date(),'.png'), width = 480*3, height=480, pointsize = 24)
 par(mfrow=c(1,3))
-image(z=fossil.value, x=c.f.grid, y=k.g.grid, main='Fossil option value', col=hcl.colors(n_colors, palette='BluGrn'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
-image(z=green.value, x=c.f.grid, y=k.g.grid, main='Green option value', col=hcl.colors(n_colors, palette='BluGrn'), xlab='Fossil Operating Cost', ylab='Green Capital Cost')
+image(z=fossil.value, x=c.f.grid, y=k.g.grid, main='Fossil option value', col=hcl.colors(n_colors, palette='BluGrn'), xlab='Fossil Operating Cost', ylab='Green Capital Cost', breaks = value_breaks)
+image(z=green.value, x=c.f.grid, y=k.g.grid, main='Green option value', col=hcl.colors(n_colors, palette='BluGrn'), xlab='Fossil Operating Cost', ylab='Green Capital Cost', breaks = value_breaks)
 image(z=delta_value, x=c.f.grid, y=k.g.grid, main='Green option value over fossil', col=hcl.colors(n_colors, palette='Green-Orange'), xlab='Fossil Operating Cost', ylab='Green Capital Cost', breaks = delta_breaks)
 dev.off()
 
