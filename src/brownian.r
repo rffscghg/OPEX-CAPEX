@@ -14,7 +14,7 @@ phi <- function(
     sigma_kg = 1, 
     t = 1
     ) {
-    phi_array = array(
+    phi_array <- array(
         data = NA, # to fill in
         dim = c(
             length(c_f_vals),
@@ -41,3 +41,62 @@ phi <- function(
 
     return(phi_array)
 }
+
+# Value function
+value <- function(
+    c_f_vals, 
+    k_g_vals,
+    k_f = 1,
+    c_g = 0, 
+    mu_cf = 0, 
+    mu_kg = 0, 
+    sigma_cf = 1, 
+    sigma_kg = 1,
+    q = 1, 
+    t = 1,
+    r = 0.1,
+    V
+    ) {
+    if(missing(V)) {
+        V = matrix(
+            runif(length(c_f_vals)*length(k_g_vals)), 
+            length(c_f_vals), 
+            length(k_g_vals)
+        )
+    }
+
+    V_new <- V # Copy dimensions, values will be overwritten
+    V_f <- V
+    V_g <- V
+
+    phi <- phi(c_f_vals, k_g_vals, mu_cf, mu_kg, sigma_cf, sigma_kg, t)
+
+    Vleft_f <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
+
+    Vleft_g <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
+
+    for (i in 1:length(c_f_vals)) {
+        for (j in 1:length(k_g_vals)) {
+            V_f[i,j]  <- Vleft_f[i] + sum(phi[,,i,j]*V)*(1+r)^-t
+            V_g[i,j]  <- Vleft_g[j] + sum(phi[,,i,j]*V)*(1+r)^-t
+        }
+    }
+
+    return(list(V_f, V_g))
+}
+
+test <- value(
+    c_f_vals = 1:40, 
+    k_g_vals = seq(100, 800, by = 10),
+    k_f = 278,
+    c_g = 0, 
+    mu_cf = 0, 
+    mu_kg = 0, 
+    sigma_cf = .1118, 
+    sigma_kg = .05,
+    q = 1, 
+    t = 10,
+    r = 0.1
+)
+
+image(pmin(test[[1]], test[[2]]))
