@@ -1,19 +1,20 @@
 # Value function iteration
 vfi <- function(
-    c_f_vals, 
-    k_g_vals,
-    k_f = 1,
-    c_g = 0, 
-    mu_cf = 0, 
-    mu_kg = 0, 
-    sigma_cf = 1, 
-    sigma_kg = 1,
-    q = 1, 
-    t = 1,
-    r = 0.1,
-    threshold = 1e-6,
-    max_iter = 100
+    c_f_vals,                   # State space for fossil-fuel operating costs
+    k_g_vals,                   # State space for green-energy capital costs
+    k_f = 1,                    # Fossil-fuel capital costs
+    c_g = 0,                    # Green-energy operating costs
+    mu_cf = 0,                  # Drift for fossil-fuel operating costs (geometric Brownian motion)
+    mu_kg = 0,                  # Drift for green-energy capital costs (geometric Brownian motion)
+    sigma_cf = 1,               # Volatility for fossil-fuel operating costs (geometric Brownian motion)
+    sigma_kg = 1,               # Volatility for green-energy capital costs (geometric Brownian motion)
+    q = 1,                      # Output
+    t = 1,                      # Number of timesteps
+    r = 0.1,                    # Discount rate
+    threshold = 1e-6,           # Fit threshold (value function iteration)
+    max_iter = 100              # Maximum number of iterations (value function iteration)
     ) {
+
     value_V <- function(V) value(c_f_vals, k_g_vals, k_f, c_g, mu_cf, mu_kg, sigma_cf, sigma_kg, q, t, r, V)
 
     V <- value_V()
@@ -35,24 +36,32 @@ vfi <- function(
     
     cat(iter, " iterations yielded a fit to a precision of ", delta," in ", round(t_run), "seconds \n")
 
+    V <- lapply(V, function(x) {
+        rownames(x) <- c_f_vals
+        colnames(x) <- k_g_vals
+        return(x)
+    })
+
     return(V)
+
 }
 
 # Value function
 value <- function(
-    c_f_vals, 
-    k_g_vals,
-    k_f = 1,
-    c_g = 0, 
-    mu_cf = 0, 
-    mu_kg = 0, 
-    sigma_cf = 1, 
-    sigma_kg = 1,
-    q = 1, 
-    t = 1,
-    r = 0.1,
-    V
+    c_f_vals,                   # State space for fossil-fuel operating costs
+    k_g_vals,                   # State space for green-energy capital costs
+    k_f = 1,                    # Fossil-fuel capital costs
+    c_g = 0,                    # Green-energy operating costs
+    mu_cf = 0,                  # Drift for fossil-fuel operating costs (geometric Brownian motion)
+    mu_kg = 0,                  # Drift for green-energy capital costs (geometric Brownian motion)
+    sigma_cf = 1,               # Volatility for fossil-fuel operating costs (geometric Brownian motion)
+    sigma_kg = 1,               # Volatility for green-energy capital costs (geometric Brownian motion)
+    q = 1,                      # Output
+    t = 1,                      # Number of timesteps
+    r = 0.1,                    # Discount rate
+    V                           # Value function matrix (dimensions determined by c_f_vals and k_g_vals)
     ) {
+
     if(missing(V)) {
         V = matrix(
             runif(length(c_f_vals)*length(k_g_vals)), 
@@ -71,7 +80,8 @@ value <- function(
 
     Vleft_g <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
 
-    for (i in 1:length(c_f_vals)) {
+    # TODO: replace with array multiplication between phi and V to speed up computation (probably by a lot)
+    for (i in 1:length(c_f_vals)) {          
         for (j in 1:length(k_g_vals)) {
             V_f[i,j]  <- Vleft_f[i] + sum(phi[,,i,j]*V)*(1+r)^-t
             V_g[i,j]  <- Vleft_g[j] + sum(phi[,,i,j]*V)*(1+r)^-t
@@ -85,18 +95,20 @@ value <- function(
         V_f = V_f, 
         V_g = V_g
     ))
+
 }
 
 # Two-dimensional Brownian motion density matrix
 phi <- function(
-    c_f_vals, 
-    k_g_vals, 
-    mu_cf = 0, 
-    mu_kg = 0, 
-    sigma_cf = 1, 
-    sigma_kg = 1, 
-    t = 1
+    c_f_vals,                   # State space for fossil-fuel operating costs
+    k_g_vals,                   # State space for green-energy capital costs
+    mu_cf = 0,                  # Drift for fossil-fuel operating costs (geometric Brownian motion)
+    mu_kg = 0,                  # Drift for green-energy capital costs (geometric Brownian motion)
+    sigma_cf = 1,               # Volatility for fossil-fuel operating costs (geometric Brownian motion)
+    sigma_kg = 1,               # Volatility for green-energy capital costs (geometric Brownian motion)
+    t = 1                       # Number of timesteps
     ) {
+    
     phi_array <- array(
         data = NA, # to fill in
         dim = c(
@@ -123,9 +135,12 @@ phi <- function(
     }
 
     return(phi_array)
+
 }
 
 # Geometric Brownian motion density function
 dgbm <- function(x, mu, sigma, t, x0) {
+
     dlnorm(x, meanlog = log(x0) + (mu-1/2*sigma^2)*t, sdlog = sigma*sqrt(t))
+
 }
