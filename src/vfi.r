@@ -17,7 +17,9 @@ vfi <- function(
     verbose = TRUE              # Print supplementary information to the console
     ) {
 
-    value_V <- function(V) value(c_f_vals, k_g_vals, k_f, c_g, mu_cf, mu_kg, sigma_cf, sigma_kg, q, t, r, V, option)
+    phi <- phi(c_f_vals, k_g_vals, mu_cf, mu_kg, sigma_cf, sigma_kg, t)
+
+    value_V <- function(V) value(c_f_vals, k_g_vals, k_f, c_g, mu_cf, mu_kg, sigma_cf, sigma_kg, q, t, r, V, phi, option)
 
     V <- value_V()
 
@@ -62,6 +64,7 @@ value <- function(
     t = 1,                      # Number of timesteps
     r = 0.1,                    # Discount rate
     V,                          # Value function matrix (dimensions determined by c_f_vals and k_g_vals)
+    phi,                        # Two-dimensional Brownian motion density matrix
     option = "all"              # Which options to choose from
     ) {
 
@@ -77,8 +80,6 @@ value <- function(
     V_f <- V
     V_g <- V
 
-    phi <- phi(c_f_vals, k_g_vals, mu_cf, mu_kg, sigma_cf, sigma_kg, t)
-
     Vleft_f <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
 
     Vleft_g <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
@@ -86,8 +87,9 @@ value <- function(
     # TODO: replace with array multiplication between phi and V to speed up computation (probably by a lot)
     for (i in 1:length(c_f_vals)) {          
         for (j in 1:length(k_g_vals)) {
-            V_f[i,j]  <- Vleft_f[i] + sum(phi[,,i,j]*V)*(1+r)^-t
-            V_g[i,j]  <- Vleft_g[j] + sum(phi[,,i,j]*V)*(1+r)^-t
+            V_right <- sum(phi[,,i,j]*V)*(1+r)^-t
+            V_f[i,j]  <- Vleft_f[i] + V_right
+            V_g[i,j]  <- Vleft_g[j] + V_right
         }
     }
 
