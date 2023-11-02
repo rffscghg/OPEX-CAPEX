@@ -11,11 +11,13 @@ vfi <- function(
     q = 1,                      # Output
     t = 1,                      # Number of timesteps
     r = 0.1,                    # Discount rate
+    option = "all",             # Which options to choose from
     threshold = 1e-6,           # Fit threshold (value function iteration)
-    max_iter = 100              # Maximum number of iterations (value function iteration)
+    max_iter = 100,             # Maximum number of iterations (value function iteration)
+    verbose = TRUE              # Print supplementary information to the console
     ) {
 
-    value_V <- function(V) value(c_f_vals, k_g_vals, k_f, c_g, mu_cf, mu_kg, sigma_cf, sigma_kg, q, t, r, V)
+    value_V <- function(V) value(c_f_vals, k_g_vals, k_f, c_g, mu_cf, mu_kg, sigma_cf, sigma_kg, q, t, r, V, option)
 
     V <- value_V()
 
@@ -29,12 +31,12 @@ vfi <- function(
         delta <- max(abs(V_new$V_min - V$V_min))
         V <- V_new
         iter <- iter + 1
-        cat("iteration: ",iter,"\n")
+        if (verbose) cat("iteration: ",iter,"\n")
     }
 
     t_run <- Sys.time() - t_start
     
-    cat(iter, " iterations yielded a fit to a precision of ", delta," in ", round(t_run), "seconds \n")
+    if (verbose) cat(iter, " iterations yielded a fit to a precision of ", delta," in ", round(t_run), "seconds \n")
 
     V <- lapply(V, function(x) {
         rownames(x) <- c_f_vals
@@ -59,11 +61,12 @@ value <- function(
     q = 1,                      # Output
     t = 1,                      # Number of timesteps
     r = 0.1,                    # Discount rate
-    V                           # Value function matrix (dimensions determined by c_f_vals and k_g_vals)
+    V,                          # Value function matrix (dimensions determined by c_f_vals and k_g_vals)
+    option = "all"              # Which options to choose from
     ) {
 
     if(missing(V)) {
-        V = matrix(
+        V <- matrix(
             runif(length(c_f_vals)*length(k_g_vals)), 
             length(c_f_vals), 
             length(k_g_vals)
@@ -88,7 +91,14 @@ value <- function(
         }
     }
 
-    V_min <- pmin(V_f, V_g)
+    if (option == "all") {
+        V_min <- pmin(V_f, V_g)
+    } else if (option == "f") {
+        V_min <- V_f
+    } else if (option == "g") {
+        V_min <- V_g
+    } else stop("Invalid option argument. Choose 'all', 'f', or 'g'.")
+
 
     return(list(
         V_min = V_min,

@@ -1,2 +1,5 @@
-source("src/opex_capex_model_L_period_gen.R")
-source("src/opex_capex_model_L_period_gen_with_drift.R")
+library(tidyverse)
+
+source("src/vfi.r")
+
+source("test/test_vfi.r")
