@@ -47,3 +47,14 @@ max_error_L10_option_drift <- max(abs(option_delta - test_original_L10_option_dr
 if (max_error_L10_option_drift > 1e-6) {
     stop(paste0("Value function iteration yielded a poor fit to previous methods, with an error of ", max_error_L10_option_drift))
 }
+
+message("Runtime test:")
+vfi(
+    c_f_vals = seq(1, 40, by = 1),
+    k_g_vals = seq(100, 800, by = 10),
+    k_f = 278,
+    c_g = 0,
+    sigma_cf = .1118,
+    sigma_kg = .05,
+    t = 10
+)
