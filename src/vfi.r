@@ -18,7 +18,7 @@ vfi <- function(
     ) {
 
     # Initialize value function matrix
-    V_init <- matrix(
+    V <- matrix(
         runif(length(c_f_vals)*length(k_g_vals)), 
         length(c_f_vals), 
         length(k_g_vals)
@@ -27,37 +27,43 @@ vfi <- function(
     # Compute Brownian motion density matrix
     phi <- phi(c_f_vals, k_g_vals, mu_cf, mu_kg, sigma_cf, sigma_kg, t)
 
-    Vleft_f <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
-    Vleft_g <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
+    # Sum operating and capital expenses
+    sum_f_vals <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
+    sum_g_vals <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
 
-    value_V <- function(V) value(Vleft_f, Vleft_g, t, r, V, phi, option)
+    # Create a shorthand version of the value function
+    value_V <- function(V, option = "all") value(sum_f_vals, sum_g_vals, t, r, V, phi, option)
 
-    V <- value_V(V_init)
-
+    # Set up for value function iteration
     delta <- 1
     iter <- 0
-
     t_start <- Sys.time()
 
+    # Carry out value function iteration
     while ((delta > 1e-6) & (iter < max_iter)) {
-        V_new <- value_V(V$V_min)
-        delta <- max(abs(V_new$V_min - V$V_min))
+        V_new <- value_V(V, option)
+        delta <- max(abs(V_new - V))
         V <- V_new
         iter <- iter + 1
     }
 
+    # Calculate and display runtime
     t_run <- Sys.time() - t_start
-    
     if (verbose) cat(iter, " iterations yielded a fit to a precision of ", delta," in ", t_run, "seconds \n")
 
-    return(V)
+    # Return solved value function matrix
+    return(list(
+        V_min = V,
+        V_f = value_V(V, "f"),
+        V_g = value_V(V, "g")
+    ))
 
 }
 
 # Value function
 value <- function(
-    Vleft_f,                    # Vector of fossil-fuel total costs calculated for operating-cost state space
-    Vleft_g,                    # Vector of green total costs calculated for capital-cost state space
+    sum_f_vals,                 # Vector of fossil-fuel total costs (sans replacement) over c_f range
+    sum_g_vals,                 # Vector of green total costs (sans replacement) over k_g range
     t = 1,                      # Number of timesteps
     r = 0.1,                    # Discount rate
     V,                          # Value function matrix (dimensions determined by c_f_vals and k_g_vals)
@@ -65,32 +71,27 @@ value <- function(
     option = "all"              # Which options to choose from
     ) {
 
-    V_min <- V # Copy dimensions, values will be overwritten
     V_f <- V
     V_g <- V
 
     # TODO: replace with array multiplication between phi and V to speed up computation (probably by a lot)
-    for (i in 1:length(Vleft_f)) {          
-        for (j in 1:length(Vleft_g)) {
+    for (i in 1:length(sum_f_vals)) {          
+        for (j in 1:length(sum_g_vals)) {
             V_right <- sum(phi[,,i,j]*V)*(1+r)^-t
-            V_f[i,j]  <- Vleft_f[i] + V_right
-            V_g[i,j]  <- Vleft_g[j] + V_right
+            V_f[i,j]  <- sum_f_vals[i] + V_right
+            V_g[i,j]  <- sum_g_vals[j] + V_right
         }
     }
 
     if (option == "all") {
-        V_min <- pmin(V_f, V_g)
+        V_out <- pmin(V_f, V_g)
     } else if (option == "f") {
-        V_min <- V_f
+        V_out <- V_f
     } else if (option == "g") {
-        V_min <- V_g
+        V_out <- V_g
     } else stop("Invalid option argument. Choose 'all', 'f', or 'g'.")
 
-    return(list(
-        V_min = V_min,
-        V_f = V_f, 
-        V_g = V_g
-    ))
+    return(V_out)
 
 }
 
