@@ -17,7 +17,7 @@ test_original_L10 <- read.csv("test/original_L10_npv.csv")
 max_error_L10 <- max(abs(test_L10$V_min - test_original_L10))
 
 if (max_error_L10 > 1e-6) {
-    stop(paste0("Value function iteration yielded a poor fit to previous methods with an error of ", max_error_L10))
+    stop(paste0("Value function iteration yielded a poor fit to previous methods, with an error of ", max_error_L10))
 }
 
 ### L = 10 green option value over fossil option value with drift
@@ -47,5 +47,5 @@ test_original_L10_option_drift <- read.csv("test/original_L10_option_delta_w_dri
 max_error_L10_option_drift <- max(abs(option_delta - test_original_L10_option_drift))
 
 if (max_error_L10_option_drift > 1e-6) {
-    stop(paste0("Value function iteration yielded a poor fit to previous methods with an error of ", max_error_L10_option_drift))
+    stop(paste0("Value function iteration yielded a poor fit to previous methods, with an error of ", max_error_L10_option_drift))
 }
