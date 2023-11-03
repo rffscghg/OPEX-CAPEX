@@ -74,7 +74,6 @@ value <- function(
     V_f <- V
     V_g <- V
 
-    # TODO: replace with array multiplication between phi and V to speed up computation (probably by a lot)
     for (i in 1:length(sum_f_vals)) {          
         for (j in 1:length(sum_g_vals)) {
             V_right <- sum(phi[,,i,j]*V)*(1+r)^-t
