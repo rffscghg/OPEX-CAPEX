@@ -48,6 +48,8 @@ if (max_error_L10_option_drift > 1e-6) {
     stop(paste0("Value function iteration yielded a poor fit to previous methods, with an error of ", max_error_L10_option_drift))
 }
 
+message("Accuracy tests passed.")
+
 message("Runtime test:")
 vfi(
     c_f_vals = seq(1, 40, by = 1),
