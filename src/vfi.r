@@ -70,10 +70,12 @@ value <- function(
     phi,                        # Two-dimensional Brownian motion density matrix
     option = "all"              # Which options to choose from
     ) {
-
+    
+    # Match dimensions
     V_f <- V
     V_g <- V
-
+    
+    # Iterate value function
     for (i in 1:length(sum_f_vals)) {          
         for (j in 1:length(sum_g_vals)) {
             V_right <- sum(phi[,,i,j]*V)*(1+r)^-t
@@ -82,6 +84,7 @@ value <- function(
         }
     }
 
+    # Choose output
     if (option == "all") {
         V_out <- pmin(V_f, V_g)
     } else if (option == "f") {
@@ -105,6 +108,7 @@ phi <- function(
     t = 1                       # Number of timesteps
     ) {
     
+    # Initialize phi array
     phi_array <- array(
         data = NA, # to fill in
         dim = c(
@@ -121,6 +125,7 @@ phi <- function(
         )
     )
     
+    # Calculate phi likelihoods from Brownian motion density function
     for (i in 1:length(c_f_vals)) {
         for (j in 1:length(k_g_vals)) {
             phi_c_f <- dgbm(c_f_vals, mu_cf, sigma_cf, t, c_f_vals[i])

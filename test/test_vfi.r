@@ -52,7 +52,7 @@ if (max_error_L10_option_drift > 1e-6) {
 
 message("Accuracy tests passed.")
 
-message("Runtime test:")
+message("Beginning runtime test. The current benchmark is about 2 seconds.")
 vfi(
     c_f_vals = seq(1, 40, by = 1),
     k_g_vals = seq(100, 800, by = 10),
