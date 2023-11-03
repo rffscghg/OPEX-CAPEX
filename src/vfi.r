@@ -54,7 +54,7 @@ vfi <- function(
     # Return solved value function matrix
     return(list(
         V_min = V,
-        V_f = value_V(V, "f"),
+        V_f = value_V(V, "f"), # TODO: Add tests for V_f and V_g (comparing to Brian's code)
         V_g = value_V(V, "g")
     ))
 
@@ -74,12 +74,28 @@ value <- function(
     V_f <- V
     V_g <- V
 
-    # TODO: replace with array multiplication between phi and V to speed up computation (probably by a lot)
+    V_array <- array(V, dim(phi))
+    V_x_phi <- V_array * phi
+    V_replacement <- apply(V_x_phi, 3:4, sum) * (1+r)^-t
+
+    sum_f_mat <- matrix(
+        rep(sum_f_vals, length(sum_g_vals)), 
+        nrow = length(sum_f_vals)
+    )
+
+    sum_g_mat <- matrix(
+        rep(sum_g_vals, length(sum_f_vals)), 
+        nrow = length(sum_g_vals),
+        byrow = TRUE
+    )
+
+    sum_min_mat <- pmin(sum_f_mat, sum_g_mat)
+
+    # TODO: replace with array multiplication between phi and V to speed up computation (not sure how much)
     for (i in 1:length(sum_f_vals)) {          
         for (j in 1:length(sum_g_vals)) {
-            V_right <- sum(phi[,,i,j]*V)*(1+r)^-t
-            V_f[i,j]  <- sum_f_vals[i] + V_right
-            V_g[i,j]  <- sum_g_vals[j] + V_right
+            V_f[i,j]  <- sum_f_vals[i] + V_replacement[i,j]
+            V_g[i,j]  <- sum_g_vals[j] + V_replacement[i,j]
         }
     }
 
