@@ -1,4 +1,4 @@
-library(tidyverse)
+# Main script to run OPEX-CAPEX model
 
 source("src/vfi.r")
 

@@ -17,11 +17,22 @@ vfi <- function(
     verbose = TRUE              # Print supplementary information to the console
     ) {
 
+    # Initialize value function matrix
+    V_init <- matrix(
+        runif(length(c_f_vals)*length(k_g_vals)), 
+        length(c_f_vals), 
+        length(k_g_vals)
+    )
+
+    # Compute Brownian motion density matrix
     phi <- phi(c_f_vals, k_g_vals, mu_cf, mu_kg, sigma_cf, sigma_kg, t)
 
-    value_V <- function(V) value(c_f_vals, k_g_vals, k_f, c_g, mu_cf, mu_kg, sigma_cf, sigma_kg, q, t, r, V, phi, option)
+    Vleft_f <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
+    Vleft_g <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
 
-    V <- value_V()
+    value_V <- function(V) value(Vleft_f, Vleft_g, t, r, V, phi, option)
+
+    V <- value_V(V_init)
 
     delta <- 1
     iter <- 0
@@ -33,7 +44,6 @@ vfi <- function(
         delta <- max(abs(V_new$V_min - V$V_min))
         V <- V_new
         iter <- iter + 1
-        if (verbose) cat("iteration: ",iter,"\n")
     }
 
     t_run <- Sys.time() - t_start
@@ -52,15 +62,8 @@ vfi <- function(
 
 # Value function
 value <- function(
-    c_f_vals,                   # State space for fossil-fuel operating costs
-    k_g_vals,                   # State space for green-energy capital costs
-    k_f = 1,                    # Fossil-fuel capital costs
-    c_g = 0,                    # Green-energy operating costs
-    mu_cf = 0,                  # Drift for fossil-fuel operating costs (geometric Brownian motion)
-    mu_kg = 0,                  # Drift for green-energy capital costs (geometric Brownian motion)
-    sigma_cf = 1,               # Volatility for fossil-fuel operating costs (geometric Brownian motion)
-    sigma_kg = 1,               # Volatility for green-energy capital costs (geometric Brownian motion)
-    q = 1,                      # Output
+    Vleft_f,                    # Vector of fossil-fuel total costs calculated for operating-cost state space
+    Vleft_g,                    # Vector of green total costs calculated for capital-cost state space
     t = 1,                      # Number of timesteps
     r = 0.1,                    # Discount rate
     V,                          # Value function matrix (dimensions determined by c_f_vals and k_g_vals)
@@ -68,25 +71,13 @@ value <- function(
     option = "all"              # Which options to choose from
     ) {
 
-    if(missing(V)) {
-        V <- matrix(
-            runif(length(c_f_vals)*length(k_g_vals)), 
-            length(c_f_vals), 
-            length(k_g_vals)
-        )
-    }
-
     V_min <- V # Copy dimensions, values will be overwritten
     V_f <- V
     V_g <- V
 
-    Vleft_f <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
-
-    Vleft_g <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
-
     # TODO: replace with array multiplication between phi and V to speed up computation (probably by a lot)
-    for (i in 1:length(c_f_vals)) {          
-        for (j in 1:length(k_g_vals)) {
+    for (i in 1:length(Vleft_f)) {          
+        for (j in 1:length(Vleft_g)) {
             V_right <- sum(phi[,,i,j]*V)*(1+r)^-t
             V_f[i,j]  <- Vleft_f[i] + V_right
             V_g[i,j]  <- Vleft_g[j] + V_right
