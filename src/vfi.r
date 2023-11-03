@@ -31,8 +31,22 @@ vfi <- function(
     sum_f_vals <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
     sum_g_vals <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
 
+    # Convert to matrices to use in value function
+    sum_f_mat <- matrix(
+        rep(sum_f_vals, length(sum_g_vals)), 
+        nrow = length(sum_f_vals)
+    )
+    sum_g_mat <- matrix(
+        rep(sum_g_vals, length(sum_f_vals)), 
+        nrow = length(sum_f_vals),
+        byrow = TRUE
+    )
+
+    # Compute minimum of total costs (sans replacement)
+    sum_min_mat <- pmin(sum_f_mat, sum_g_mat)
+
     # Create a shorthand version of the value function
-    value_V <- function(V, option = "all") value(sum_f_vals, sum_g_vals, t, r, V, phi, option)
+    value_V <- function(V, option = "all") value(sum_f_mat, sum_g_mat, sum_min_mat, t, r, V, phi, option)
 
     # Set up for value function iteration
     delta <- 1
@@ -62,8 +76,9 @@ vfi <- function(
 
 # Value function
 value <- function(
-    sum_f_vals,                 # Vector of fossil-fuel total costs (sans replacement) over c_f range
-    sum_g_vals,                 # Vector of green total costs (sans replacement) over k_g range
+    sum_f_mat,                  # Matrix of fossil-fuel total costs (sans replacement) over c_f range (independent of k_g)
+    sum_g_mat,                  # Matrix of green total costs (sans replacement) over k_g range (independent of c_f)
+    sum_min_mat,                # Matrix of minimum total costs (sans replacement) over state space
     t = 1,                      # Number of timesteps
     r = 0.1,                    # Discount rate
     V,                          # Value function matrix (dimensions determined by c_f_vals and k_g_vals)
@@ -71,40 +86,14 @@ value <- function(
     option = "all"              # Which options to choose from
     ) {
 
-    V_f <- V
-    V_g <- V
-
-    V_array <- array(V, dim(phi))
-    V_x_phi <- V_array * phi
-    V_replacement <- apply(V_x_phi, 3:4, sum) * (1+r)^-t
-
-    sum_f_mat <- matrix(
-        rep(sum_f_vals, length(sum_g_vals)), 
-        nrow = length(sum_f_vals)
-    )
-
-    sum_g_mat <- matrix(
-        rep(sum_g_vals, length(sum_f_vals)), 
-        nrow = length(sum_g_vals),
-        byrow = TRUE
-    )
-
-    sum_min_mat <- pmin(sum_f_mat, sum_g_mat)
-
-    # TODO: replace with array multiplication between phi and V to speed up computation (not sure how much)
-    for (i in 1:length(sum_f_vals)) {          
-        for (j in 1:length(sum_g_vals)) {
-            V_f[i,j]  <- sum_f_vals[i] + V_replacement[i,j]
-            V_g[i,j]  <- sum_g_vals[j] + V_replacement[i,j]
-        }
-    }
+    V_replacement <- apply(array(V, dim(phi)) * phi, 3:4, sum) * (1+r)^-t
 
     if (option == "all") {
-        V_out <- pmin(V_f, V_g)
+        V_out <- V_replacement + sum_min_mat
     } else if (option == "f") {
-        V_out <- V_f
+        V_out <- V_replacement + sum_f_mat
     } else if (option == "g") {
-        V_out <- V_g
+        V_out <- V_replacement + sum_g_mat
     } else stop("Invalid option argument. Choose 'all', 'f', or 'g'.")
 
     return(V_out)
