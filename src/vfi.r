@@ -50,12 +50,6 @@ vfi <- function(
     
     if (verbose) cat(iter, " iterations yielded a fit to a precision of ", delta," in ", t_run, "seconds \n")
 
-    V <- lapply(V, function(x) {
-        rownames(x) <- c_f_vals
-        colnames(x) <- k_g_vals
-        return(x)
-    })
-
     return(V)
 
 }
@@ -91,7 +85,6 @@ value <- function(
     } else if (option == "g") {
         V_min <- V_g
     } else stop("Invalid option argument. Choose 'all', 'f', or 'g'.")
-
 
     return(list(
         V_min = V_min,
