@@ -8,8 +8,7 @@ test_L10 <- vfi(
     c_g = 0,
     sigma_cf = .1118,
     sigma_kg = .05,
-    t = 10,
-    verbose = FALSE
+    t = 10
 )
 
 test_original_L10 <- read.csv("test/original_L10_npv.csv")
@@ -32,7 +31,6 @@ test_L10_option_w_drift <- function(option = "all") {
         sigma_cf = .1118,
         sigma_kg = .05,
         t = 10,
-        verbose = FALSE,
         option = option
     )
 }

@@ -33,12 +33,11 @@ vfi <- function(
         delta <- max(abs(V_new$V_min - V$V_min))
         V <- V_new
         iter <- iter + 1
-        if (verbose) cat("iteration: ",iter,"\n")
     }
 
     t_run <- Sys.time() - t_start
     
-    if (verbose) cat(iter, " iterations yielded a fit to a precision of ", delta," in ", round(t_run), "seconds \n")
+    if (verbose) cat(iter, " iterations yielded a fit to a precision of ", delta," in ", t_run, "seconds \n")
 
     V <- lapply(V, function(x) {
         rownames(x) <- c_f_vals
