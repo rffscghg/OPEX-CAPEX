@@ -145,3 +145,16 @@ dgbm <- function(x, mu, sigma, t, x0) {
     dlnorm(x, meanlog = log(x0) + (mu-1/2*sigma^2)*t, sdlog = sigma*sqrt(t))
 
 }
+
+binary_digit_sum <- function(x) {
+
+    x_2 <- x
+
+    while (x_2 > 0) {
+        x_2 <- floor(x_2 / 2)
+        x <- x - x_2
+    }
+
+    return(x)
+
+}
