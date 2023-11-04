@@ -17,11 +17,14 @@ vfi <- function(
     verbose = TRUE              # Print supplementary information to the console
     ) {
 
-    # Initialize value function matrix
-    V <- matrix(
+    # Initialize value function array
+    V <- array(
         runif(length(c_f_vals)*length(k_g_vals)), 
-        length(c_f_vals), 
-        length(k_g_vals)
+        c(
+            length(c_f_vals), 
+            length(k_g_vals),
+            1
+        )
     )
 
     # Compute Brownian motion density matrix
@@ -53,9 +56,9 @@ vfi <- function(
 
     # Return solved value function matrix
     return(list(
-        V_min = V,
-        V_f = value_V(V, "f"),
-        V_g = value_V(V, "g")
+        V_min = as.matrix(V[,,1]),
+        V_f = as.matrix(value_V(V, "f")[,,1]),
+        V_g = as.matrix(value_V(V, "g")[,,1])
     ))
 
 }
@@ -66,7 +69,7 @@ value <- function(
     sum_g_vals,                 # Vector of green total costs (sans replacement) over k_g range
     t = 1,                      # Number of timesteps
     r = 0.1,                    # Discount rate
-    V,                          # Value function matrix (dimensions determined by c_f_vals and k_g_vals)
+    V,                          # Value function array
     phi,                        # Two-dimensional Brownian motion density matrix
     option = "all"              # Which options to choose from
     ) {
@@ -78,9 +81,11 @@ value <- function(
     # Iterate value function
     for (i in 1:length(sum_f_vals)) {          
         for (j in 1:length(sum_g_vals)) {
-            V_right <- sum(phi[,,i,j]*V)*(1+r)^-t
-            V_f[i,j]  <- sum_f_vals[i] + V_right
-            V_g[i,j]  <- sum_g_vals[j] + V_right
+            for (k in 1:1) { # Change to 1:t
+                V_right <- sum(phi[,,i,j]*V[,,1])*(1+r)^-t # Change to V[,,k]
+                V_f[i,j,1]  <- sum_f_vals[i] + V_right
+                V_g[i,j,1]  <- sum_g_vals[j] + V_right
+            }
         }
     }
 
