@@ -18,38 +18,41 @@ vfi <- function(
     verbose = FALSE             # Print supplementary information to the console
     ) {
 
+    # Calculate the number of possible tuples of legacy assets, i.e., those already in operation
+    n_states <- ifelse(const_scrap, 2^(t-1), 1)
+    
     # Initialize value function array
     V <- array(
         runif(length(c_f_vals)*length(k_g_vals)), 
         c(
             length(c_f_vals), 
             length(k_g_vals),
-            1
+            n_states
         )
     )
 
-    # Compute Brownian motion density matrix
-    phi <- phi(c_f_vals, k_g_vals, mu_cf, mu_kg, sigma_cf, sigma_kg, t)
+    # Compute single-timestep operating expenses (accounting for output, drift, and discounting)
+    opex_f <- c_f_vals * exp(mu_cf) * q / (1 + r)
+    opex_g <- c_g * q / (1 + r)
 
-    # Calculate fossil-fuel operating and total expenses
-    opex_f <- c_f_vals * exp(mu_cf) * q / (1 + r) # Single timestep
+    # Compute Brownian motion density matrix and total expenses
     if (const_scrap) {
+
+        phi <- phi(c_f_vals, k_g_vals, mu_cf, mu_kg, sigma_cf, sigma_kg, t = 1)
         sum_f_vals <- k_f + opex_f
-    } else {
-        sum_f_vals <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
-    }
-
-    # Calculate green operating and total expenses
-    opex_g <- c_g * q / (1 + r) # Single timestep
-    if (const_scrap) {
         sum_g_vals <- k_g_vals + opex_g
+
     } else {
+
+        phi <- phi(c_f_vals, k_g_vals, mu_cf, mu_kg, sigma_cf, sigma_kg, t)
+        sum_f_vals <- k_f + rowSums(tcrossprod(c_f_vals, exp(mu_cf * (1:t))*q*(1+r)^-(1:t)))
         sum_g_vals <- k_g_vals + sum(c_g*q*(1+r)^-(1:t))
+
     }
 
     # Create a shorthand version of the value function
     value_V <- function(V, option = "all") {
-        .value(opex_f, sum_f_vals, opex_g, sum_g_vals, t, r, V, phi, option, const_scrap)
+        .value(opex_f, sum_f_vals, opex_g, sum_g_vals, t, n_states, r, V, phi, option, const_scrap)
     }
 
     # Set up for value function iteration
@@ -59,22 +62,26 @@ vfi <- function(
 
     # Carry out value function iteration
     while ((delta > 1e-6) & (iter < max_iter)) {
+
         V_new <- value_V(V, option)
         delta <- max(abs(V_new - V))
         V <- V_new
         iter <- iter + 1
         if (verbose) cat("iteration", iter, "complete.\n")
+
     }
 
     # Calculate and display runtime
     t_run <- Sys.time() - t_start
     cat(iter, "iterations yielded a fit to a precision of", delta, "in", t_run, "seconds\n")
 
-    # Return solved value function matrix
+    # Return solved value function
     return(list(
-        V_min = as.matrix(V[,,1]),
-        V_f = ifelse(option == "all", as.matrix(value_V(V, "f")[,,1]), NA), # Otherwise V_min = V_f
-        V_g = ifelse(option == "all", as.matrix(value_V(V, "g")[,,1]), NA)  # Otherwise V_min = V_g
+
+        V_min = V,
+        V_f = ifelse(option == "all", value_V(V, "f"), NA), # Otherwise V_min = V_f
+        V_g = ifelse(option == "all", value_V(V, "g"), NA)  # Otherwise V_min = V_g
+
     ))
 
 }
@@ -86,6 +93,7 @@ vfi <- function(
     opex_g,                     # Discounted green single-period operating expense
     sum_g_vals,                 # Vector of green total costs (sans replacement) over k_g range
     t,                          # Number of timesteps
+    n_states,                   # Number of possible tuples of legacy assets
     r,                          # Discount rate
     V,                          # Value function array
     phi,                        # Two-dimensional Brownian motion density matrix
@@ -100,16 +108,24 @@ vfi <- function(
     # Iterate value function
     for (i in 1:length(sum_f_vals)) {          
         for (j in 1:length(sum_g_vals)) {
-            for (k in 1:1) { # Change to 1:(2^(t-1))
-                V_right <- sum(phi[,,i,j]*V[,,1])*(1+r)^-t # Change to V[,,k]
+            for (k in 1:n_states) { # The binary representation of k-1 can be thought of as the series of
+                                    # assets, with the newest asset as the rightmost digit.
+                                    # For example: t = 3 -> n_states = 4, k = 4 -> k - 1 = 3 = 11(base 2).
+                                    # The modular arithmetic below transforms k - 1 by shifting all assets
+                                    # left, adding an asset (1 for fossil), and dropping the leftmost asset.
                 
-                N_f <- binary_digit_sum(k - 1) # So t = 1 -> k = 1 - > {N_f, N_g} = 0, i.e., no legacy assets
+                # For constant scrappage: look one timestep ahead for c_f, k_g, and A (set of t assets)
+                # For single asset: look t timesteps ahead for c_f and k_g
+                V_right_f <- sum(phi[,,i,j]*V[,,(2*k - 1)%%n_states + 1])*(1+r)^-ifelse(const_scrap,1,t)
+                V_right_g <- sum(phi[,,i,j]*V[,,(2*k - 2)%%n_states + 1])*(1+r)^-ifelse(const_scrap,1,t)
+                
+                N_f <- binary_digit_sum(k - 1) # t=1 -> k=1 -> {N_f, N_g}={0,0}, i.e., no legacy assets
                 N_g <- t - N_f - 1
-
                 legacy <- N_f * opex_f[i] + N_g * opex_g
 
-                V_f[i,j,1]  <- sum_f_vals[i] + V_right + legacy*const_scrap
-                V_g[i,j,1]  <- sum_g_vals[j] + V_right + legacy*const_scrap
+                V_f[i,j,k]  <- sum_f_vals[i] + V_right_f + legacy*const_scrap
+                V_g[i,j,k]  <- sum_g_vals[j] + V_right_g + legacy*const_scrap
+
             }
         }
     }
@@ -158,10 +174,12 @@ phi <- function(
     # Calculate phi likelihoods from Brownian motion density function
     for (i in 1:length(c_f_vals)) {
         for (j in 1:length(k_g_vals)) {
+
             phi_c_f <- dgbm(c_f_vals, mu_cf, sigma_cf, t, c_f_vals[i])
             phi_k_g <- dgbm(k_g_vals, mu_kg, sigma_kg, t, k_g_vals[j])
             gbm_2d <- tcrossprod(phi_c_f, phi_k_g)
             phi_array[,,i,j] <- gbm_2d/sum(gbm_2d)
+
         }
     }
 
@@ -176,11 +194,15 @@ dgbm <- function(x, mu, sigma, t, x0) {
 
 }
 
+# Calculate the sum of the digits of x as a binary number
 binary_digit_sum <- function(x) {
+
     x_2 <- x
     while (x_2 > 0) {
         x_2 <- floor(x_2 / 2)
         x <- x - x_2
     }
+
     return(x)
+
 }
