@@ -1,5 +1,7 @@
 # Compare value function iteration to Brian's original code, using coarser resolution for speed
 
+message("Beginning accuracy tests.")
+
 ### L = 10 NPV
 test_L10 <- vfi(
     c_f_vals = seq(1, 40, by = 3),
@@ -8,8 +10,7 @@ test_L10 <- vfi(
     c_g = 0,
     sigma_cf = .1118,
     sigma_kg = .05,
-    t = 10,
-    verbose = FALSE
+    t = 10
 )
 
 test_original_L10 <- read.csv("test/original_L10_npv.csv")
@@ -32,8 +33,7 @@ test_L10_option_w_drift <- function(option = "all") {
         sigma_cf = .1118,
         sigma_kg = .05,
         t = 10,
-        option = option,
-        verbose = FALSE
+        option = option
     )
 }
 
@@ -52,7 +52,7 @@ if (max_error_L10_option_drift > 1e-6) {
 
 message("Accuracy tests passed.")
 
-message("Beginning runtime test. The current benchmark is about 2 seconds.")
+message("Beginning runtime test. The current benchmark is in the range of 2 to 4 seconds.")
 vfi(
     c_f_vals = seq(1, 40, by = 1),
     k_g_vals = seq(100, 800, by = 10),
