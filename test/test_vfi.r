@@ -1,6 +1,6 @@
 # Compare value function iteration to Brian's original code, using coarser resolution for speed
 
-message("\nBeginning single-asset accuracy tests.\n")
+message("\nBeginning single-asset accuracy tests.")
 
 ### L = 10 NPV
 test_L10 <- vfi(
@@ -50,9 +50,9 @@ if (max_error_L10_option_drift > 1e-6) {
     stop(paste0("Value function iteration yielded a poor fit to previous methods, with an error of ", max_error_L10_option_drift))
 }
 
-message("\nAccuracy tests passed.\n")
+message("Accuracy tests passed.")
 
-message("\nBeginning single-asset runtime test. The current benchmark is about 5 seconds.\n")
+message("\nBeginning single-asset runtime test. The current benchmark is about 5 seconds.")
 vfi(
     c_f_vals = seq(1, 40, by = 1),
     k_g_vals = seq(100, 800, by = 10),
@@ -63,7 +63,7 @@ vfi(
     t = 10
 )
 
-message("\n\nBeginning constant-scrappage runtime test. The current benchmark is about 10 seconds.\n")
+message("\nBeginning constant-scrappage runtime test. The current benchmark is about 10 seconds.")
 vfi(
     c_f_vals = seq(1, 40, by = 3),
     k_g_vals = seq(100, 800, by = 20),
@@ -75,5 +75,3 @@ vfi(
     const_scrap = TRUE,
     max_iter = 1000
 )
-
-message("\n")
