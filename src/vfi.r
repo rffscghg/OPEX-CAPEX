@@ -75,13 +75,16 @@ vfi <- function(
     t_run <- Sys.time() - t_start
     cat(iter, "iterations yielded a fit to a precision of", delta, "in", t_run, "seconds\n")
 
+    # Calculate single-option value functions
+    V_f = if (option == "all") {value_V(V, "f")} else {NA} # Otherwise V_min = V_f
+    V_g = if (option == "all") {value_V(V, "g")} else {NA} # Otherwise V_min = V_g
+    
+
     # Return solved value function
     return(list(
-
         V_min = V,
-        V_f = ifelse(option == "all", value_V(V, "f"), NA), # Otherwise V_min = V_f
-        V_g = ifelse(option == "all", value_V(V, "g"), NA)  # Otherwise V_min = V_g
-
+        V_f = V_f,
+        V_g = V_g
     ))
 
 }
