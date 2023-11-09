@@ -52,10 +52,10 @@ if (max_error_L10_option_drift > 1e-6) {
 
 message("Accuracy tests passed.")
 
-message("\nBeginning single-asset runtime test. The current benchmark is about 5 seconds.")
+message("\nBeginning single-asset runtime test. The current benchmark is 0.7 seconds.")
 vfi(
-    c_f_vals = seq(1, 40, by = 1),
-    k_g_vals = seq(100, 800, by = 10),
+    c_f_vals = seq(1, 41, by = 2),
+    k_g_vals = seq(100, 900, by = 20),
     k_f = 278,
     c_g = 0,
     sigma_cf = .1118,
@@ -63,10 +63,10 @@ vfi(
     t = 10
 )
 
-message("\nBeginning constant-scrappage runtime test. The current benchmark is about 10 seconds.")
+message("\nBeginning constant-scrappage runtime test. The current benchmark is 1.2 seconds.")
 vfi(
-    c_f_vals = seq(1, 40, by = 3),
-    k_g_vals = seq(100, 800, by = 20),
+    c_f_vals = seq(1, 41, by = 5),
+    k_g_vals = seq(100, 900, by = 80),
     k_f = 278,
     c_g = 0,
     sigma_cf = .1118,
