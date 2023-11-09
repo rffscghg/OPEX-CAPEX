@@ -22,7 +22,7 @@ if (max_error_L10 > 1e-6) {
 }
 
 ### L = 10 green option value over fossil option value with drift
-test_L10_option_w_drift <- function(option = "all") {
+test_L10_option_w_drift <- function(option = "all", V_init = NULL) {
     vfi(
         c_f_vals = seq(1, 40, by = 3),
         k_g_vals = seq(100, 800, by = 20),
@@ -51,6 +51,20 @@ if (max_error_L10_option_drift > 1e-6) {
 }
 
 message("Accuracy tests passed.")
+
+message("\nBeginning miscellaneous tests")
+
+# Test initial value functionality
+
+test_v_init <- test_L10_option_w_drift("f", V_init = opt_g)
+
+test_original_v_init <- read.csv("test/L10_V_f_with_V_g_as_V_init.csv")
+
+if (isFALSE(test_v_init$V_min[,,1] == test_original_v_init)) {
+    stop("V_init functionality is broken.")
+}
+
+message("Miscellaneous tests passed.")
 
 # Test runtime
 

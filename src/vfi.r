@@ -15,26 +15,31 @@ vfi <- function(
     const_scrap = FALSE,        # Constant scrappage (`t` assets held at once, oldest replaced each timestep)
     threshold = 1e-6,           # Fit threshold (value function iteration)
     max_iter = 100,             # Maximum number of iterations (value function iteration)
-    verbose = FALSE             # Print supplementary information to the console
+    verbose = FALSE,            # Print supplementary information to the console
+    V_init = NULL               # Starting values for iteration, in the same format as this function's output
     ) {
 
     # Calculate the number of possible tuples of legacy assets, i.e., those already in operation
     n_states <- ifelse(const_scrap, 2^(t-1), 1)
     
     # Initialize value function array
-    V <- array(
-        runif(length(c_f_vals)*length(k_g_vals)), 
-        c(
-            length(c_f_vals), 
-            length(k_g_vals),
-            n_states
-        ),
-        list(
-            c_f = c_f_vals,
-            k_g = k_g_vals,
-            legacy_state = 1:n_states
+    if (is.null(V_init)) {
+        V <- array(
+            runif(length(c_f_vals)*length(k_g_vals)), 
+            c(
+                length(c_f_vals), 
+                length(k_g_vals),
+                n_states
+            ),
+            list(
+                c_f = c_f_vals,
+                k_g = k_g_vals,
+                legacy_state = 1:n_states
+            )
         )
-    )
+    } else {
+        V <- V_init
+    }
 
     # Compute single-timestep operating expenses (accounting for output, drift, and discounting)
     opex_f <- c_f_vals * exp(mu_cf) * q / (1 + r)
@@ -209,7 +214,7 @@ binary_digit_sum <- function(x) {
         x_2 <- floor(x_2 / 2)
         x <- x - x_2
     }
-    
+
     return(x)
 
 }
