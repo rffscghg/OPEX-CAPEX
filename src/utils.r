@@ -20,10 +20,40 @@ tidy_V <- function(vfi_obj) {
         )
 
     for (i in 1:length(vfi_tidy)) {
+
+        vfi_tidy[[i]]$f_exposure <- 0
+
+        for (j in 1:nrow(vfi_tidy[[i]])) {
+            
+            # I tried to do this using mutate but ran into vectorization issues
+            vfi_tidy[[i]]$f_exposure[j] <- cumul_years_left(vfi_tidy[[i]]$legacy_str[j])
+
+        }
+
         vfi_tidy[[i]]$option <- names(vfi_tidy)[i]
     }
 
     return(bind_rows(vfi_tidy))
+
+}
+
+# Calculate the number of years remaining for fossil assets from a legacy_state
+cumul_years_left = function(x) {
+
+  return(sum(1:nchar(x) * (strsplit(x, split = NULL)[[1]]=='f')))
+
+}
+
+# Calculate the sum of the digits of x as a binary number
+binary_digit_sum <- function(x) {
+
+    x_2 <- x
+    while (x_2 > 0) {
+        x_2 <- floor(x_2 / 2)
+        x <- x - x_2
+    }
+
+    return(x)
 
 }
 
@@ -40,6 +70,7 @@ bin2string = function(x, t) {
 
 }
 
+# Convert an "fg" string for legacy assets to the corresponding legacy_state argument
 string2bin = function(x) {
 
     x = gsub('f','1', x)
@@ -50,4 +81,3 @@ string2bin = function(x) {
     return(x)
 
 }
-
