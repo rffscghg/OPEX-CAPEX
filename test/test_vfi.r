@@ -52,6 +52,8 @@ if (max_error_L10_option_drift > 1e-6) {
 
 message("Accuracy tests passed.")
 
+# Test runtime
+
 message("\nBeginning single-asset runtime test. The current benchmark is 0.7 seconds.")
 vfi(
     c_f_vals = seq(1, 41, by = 2),

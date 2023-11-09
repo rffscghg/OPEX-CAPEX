@@ -209,7 +209,7 @@ binary_digit_sum <- function(x) {
         x_2 <- floor(x_2 / 2)
         x <- x - x_2
     }
-
+    
     return(x)
 
 }
