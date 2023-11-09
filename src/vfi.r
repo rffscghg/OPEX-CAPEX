@@ -38,7 +38,7 @@ vfi <- function(
             )
         )
     } else {
-        V <- V_init
+        V <- V_init$V_min
     }
 
     # Compute single-timestep operating expenses (accounting for output, drift, and discounting)
@@ -71,13 +71,13 @@ vfi <- function(
     t_start <- Sys.time()
 
     # Carry out value function iteration
-    while ((delta > 1e-6) & (iter < max_iter)) {
+    while ((delta > threshold) & (iter < max_iter)) {
 
         V_new <- value_V(V, option)
         delta <- max(abs(V_new - V))
         V <- V_new
         iter <- iter + 1
-        if (verbose) cat("iteration", iter, "complete.\n")
+        if (verbose) cat("iteration", iter, "complete. Error value:",delta,"\n")
 
     }
 
