@@ -28,6 +28,11 @@ vfi <- function(
             length(c_f_vals), 
             length(k_g_vals),
             n_states
+        ),
+        list(
+            c_f = c_f_vals,
+            k_g = k_g_vals,
+            legacy_state = 1:n_states
         )
     )
 
@@ -79,7 +84,6 @@ vfi <- function(
     V_f = if (option == "all") {value_V(V, "f")} else {NA} # Otherwise V_min = V_f
     V_g = if (option == "all") {value_V(V, "g")} else {NA} # Otherwise V_min = V_g
     
-
     # Return solved value function
     return(list(
         V_min = V,

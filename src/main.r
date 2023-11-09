@@ -1,4 +1,5 @@
 # Main script to run OPEX-CAPEX model
+library(tidyverse)
 library(hms)
 
 source("src/vfi.r")
