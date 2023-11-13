@@ -28,7 +28,6 @@ results_1 <- vfi(
 )
 
 p1 <- tidy_V(results_1) %>%
-    filter(option == "V_min") %>%
     group_by(f_exposure, c_f, k_g) %>%
     summarise(value = mean(value)) %>%
     ggplot(aes(x = c_f, y = k_g, fill = value/max(value))) +

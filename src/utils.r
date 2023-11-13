@@ -1,36 +1,33 @@
 # Export "tidy" data from VFI output
-tidy_V <- function(vfi_obj) {
+tidy_V <- function(
+    vfi_obj,            # Data in the format of `vfi()` output
+    index = 1           # Which of the three (V_min, V_f, V_g) output arrays to use
+    ) {
 
     # Get c_f_vals from first dimension
-    c_f_vals <- as.numeric(dimnames(vfi_obj[[1]])$c_f)
+    c_f_vals <- as.numeric(dimnames(vfi_obj[[index]])$c_f)
 
     # Calculate t
-    t <- log(dim(vfi_obj[[1]])[3], base = 2) + 1
+    t <- log(dim(vfi_obj[[index]])[3], base = 2) + 1
 
-    vfi_tidy <- vfi_obj %>%
-        lapply(as_tibble) %>%
-        lapply(mutate, c_f = c_f_vals) %>%
-        lapply(pivot_longer, -c_f) %>%
-        lapply(separate, name, c("k_g", "legacy_state"), sep = "\\.") %>%
-        lapply(
-            mutate, 
+    vfi_tidy <- vfi_obj[[index]] %>%
+        as_tibble() %>%
+        mutate(c_f = c_f_vals) %>%
+        pivot_longer(-c_f) %>%
+        separate(name, c("k_g", "legacy_state"), sep = "\\.") %>%
+        mutate(
             k_g = as.numeric(k_g), 
             legacy_state = as.numeric(legacy_state),
             legacy_str = bin2string(legacy_state, t)
         )
 
-    for (i in 1:length(vfi_tidy)) {
+    vfi_tidy$f_exposure <- 0
 
-        vfi_tidy[[i]]$f_exposure <- 0
+    for (i in 1:nrow(vfi_tidy)) {
+        
+        # I tried to do this using mutate but ran into vectorization issues
+        vfi_tidy$f_exposure[i] <- cumul_years_left(vfi_tidy$legacy_str[i])
 
-        for (j in 1:nrow(vfi_tidy[[i]])) {
-            
-            # I tried to do this using mutate but ran into vectorization issues
-            vfi_tidy[[i]]$f_exposure[j] <- cumul_years_left(vfi_tidy[[i]]$legacy_str[j])
-
-        }
-
-        vfi_tidy[[i]]$option <- names(vfi_tidy)[i]
     }
 
     return(bind_rows(vfi_tidy))
