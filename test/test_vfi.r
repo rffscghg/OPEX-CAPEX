@@ -22,7 +22,7 @@ if (max_error_L10 > 1e-6) {
 }
 
 ### L = 10 green option value over fossil option value with drift
-test_L10_option_w_drift <- function(option = "all") {
+test_L10_option_w_drift <- function(option = "all", V_init = NULL) {
     vfi(
         c_f_vals = seq(1, 40, by = 3),
         k_g_vals = seq(100, 800, by = 20),
@@ -52,10 +52,26 @@ if (max_error_L10_option_drift > 1e-6) {
 
 message("Accuracy tests passed.")
 
-message("\nBeginning single-asset runtime test. The current benchmark is about 5 seconds.")
+message("\nBeginning miscellaneous tests")
+
+# Test initial value functionality
+
+test_v_init <- test_L10_option_w_drift("f", V_init = opt_g)
+
+test_original_v_init <- read.csv("test/L10_V_f_with_V_g_as_V_init.csv")
+
+if (isFALSE(test_v_init$V_min[,,1] == test_original_v_init)) {
+    stop("V_init functionality is broken.")
+}
+
+message("Miscellaneous tests passed.")
+
+# Test runtime
+
+message("\nBeginning single-asset runtime test. The current benchmark is 0.7 seconds.")
 vfi(
-    c_f_vals = seq(1, 40, by = 1),
-    k_g_vals = seq(100, 800, by = 10),
+    c_f_vals = seq(1, 41, by = 2),
+    k_g_vals = seq(100, 900, by = 20),
     k_f = 278,
     c_g = 0,
     sigma_cf = .1118,
@@ -63,10 +79,10 @@ vfi(
     t = 10
 )
 
-message("\nBeginning constant-scrappage runtime test. The current benchmark is about 10 seconds.")
+message("\nBeginning constant-scrappage runtime test. The current benchmark is 1.2 seconds.")
 vfi(
-    c_f_vals = seq(1, 40, by = 3),
-    k_g_vals = seq(100, 800, by = 20),
+    c_f_vals = seq(1, 41, by = 5),
+    k_g_vals = seq(100, 900, by = 80),
     k_f = 278,
     c_g = 0,
     sigma_cf = .1118,

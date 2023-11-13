@@ -15,21 +15,31 @@ vfi <- function(
     const_scrap = FALSE,        # Constant scrappage (`t` assets held at once, oldest replaced each timestep)
     threshold = 1e-6,           # Fit threshold (value function iteration)
     max_iter = 100,             # Maximum number of iterations (value function iteration)
-    verbose = FALSE             # Print supplementary information to the console
+    verbose = FALSE,            # Print supplementary information to the console
+    V_init = NULL               # Starting values for iteration, in the same format as this function's output
     ) {
 
     # Calculate the number of possible tuples of legacy assets, i.e., those already in operation
     n_states <- ifelse(const_scrap, 2^(t-1), 1)
     
     # Initialize value function array
-    V <- array(
-        runif(length(c_f_vals)*length(k_g_vals)), 
-        c(
-            length(c_f_vals), 
-            length(k_g_vals),
-            n_states
+    if (is.null(V_init)) {
+        V <- array(
+            runif(length(c_f_vals)*length(k_g_vals)), 
+            c(
+                length(c_f_vals), 
+                length(k_g_vals),
+                n_states
+            ),
+            list(
+                c_f = c_f_vals,
+                k_g = k_g_vals,
+                legacy_state = 1:n_states
+            )
         )
-    )
+    } else {
+        V <- V_init$V_min
+    }
 
     # Compute single-timestep operating expenses (accounting for output, drift, and discounting)
     opex_f <- c_f_vals * exp(mu_cf) * q / (1 + r)
@@ -61,13 +71,13 @@ vfi <- function(
     t_start <- Sys.time()
 
     # Carry out value function iteration
-    while ((delta > 1e-6) & (iter < max_iter)) {
+    while ((delta > threshold) & (iter < max_iter)) {
 
         V_new <- value_V(V, option)
         delta <- max(abs(V_new - V))
         V <- V_new
         iter <- iter + 1
-        if (verbose) cat("iteration", iter, "complete.\n")
+        if (verbose) cat("iteration", iter, "complete. Error value:",delta,"\n")
 
     }
 
@@ -79,7 +89,6 @@ vfi <- function(
     V_f = if (option == "all") {value_V(V, "f")} else {NA} # Otherwise V_min = V_f
     V_g = if (option == "all") {value_V(V, "g")} else {NA} # Otherwise V_min = V_g
     
-
     # Return solved value function
     return(list(
         V_min = V,
@@ -194,18 +203,5 @@ phi <- function(
 dgbm <- function(x, mu, sigma, t, x0) {
 
     dlnorm(x, meanlog = log(x0) + (mu-1/2*sigma^2)*t, sdlog = sigma*sqrt(t))
-
-}
-
-# Calculate the sum of the digits of x as a binary number
-binary_digit_sum <- function(x) {
-
-    x_2 <- x
-    while (x_2 > 0) {
-        x_2 <- floor(x_2 / 2)
-        x <- x - x_2
-    }
-
-    return(x)
 
 }
