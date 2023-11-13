@@ -16,7 +16,10 @@ vfi <- function(
     threshold = 1e-6,           # Fit threshold (value function iteration)
     max_iter = 100,             # Maximum number of iterations (value function iteration)
     verbose = FALSE,            # Print supplementary information to the console
-    V_init = NULL               # Starting values for iteration, in the same format as this function's output
+    V_init = NULL,               # Starting values for iteration, in the same format as this function's output
+    risk_averse=FALSE,          # Use risk-averse setup?
+    eta=2,                      # CRRA risk aversion parameter
+    output_value                # output value per unit in risk averse framework
     ) {
 
     # Calculate the number of possible tuples of legacy assets, i.e., those already in operation
@@ -62,14 +65,15 @@ vfi <- function(
 
     # Create a shorthand version of the value function
     value_V <- function(V, option = "all") {
-        .value(opex_f, sum_f_vals, opex_g, sum_g_vals, t, n_states, r, V, phi, option, const_scrap)
+        # .value(opex_f, sum_f_vals, opex_g, sum_g_vals, t, n_states, r, V, phi, option, const_scrap)
+      .value(opex_f, sum_f_vals, opex_g, sum_g_vals, t, n_states, r, V, phi, option, const_scrap, risk_averse, eta, output_value)
     }
 
     # Set up for value function iteration
     delta <- 1
     iter <- 0
     t_start <- Sys.time()
-
+    
     # Carry out value function iteration
     while ((delta > threshold) & (iter < max_iter)) {
 
@@ -98,6 +102,16 @@ vfi <- function(
 
 }
 
+u = function(x, eta) {
+  if (eta==1) { 
+    log(x)
+  } else if (eta==0) {
+    x
+  } else if (all(eta!=0, eta!=1)) {
+    (x^(1-eta) - 1)/(1-eta) 
+  }
+}
+
 # Value function
 .value <- function(
     opex_f,                     # Vector of discounted fossil-fuel single-period operating expense over c_f range
@@ -110,7 +124,10 @@ vfi <- function(
     V,                          # Value function array
     phi,                        # Two-dimensional Brownian motion density matrix
     option,                     # Which options to choose from
-    const_scrap                 # Constant scrappage (`t` assets held at once, oldest replaced each timestep)
+    const_scrap,                # Constant scrappage (`t` assets held at once, oldest replaced each timestep)
+    risk_averse=FALSE,          # Use risk-averse setup?
+    eta=2,                      # CRRA risk aversion parameter
+    output_value                # output value per unit in risk averse framework
     ) {
     
     # Match dimensions
@@ -134,9 +151,15 @@ vfi <- function(
                 N_f <- binary_digit_sum(k - 1) # t=1 -> k=1 -> {N_f, N_g}={0,0}, i.e., no legacy assets
                 N_g <- t - N_f - 1
                 legacy <- N_f * opex_f[i] + N_g * opex_g
-
-                V_f[i,j,k]  <- sum_f_vals[i] + V_right_f + legacy*const_scrap
-                V_g[i,j,k]  <- sum_g_vals[j] + V_right_g + legacy*const_scrap
+                # browser()
+                if (!risk_averse) {
+                  V_f[i,j,k]  <- sum_f_vals[i] + V_right_f + legacy*const_scrap
+                  V_g[i,j,k]  <- sum_g_vals[j] + V_right_g + legacy*const_scrap
+                } else if (risk_averse) {
+                  V_f[i,j,k]  <- u(output_value*t - (sum_f_vals[i] + legacy*const_scrap), eta=eta) + V_right_f
+                  V_g[i,j,k]  <- u(output_value*t - (sum_g_vals[j] + legacy*const_scrap), eta=eta) + V_right_g
+                }
+                
 
             }
         }
@@ -144,11 +167,12 @@ vfi <- function(
 
     # Choose output
     if (option == "all") {
-        V_out <- pmin(V_f, V_g)
+      if (!risk_averse) V_out <- pmin(V_f, V_g)
+      if (risk_averse) V_out <- pmax(V_f, V_g)
     } else if (option == "f") {
-        V_out <- V_f
+      V_out <- V_f
     } else if (option == "g") {
-        V_out <- V_g
+      V_out <- V_g
     } else stop("Invalid option argument. Choose 'all', 'f', or 'g'.")
 
     return(V_out)
