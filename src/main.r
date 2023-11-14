@@ -3,6 +3,7 @@
 library(tidyverse)
 library(hms)
 
+source("src/monte.r")
 source("src/vfi.r")
 source("src/utils.r")
 
@@ -37,3 +38,20 @@ p1 <- tidy_V(results_1) %>%
     scale_fill_viridis_c()
 
 ggsave("figures/fossil_exposure.png", p1)
+
+# Monte Carlo model
+
+monte_carlo(
+    c_f_vals = seq(50, 100, by = 2),
+    k_g_vals = seq(500, 1000, by = 20),
+    k_f = 400,
+    c_g = 3,
+    sigma_cf = .05,
+    sigma_kg = .05,
+    t = 4,
+    const_scrap = TRUE,
+    max_iter = 1000,
+    threshold = 1e-5,
+    verbose = TRUE,
+    V_init = results_1
+)

@@ -25,7 +25,7 @@ vfi <- function(
     n_states <- ifelse(const_scrap, 2^(t-1), 1)
     
     # Initialize value function array
-    if (is.null(V_init) | n_states != dim(V_init$V_min)[3]) {
+    if (is.null(V_init)) {
         V <- array(
             runif(length(c_f_vals)*length(k_g_vals)), 
             c(
@@ -39,8 +39,10 @@ vfi <- function(
                 legacy_state = 1:n_states
             )
         )
+    } else if (dim(V_init$V_min)[3] < n_states) {
+        V <- V_init$V_min[,,sample(1:dim(V_init$V_min)[3], n_states, replace = TRUE)] # Fill out V with fewer V_init legacy states
     } else {
-        V <- V_init$V_min
+        V <- V_init$V_min[,,1:n_states] # Select V from V_init legacy states
     }
 
     # Compute single-timestep operating expenses (accounting for output, drift, and discounting)
