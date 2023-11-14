@@ -23,7 +23,7 @@ vfi <- function(
     n_states <- ifelse(const_scrap, 2^(t-1), 1)
     
     # Initialize value function array
-    if (is.null(V_init)) {
+    if (is.null(V_init) | n_states != dim(V_init$V_min)[3]) {
         V <- array(
             runif(length(c_f_vals)*length(k_g_vals)), 
             c(
