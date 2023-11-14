@@ -1,4 +1,5 @@
 # Main script to run OPEX-CAPEX model
+
 library(tidyverse)
 library(hms)
 
@@ -36,4 +37,3 @@ p1 <- tidy_V(results_1) %>%
     scale_fill_viridis_c()
 
 ggsave("figures/fossil_exposure.png", p1)
-

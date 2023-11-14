@@ -19,6 +19,8 @@ vfi <- function(
     V_init = NULL               # Starting values for iteration, in the same format as this function's output
     ) {
 
+    if (const_scrap & t == 1) stop("Constant scrappage requires a timestep (`t`) value greater than 1.")
+
     # Calculate the number of possible tuples of legacy assets, i.e., those already in operation
     n_states <- ifelse(const_scrap, 2^(t-1), 1)
     
