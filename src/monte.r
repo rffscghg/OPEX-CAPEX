@@ -80,7 +80,7 @@ monte_carlo <- function(
             prior_legacy <- ifelse(i == 1, start_state, legacy_state_mc[i-1,j])
 
             c_f_index[i,j] <- index_nearest(random_cf[i,j], c_f_vals)
-            k_g_index[i,j] <- index_nearest(random_kg[i,j], c_f_vals)
+            k_g_index[i,j] <- index_nearest(random_kg[i,j], k_g_vals)
 
             V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
 
