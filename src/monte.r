@@ -15,7 +15,7 @@ monte_carlo <- function(
     threshold = 1e-6,                       # Fit threshold (value function iteration)
     max_iter = 100,                         # Maximum number of iterations (value function iteration)
     verbose = FALSE,                        # Print supplementary information to the console
-    V_init = NULL,                          # Starting values for iteration, in the same format as this function's output
+    V_init = NULL,                          # Starting values for value function iteration (`monte_carlo(...)$value_func` format) 
     n_mc = 1000,                            # Monte Carlo sample size
     t_mc = 10*t,                            # Monte Carlo time horizon
     start_cf = median(c_f_vals),            # Starting value for c_f
