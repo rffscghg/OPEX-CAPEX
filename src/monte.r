@@ -96,7 +96,7 @@ monte_carlo <- function(
         }
     }
 
-    return(list(V_f = V_f_mc, V_g = V_g_mc, pick_f = decision_mc, legacy_state = legacy_state_mc))
+    return(list(V_f = V_f_mc, V_g = V_g_mc, pick_f = decision_mc, legacy_state = legacy_state_mc, value_func = V))
 
 }
 

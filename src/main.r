@@ -42,16 +42,17 @@ ggsave("figures/fossil_exposure.png", p1)
 # Monte Carlo model
 
 test <- monte_carlo(
-    c_f_vals = seq(50, 100, by = 2),
-    k_g_vals = seq(500, 1000, by = 20),
-    k_f = 400,
-    c_g = 3,
+    c_f_vals = seq(10, 60, by = 2),
+    k_g_vals = seq(100, 600, by = 20),
+    k_f = 500,
+    c_g = 1,
     sigma_cf = .05,
     sigma_kg = .05,
     t = 4,
     const_scrap = TRUE,
     max_iter = 1000,
-    threshold = 1e-5,
+    threshold = 1e-3,
     verbose = TRUE,
-    V_init = results_1
+    V_init = test$value_func,
+    start_assets = "fgf"
 )
