@@ -12,7 +12,7 @@ source("test/test_utils.r")
 
 # Fossil exposure heatmaps
 
-load("data/v_init_f_exposure_26_26_8.RData") # loads results_1. Workaround.
+load("data/v_init_f_exposure_26_26_8.RData") # Loads results_1. Workaround.
 
 results_1 <- vfi(
     c_f_vals = seq(50, 100, by = 2),
@@ -41,7 +41,7 @@ ggsave("figures/fossil_exposure.png", p1)
 
 # Monte Carlo model
 
-monte_carlo(
+test <- monte_carlo(
     c_f_vals = seq(50, 100, by = 2),
     k_g_vals = seq(500, 1000, by = 20),
     k_f = 400,

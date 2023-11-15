@@ -23,23 +23,21 @@ monte_carlo <- function(
     start_assets = NULL                     # Starting assets (e.g., "ffg" means two older fossil-fuel assets and one new green asset)
     ) {
 
-    if (const_scrap & (is.null(start_assets))) {
+    # Calculate the number of possible tuples of legacy assets, i.e., those already in operation
+    n_states <- ifelse(const_scrap, 2^(t-1), 1)
 
+    # Assign starting state of legacy assets
+    if (const_scrap & (is.null(start_assets))) {
         warning(paste0(
-            "Starting assets set to all fossil-fuel.",
+            "Starting assets were set to all fossil-fuel by default.",
             " Use `start_assets` to provide a string",
             " of starting assets one character shorter",
-            " than the number of timesteps."))
+            " than the value of the `t` argument."))
         start_state <- 2^(t-1)
-
     } else if (!is.null(start_assets)) {
-
         start_state <- string2bin(start_assets)
-
     } else {
-
         start_state <- NULL
-
     }
 
     # Calculate value function
@@ -55,7 +53,7 @@ monte_carlo <- function(
         q,
         t,
         r,
-        option = "all", # `monte_carlo()` depends on V_f and V_g output
+        option = "all", # Monte Carlo simulation depends on V_f and V_g output as currently implemented
         const_scrap,
         threshold,
         max_iter,
@@ -67,12 +65,45 @@ monte_carlo <- function(
     random_cf <- random_walk_gbm(n_mc, mu_cf, sigma_cf, t_mc, start_cf)
     random_kg <- random_walk_gbm(n_mc, mu_kg, sigma_kg, t_mc, start_kg)
 
-    # Copy random-walk dimensions to output variables
-    decision_mc <- random_cf
+    # Copy random-walk dimensions to other variables
+    c_f_index <- random_cf
+    k_g_index <- random_cf
     V_f_mc <- random_cf
+    V_g_mc <- random_cf
+    decision_mc <- random_cf
     legacy_state_mc <- random_cf
 
-    return(decision_mc)
+    # Run model
+    for (i in 1:nrow(random_cf)) {
+        for(j in 1:ncol(random_cf)) {
+
+            prior_legacy <- ifelse(i == 1, start_state, legacy_state_mc[i-1,j])
+
+            c_f_index[i,j] <- index_nearest(random_cf[i,j], c_f_vals)
+            k_g_index[i,j] <- index_nearest(random_kg[i,j], c_f_vals)
+
+            V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+
+            V_g_mc[i,j] <- V$V_g[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+
+            decision_mc[i,j] <- V_f_mc[i,j] < V_g_mc[i,j] # TRUE = fossil-fuel, FALSE = green, minimize V
+            
+            if (decision_mc[i,j]) {
+                legacy_state_mc[i,j] <- (2*prior_legacy - 1)%%n_states + 1 # Add fossil-fuel
+            } else {
+                legacy_state_mc[i,j] <- (2*prior_legacy - 2)%%n_states + 1 # Add green
+            }
+        }
+    }
+
+    return(list(V_f = V_f_mc, V_g = V_g_mc, pick_f = decision_mc, legacy_state = legacy_state_mc))
+
+}
+
+# Find the index of the vector element closest to a value
+index_nearest <- function(value, vector) {
+
+    which(abs(value - vector) == min(abs(value - vector)))
 
 }
 
