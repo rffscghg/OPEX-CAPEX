@@ -53,6 +53,6 @@ test <- monte_carlo(
     max_iter = 1000,
     threshold = 1e-3,
     verbose = TRUE,
-    V_init = test$value_func,
+    V_init = if (exists("test")) test$value_func,
     start_assets = "fgf"
 )
