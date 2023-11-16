@@ -136,7 +136,7 @@ vfi <- function(
                 V_right_g <- sum(phi[,,i,j]*V[,,(2*k - 2)%%n_states + 1])*(1+r)^-ifelse(const_scrap,1,t)
                 
                 N_f <- binary_digit_sum(k - 1) # t=1 -> k=1 -> {N_f, N_g}={0,0}, i.e., no legacy assets
-                N_g <- t - N_f - 1
+                N_g <- t - 1 - N_f
                 legacy <- N_f * opex_f[i] + N_g * opex_g
 
                 V_f[i,j,k]  <- sum_f_vals[i] + V_right_f + legacy*const_scrap

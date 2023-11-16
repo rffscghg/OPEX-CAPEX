@@ -73,30 +73,42 @@ monte_carlo <- function(
     V_f_mc <- random_cf
     V_g_mc <- random_cf
     decision_mc <- random_cf
+    realized_costs <- random_cf
     legacy_state_mc <- random_cf
 
     # Run model
     for (i in 1:nrow(random_cf)) {
         for(j in 1:ncol(random_cf)) {
 
-            prior_legacy <- ifelse(i == 1, start_state, legacy_state_mc[i-1,j])
-
+            prior_legacy <- ifelse(i == 1, start_state, legacy_state_mc[i-1,j]) # Decisions and realized costs are based
+                                                                                # on legacy assets at timestep `i - 1`
             c_f_index[i,j] <- index_nearest(random_cf[i,j], c_f_vals)
             k_g_index[i,j] <- index_nearest(random_kg[i,j], k_g_vals)
 
             c_f[i,j] <- c_f_vals[c_f_index[i,j]]
             k_g[i,j] <- k_g_vals[k_g_index[i,j]]
 
-            V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+            N_f <- binary_digit_sum(prior_legacy - 1) # `prior_legacy - 1` is the binary representation of the legacy state
+            N_g <- t - 1 - N_f
+            legacy_costs <- N_f*c_f[i,j]*q + N_g*c_g*q
 
+            V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
             V_g_mc[i,j] <- V$V_g[c_f_index[i,j], k_g_index[i,j], prior_legacy]
 
             decision_mc[i,j] <- V_f_mc[i,j] < V_g_mc[i,j] # TRUE = fossil-fuel, FALSE = green, minimize V
-            
+
             if (decision_mc[i,j]) {
+
+                realized_costs[i,j] <- k_f + c_f[i,j]*q + legacy_costs
+
                 legacy_state_mc[i,j] <- (2*prior_legacy - 1)%%n_states + 1 # Add fossil-fuel
+
             } else {
+
+                realized_costs[i,j] <- k_g[i,j] + c_f*q + legacy_costs
+
                 legacy_state_mc[i,j] <- (2*prior_legacy - 2)%%n_states + 1 # Add green
+
             }
         }
     }
@@ -121,6 +133,7 @@ monte_carlo <- function(
         c_f = c_f,
         k_g = k_g,
         pick_f = decision_mc, 
+        realized_costs = realized_costs
         legacy_state = legacy_state_mc, 
         value_func = V
     ))
@@ -139,7 +152,7 @@ random_walk_gbm <- function(n, mu, sigma, t, x0) {
 
     noise <- matrix(
         data = rlnorm(n*t, meanlog = mu-1/2*sigma^2, sdlog = sigma),  # Always one timestep and 
-        nrow = t,                                                   # independent of x0
+        nrow = t,                                                     # independent of x0
         ncol = n
     )
 
