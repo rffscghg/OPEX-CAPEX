@@ -24,27 +24,29 @@ vfi <- function(
     # Calculate the number of possible tuples of legacy assets, i.e., those already in operation
     n_states <- ifelse(const_scrap, 2^(t-1), 1)
     
+    V_rand <- array(
+        runif(length(c_f_vals)*length(k_g_vals)), 
+        c(
+            length(c_f_vals), 
+            length(k_g_vals),
+            n_states
+        ),
+        list(
+            c_f = c_f_vals,
+            k_g = k_g_vals,
+            legacy_state = 1:n_states
+        )
+    )
+
     # Initialize value function array
     if (is.null(V_init)) {
-        V <- array(
-            runif(length(c_f_vals)*length(k_g_vals)), 
-            c(
-                length(c_f_vals), 
-                length(k_g_vals),
-                n_states
-            ),
-            list(
-                c_f = c_f_vals,
-                k_g = k_g_vals,
-                legacy_state = 1:n_states
-            )
-        )
-    } else if (dim(V_init$V_min)[3] < n_states) {
-        V <- V_init$V_min[,,sample(1:dim(V_init$V_min)[3], n_states, replace = TRUE)] # Fill out V with fewer V_init legacy states
+        V <- V_rand
+    } else if (identical(dimnames(V_init$V_min), dimnames(V_rand))) {
+        V <- V_init$V_min
     } else {
-        V <- V_init$V_min[,,1:n_states] # Select V from V_init legacy states
+        V <- V_rand
     }
-
+    all.equal(1:3, 1:3)
     # Compute single-timestep operating expenses (accounting for output, drift, and discounting)
     opex_f <- c_f_vals * exp(mu_cf) * q / (1 + r)
     opex_g <- c_g * q / (1 + r)
