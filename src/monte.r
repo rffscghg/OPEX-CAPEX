@@ -90,7 +90,7 @@ monte_carlo <- function(
 
             N_f <- binary_digit_sum(prior_legacy - 1) # `prior_legacy - 1` is the binary representation of the legacy state
             N_g <- t - 1 - N_f
-            legacy_costs <- N_f*c_f[i,j]*q + N_g*c_g*q
+            legacy_opex <- N_f*c_f[i,j]*q + N_g*c_g*q
 
             V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
             V_g_mc[i,j] <- V$V_g[c_f_index[i,j], k_g_index[i,j], prior_legacy]
@@ -99,13 +99,13 @@ monte_carlo <- function(
 
             if (decision_mc[i,j]) {
 
-                realized_costs[i,j] <- k_f + c_f[i,j]*q + legacy_costs
+                realized_costs[i,j] <- k_f + c_f[i,j]*q + legacy_opex
 
                 legacy_state_mc[i,j] <- (2*prior_legacy - 1)%%n_states + 1 # Add fossil-fuel
 
             } else {
 
-                realized_costs[i,j] <- k_g[i,j] + c_f*q + legacy_costs
+                realized_costs[i,j] <- k_g[i,j] + c_g*q + legacy_opex
 
                 legacy_state_mc[i,j] <- (2*prior_legacy - 2)%%n_states + 1 # Add green
 
@@ -133,7 +133,7 @@ monte_carlo <- function(
         c_f = c_f,
         k_g = k_g,
         pick_f = decision_mc, 
-        realized_costs = realized_costs
+        realized_costs = realized_costs,
         legacy_state = legacy_state_mc, 
         value_func = V
     ))

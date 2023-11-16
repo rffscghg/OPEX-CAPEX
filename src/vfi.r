@@ -46,7 +46,7 @@ vfi <- function(
     } else {
         V <- V_rand
     }
-    all.equal(1:3, 1:3)
+
     # Compute single-timestep operating expenses (accounting for output, drift, and discounting)
     opex_f <- c_f_vals * exp(mu_cf) * q / (1 + r)
     opex_g <- c_g * q / (1 + r)

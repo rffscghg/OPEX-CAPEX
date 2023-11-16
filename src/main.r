@@ -39,15 +39,17 @@ p1 <- tidy_V(results_1) %>%
 
 ggsave("figures/fossil_exposure.png", p1)
 
-# Monte Carlo model
+# Monte Carlo model ("f" begins as more attractive, "g" improves over time)
 
 test <- monte_carlo(
-    c_f_vals = seq(10, 60, by = 2),
-    k_g_vals = seq(100, 600, by = 20),
-    k_f = 500,
-    c_g = 1,
-    sigma_cf = .05,
-    sigma_kg = .05,
+    c_f_vals = seq(4, 100, by = 4),
+    k_g_vals = seq(40, 1000, by = 40),
+    k_f = 250,
+    c_g = 2,
+    mu_cf = .01,
+    mu_kg = -.01,
+    sigma_cf = .01,
+    sigma_kg = .01,
     t = 4,
     const_scrap = TRUE,
     max_iter = 1000,
