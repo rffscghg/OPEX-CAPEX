@@ -68,6 +68,8 @@ monte_carlo <- function(
     # Copy random-walk dimensions to other variables
     c_f_index <- random_cf
     k_g_index <- random_cf
+    c_f <- random_cf
+    k_g <- random_cf
     V_f_mc <- random_cf
     V_g_mc <- random_cf
     decision_mc <- random_cf
@@ -81,6 +83,9 @@ monte_carlo <- function(
 
             c_f_index[i,j] <- index_nearest(random_cf[i,j], c_f_vals)
             k_g_index[i,j] <- index_nearest(random_kg[i,j], k_g_vals)
+
+            c_f[i,j] <- c_f_vals[c_f_index[i,j]]
+            k_g[i,j] <- k_g_vals[k_g_index[i,j]]
 
             V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
 
@@ -96,7 +101,29 @@ monte_carlo <- function(
         }
     }
 
-    return(list(V_f = V_f_mc, V_g = V_g_mc, pick_f = decision_mc, legacy_state = legacy_state_mc, value_func = V))
+    if ((min(c_f_index) == 1) | (max(c_f_index) == length(c_f_vals))) {
+        warning(paste0(
+            "The simulation reached the edge of the c_f state space. ",
+            "Consider expanding the range to maintain consistent Brownian motion."
+        ))
+    }
+
+    if ((min(k_g_index) == 1) | (max(k_g_index) == length(k_g_vals))) {
+        warning(paste0(
+            "The simulation reached the edge of the k_g state space. ",
+            "Consider expanding the range to maintain consistent Brownian motion."
+        ))
+    }
+
+    return(list(
+        V_f = V_f_mc, 
+        V_g = V_g_mc,
+        c_f = c_f,
+        k_g = k_g,
+        pick_f = decision_mc, 
+        legacy_state = legacy_state_mc, 
+        value_func = V
+    ))
 
 }
 
