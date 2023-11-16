@@ -1,16 +1,16 @@
 # Export "tidy" data from VFI output
 tidy_V <- function(
-    vfi_obj,            # Data in the format of `vfi()` output
+    V,                  # Data in the format of `vfi()` output
     index = 1           # Which of the three (V_min, V_f, V_g) output arrays to use
     ) {
 
     # Get c_f_vals from first dimension
-    c_f_vals <- as.numeric(dimnames(vfi_obj[[index]])$c_f)
+    c_f_vals <- as.numeric(dimnames(V[[index]])$c_f)
 
     # Calculate t
-    t <- log(dim(vfi_obj[[index]])[3], base = 2) + 1
+    t <- log(dim(V[[index]])[3], base = 2) + 1
 
-    vfi_tidy <- vfi_obj[[index]] %>%
+    V <- V[[index]] %>%
         as_tibble() %>%
         mutate(c_f = c_f_vals) %>%
         pivot_longer(-c_f) %>%
@@ -21,16 +21,16 @@ tidy_V <- function(
             legacy_str = bin2string(legacy_state, t)
         )
 
-    vfi_tidy$f_exposure <- 0
+    V$f_exposure <- 0
 
-    for (i in 1:nrow(vfi_tidy)) {
+    for (i in 1:nrow(V)) {
         
         # I tried to do this using mutate but ran into vectorization issues
-        vfi_tidy$f_exposure[i] <- cumul_years_left(vfi_tidy$legacy_str[i])
+        V$f_exposure[i] <- cumul_years_left(V$legacy_str[i])
 
     }
 
-    return(bind_rows(vfi_tidy))
+    return(bind_rows(V))
 
 }
 
