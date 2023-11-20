@@ -8,8 +8,8 @@ source("src/monte_skip.r")
 source("src/vfi.r")
 source("src/utils.r")
 
-source("test/test_vfi.r")
-source("test/test_utils.r")
+# source("test/test_vfi.r")
+# source("test/test_utils.r")
 
 # Fossil exposure heatmaps
 
@@ -62,10 +62,9 @@ test_t4 <- monte_carlo(
   max_iter = 1000,
   threshold = 1e-3,
   verbose = TRUE,
-  V_init = if (exists("test")) test$value_func,
-  start_assets = "fgf"
+  V_init = if (exists("test_t4")) test_t4$value_func,
+  start_assets = "fff"
 )
-testV_t4 = test_t4$value_func
 
 test_t10 <- monte_carlo(
   c_f_vals = c_f_vals,
@@ -82,9 +81,8 @@ test_t10 <- monte_carlo(
   threshold = 1e-3,
   verbose = TRUE,
   V_init = if (exists("testV_t10_f")) testV_t10_f$value_func,
-  start_assets = "fgf"
+  start_assets = rep("f", 9)
 )
-testV_t10 = test_t10$value_func
 
 # Only-fossil portfolios
 testV_t4_f <- vfi(
@@ -103,9 +101,8 @@ testV_t4_f <- vfi(
   threshold = 1e-3,
   verbose = TRUE,
   V_init = if (exists("test_t4")) test_t4$value_func
-  # start_assets = "fgf"
+  # start_assets = "fff"
 )
-str(testV_f)
 
 testV_t10_f <- vfi(
   c_f_vals = c_f_vals,
@@ -123,19 +120,60 @@ testV_t10_f <- vfi(
   threshold = 1e-3,
   verbose = TRUE,
   V_init = if (exists("testV_t10_f")) testV_t10_f$value_func
-  # start_assets = "fgf"
+  # start_assets = rep("f", 9)
 )
 
-green_t4_OV = testV_t4_f$V_min - testV_t4$V_min
-green_t10_OV = testV_t10_f$V_min - testV_t10$V_min 
+
+# Only-green portfolios
+testV_t4_g <- vfi(
+  c_f_vals = c_f_vals,
+  k_g_vals = k_g_vals,
+  k_f = 250,
+  c_g = 2,
+  mu_cf = mu_cf,
+  mu_kg = mu_kg,
+  sigma_cf = .05,
+  sigma_kg = .05,
+  t = 4,
+  option='g',
+  const_scrap = TRUE,
+  max_iter = 1000,
+  threshold = 1e-3,
+  verbose = TRUE,
+  V_init = if (exists("test_t4")) test_t4$value_func
+  # start_assets = "fff"
+)
+
+testV_t10_g <- vfi(
+  c_f_vals = c_f_vals,
+  k_g_vals = k_g_vals,
+  k_f = 250,
+  c_g = 2,
+  mu_cf = mu_cf,
+  mu_kg = mu_kg,
+  sigma_cf = .05,
+  sigma_kg = .05,
+  t = 10,
+  option='g',
+  const_scrap = TRUE,
+  max_iter = 1000,
+  threshold = 1e-3,
+  verbose = TRUE,
+  V_init = if (exists("testV_t10_f")) testV_t10_f$value_func
+  # start_assets = rep("f", 9)
+)
+
+green_t4_OV = testV_t4_f$V_min - test_t4$value_func$V_min
+green_t10_OV = testV_t10_f$V_min - test_t10$value_func$V_min 
 
 library(plotly)
 
 green_t4_OV[1:5,1:5,string2bin('ggg')]
 green_t4_OV[1:5,1:5,string2bin('fff')]
+green_t10_OV[1:5,1:5,string2bin('ggg')]
 
 # layout(add_surface(plot_ly(z=kernel2dsmooth(x=100*SD.pct.diff.near, kernel.type='disk', r=5)[-(1:3),-c(1:5, 49:51)], y=c_f_vals[-(1:3)], x=k_g_vals[-c(1:5, 49:51)])),
-layout(add_surface(plot_ly(z=green_t4_OV[,,string2bin('ggg')], y=c_f_vals, x=k_g_vals)),
+layout(add_surface(plot_ly(z=green_t10_OV[,,string2bin('ggg')], y=c_f_vals, x=k_g_vals)),
        title = 'Green Option Value, L=10',
        legend = list(title=list(text='$M Difference')),
        scene = list(xaxis=list(title='Green CAPEX'),
@@ -150,3 +188,24 @@ layout(add_surface(plot_ly(z=green_t10_OV[,,string2bin('fff')]-green_t4_OV[,,str
                     zaxis=list(title='$')))
 
 
+# What is the key question:
+# How does moving towards a greener portfolio affect not just the mean
+# but also the variance in costs?
+# So I think this is about the variance in the Monte Carlo, but what compared to what?
+# I think it is the difference in variance between having the option and not.
+# This is not just the option value, which is based on expected values, but
+# rather based on the Monte Carlo uncertainty. 
+# That is, this is the Std Dev analogue of option value:
+# What is bigger: the reduction in uncertainty from adding the green
+# option or from adding the fossil option? And over what time period?
+# Question: for what starting point? ggg or fff? The natural one is today's
+# mostly fossil starting point.
+# To do:
+# compute std dev in costs over L years and L*10 years under only f, only g, and both.
+# Compare benefit of adding g versus benefit of adding f
+
+calc_std_devs = function(test) {
+  test$V_min
+}
+debugonce(calc_std_devs)
+calc_std_devs(testV_t10_g)
