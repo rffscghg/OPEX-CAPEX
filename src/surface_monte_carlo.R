@@ -6,7 +6,6 @@ library(tidyverse)
 library(hms)
 
 source("src/monte.r")
-source("src/monte_skipVFI.r")
 source("src/vfi.r")
 
 source("src/utils.r")
