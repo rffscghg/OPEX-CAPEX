@@ -1,3 +1,33 @@
+# Export "tidy" data from Monte Carlo output
+tidy_mc <- function(mc) {
+
+    # Drop value function (last item)
+    mc <- mc[-length(mc)]
+
+    # Get variable names
+    mc_names <- names(mc)
+
+    # Create individual tidy tables (tibbles)
+    mc <- mc %>%
+        lapply(as_tibble) %>%
+        lapply(mutate, timestep = row_number()) %>%
+        lapply(pivot_longer, -timestep, names_to = "trialnum")
+
+    # Name the columns with the values
+    for (i in 1:length(mc)) {
+        mc[[i]]$var <- mc_names[i]
+        mc[[i]] <- pivot_wider(mc[[i]], names_from = var)
+    }
+
+    # Join into one tibble
+    mc <- mc %>%
+        reduce(inner_join, by = c("timestep", "trialnum")) %>%
+        mutate(trialnum = as.integer(str_sub(trialnum,2)))
+
+    return(mc)
+
+}
+
 # Export "tidy" data from VFI output
 tidy_V <- function(
     V,                  # Data in the format of `vfi()` output
