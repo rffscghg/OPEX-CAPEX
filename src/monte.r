@@ -102,14 +102,14 @@ monte_carlo <- function(
                 V_g_mc[i,j] <- V$V_g[c_f_index[i,j], k_g_index[i,j], prior_legacy]
                 decision_mc[i,j] <- V_f_mc[i,j] < V_g_mc[i,j] # TRUE = fossil-fuel, FALSE = green, minimize V
             } else if (option == "f") {
-                V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+                V_f_mc[i,j] <- V$V_min[c_f_index[i,j], k_g_index[i,j], prior_legacy]
                 V_g_mc[i,j] <- NA
                 decision_mc [i,j] <- TRUE
             } else if (option == "g") {
                 V_f_mc[i,j] <- NA
-                V_g_mc[i,j] <- V$V_g[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+                V_g_mc[i,j] <- V$V_min[c_f_index[i,j], k_g_index[i,j], prior_legacy]
                 decision_mc[i,j] <- FALSE
-            }
+            } else stop("The option argument must be set to 'all', 'f', or 'g'.")
 
             # Calculate realized costs and update legacy assets
             if (decision_mc[i,j]) {
