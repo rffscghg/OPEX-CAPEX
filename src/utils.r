@@ -9,6 +9,10 @@ tidy_mc <- function(mc) {
 
     # Create individual tidy tables (tibbles)
     mc <- mc %>%
+        lapply(function(x) {
+            colnames(x) <- 1:ncol(x)
+            return(x)
+        }) %>%
         lapply(as_tibble) %>%
         lapply(mutate, timestep = row_number()) %>%
         lapply(pivot_longer, -timestep, names_to = "trialnum")
@@ -22,7 +26,7 @@ tidy_mc <- function(mc) {
     # Join into one tibble
     mc <- mc %>%
         reduce(inner_join, by = c("timestep", "trialnum")) %>%
-        mutate(trialnum = as.integer(str_sub(trialnum,2)))
+        mutate(trialnum = as.integer(trialnum))
 
     return(mc)
 
