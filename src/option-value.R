@@ -1,5 +1,5 @@
 # Main script to run OPEX-CAPEX model
-
+setwd('/Users/Owner/Documents/GitHub/OPEX-CAPEX/')
 library(tidyverse)
 library(hms)
 
@@ -171,6 +171,7 @@ library(plotly)
 green_t4_OV[1:5,1:5,string2bin('ggg')]
 green_t4_OV[1:5,1:5,string2bin('fff')]
 green_t10_OV[1:5,1:5,string2bin('ggg')]
+green_t10_OV[1:5,1:5,string2bin('fff')]
 
 # layout(add_surface(plot_ly(z=kernel2dsmooth(x=100*SD.pct.diff.near, kernel.type='disk', r=5)[-(1:3),-c(1:5, 49:51)], y=c_f_vals[-(1:3)], x=k_g_vals[-c(1:5, 49:51)])),
 layout(add_surface(plot_ly(z=green_t10_OV[,,string2bin('ggg')], y=c_f_vals, x=k_g_vals)),
@@ -203,9 +204,3 @@ layout(add_surface(plot_ly(z=green_t10_OV[,,string2bin('fff')]-green_t4_OV[,,str
 # To do:
 # compute std dev in costs over L years and L*10 years under only f, only g, and both.
 # Compare benefit of adding g versus benefit of adding f
-
-calc_std_devs = function(test) {
-  test$V_min
-}
-debugonce(calc_std_devs)
-calc_std_devs(testV_t10_g)

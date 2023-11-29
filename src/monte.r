@@ -80,8 +80,10 @@ monte_carlo <- function(
     for (i in 1:nrow(random_cf)) {
         for(j in 1:ncol(random_cf)) {
 
+            # Initialize legacy assets
             prior_legacy <- ifelse(i == 1, start_state, legacy_state_mc[i-1,j]) # Decisions and realized costs are based
                                                                                 # on legacy assets at timestep `i - 1`
+            # Go from a floating point random value to the nearest c_f x k_g grid cell
             c_f_index[i,j] <- index_nearest(random_cf[i,j], c_f_vals)
             k_g_index[i,j] <- index_nearest(random_kg[i,j], k_g_vals)
 
@@ -132,6 +134,8 @@ monte_carlo <- function(
         V_g = V_g_mc,
         c_f = c_f,
         k_g = k_g,
+        random_cf = random_cf,
+        random_kg = random_kg,
         pick_f = decision_mc, 
         realized_costs = realized_costs,
         legacy_state = legacy_state_mc, 
