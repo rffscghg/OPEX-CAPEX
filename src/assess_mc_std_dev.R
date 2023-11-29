@@ -1,6 +1,8 @@
 # Main script to run OPEX-CAPEX model
 rm(list=ls())
 setwd('/Users/Owner/Documents/GitHub/OPEX-CAPEX/')
+setwd('/Users/prest/GitHub/OPEX-CAPEX/')
+root = '/Users/prest/'
 library(tidyverse)
 library(hms)
 
@@ -276,8 +278,8 @@ for (i in 1:length(c_f_vals)) {
 }
 ed = Sys.time()
 difftime(ed, st)
-save.image(paste0('/Users/Owner/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_',Sys.Date(),'.RData'))
-# load('/Users/Owner/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_2023-11-28.RData')
+# save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_',Sys.Date(),'.RData'))
+load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_2023-11-29.RData'))
 # check:
 hist(E.PV[,,'all']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
 hist(E.PV[,,'f']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
@@ -305,11 +307,82 @@ bks.far = seq(0.5*min(SD.PV), max(SD.PV), length.out=ncols+1)
 par(mfrow=c(2,3))
 image(test_t10_f$value_func$V_min[,,string2bin('fffffffff')], x=c_f_vals, y=k_g_vals, main='Fossil Only, Long-run', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
 image(test_t10_g$value_func$V_min[,,string2bin('ggggggggg')], x=c_f_vals, y=k_g_vals, main='Green Only, Long-run', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
-image(test_t10$value_func$V_min[,,string2bin('fffffffff')], x=c_f_vals, y=k_g_vals, main='Both Options, Long-run', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
-image(SD.PV[,,'f'], x=c_f_vals, y=k_g_vals, main='Fossil Only, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
-image(SD.PV[,,'g'], x=c_f_vals, y=k_g_vals, main='Green Only, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
-image(SD.PV[,,'all'], x=c_f_vals, y=k_g_vals, main='Both, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
-image(SD.PV[,,'all'], x=c_f_vals, y=k_g_vals, main='Both, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(test_t10$value_func$V_min[,,string2bin('fffffffff')], x=c_f_vals, y=k_g_vals, main='Both Options, Long-run, Starting with All-Fossil Portfolio', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
+image(test_t10$value_func$V_min[,,string2bin('ggggggggg')], x=c_f_vals, y=k_g_vals, main='Both Options, Long-run, Starting with All-Green Portfolio', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'f','all-f'], x=c_f_vals, y=k_g_vals, main='Fossil Only, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'g','all-g'], x=c_f_vals, y=k_g_vals, main='Green Only, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'all','all-f'], x=c_f_vals, y=k_g_vals, main='Both, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'all','all-g'], x=c_f_vals, y=k_g_vals, main='Both, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+
+library(plotly)
+library(orca)
+# 3D Surface version
+# PV Value function
+out_dir = paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/')
+scene_vf = list(xaxis=list(title='Green CAPEX'),
+               yaxis=list(title='Fossil OPEX'),
+               zaxis=list(title='$B', range=c(0,10)),
+               camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+layout(add_surface(plot_ly(z=test_t10_f$value_func$V_min[,,string2bin('fffffffff')]/1e3, y=c_f_vals, x=k_g_vals)),
+       title = 'NPV Costs, Fossil-only', 
+       scene = scene_vf,
+       legend = list(title=list(text='$B')))
+orca(file = paste0(out_dir,"my_plot.png"))
+
+layout(add_surface(plot_ly(z=test_t10_g$value_func$V_min[,,string2bin('ggggggggg')]/1e3, y=c_f_vals, x=k_g_vals)),
+       title = 'NPV Costs, Green-only',
+       scene = scene_vf,
+       legend = list(title=list(text='$B')))
+layout(add_surface(plot_ly(z=test_t10$value_func$V_min[,,string2bin('fffffffff')]/1e3, y=c_f_vals, x=k_g_vals)),
+       title = 'NPV Costs, Both Options, starting with All-Fossil Portfolio',
+       scene = scene_vf,
+       legend = list(title=list(text='$B')))
+layout(add_surface(plot_ly(z=test_t10$value_func$V_min[,,string2bin('ggggggggg')]/1e3, y=c_f_vals, x=k_g_vals)),
+       title = 'NPV Costs, Both Options, starting with All-Green Portfolio',
+       scene = scene_vf,
+       legend = list(title=list(text='$B')))
+
+# Std Dev under each scenario, long-run
+scene_sd = list(xaxis=list(title='Green CAPEX'),
+               yaxis=list(title='Fossil OPEX'),
+               zaxis=list(title='$M', range=c(0,1000)),
+               camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+layout(add_surface(plot_ly(z=SD.PV[,,'f','all-f'], y=c_f_vals, x=k_g_vals)),
+       title = 'Std. Dev. of NPV Costs, Fossil-only',
+       scene = scene_sd,
+       legend = list(title=list(text='$M')))
+       
+layout(add_surface(plot_ly(z=SD.PV[,,'g','all-g'], y=c_f_vals, x=k_g_vals)),
+       title = 'Std. Dev. of NPV Costs, Green-only',
+       scene = scene_sd,
+       legend = list(title=list(text='$M')))
+layout(add_surface(plot_ly(z=SD.PV[,,'all','all-f'], y=c_f_vals, x=k_g_vals)),
+       title = 'Std. Dev. of NPV Costs, Both Options, starting with All-Fossil Portfolio',
+       scene = scene_sd,
+       legend = list(title=list(text='$M')))
+layout(add_surface(plot_ly(z=SD.PV[,,'all','all-g'], y=c_f_vals, x=k_g_vals)),
+       title = 'Std. Dev. of NPV Costs, Both Options, starting with All-Green Portfolio',
+       scene = scene_sd,
+       legend = list(title=list(text='$M')))
+
+# Std Dev under each scenario, short-run
+layout(add_surface(plot_ly(z=SD.PV.near[,,'f','all-f'], y=c_f_vals, x=k_g_vals)),
+       title = 'Std. Dev. of NPV Costs, Fossil-only\nNear Term Only',
+       scene = scene_sd,
+       legend = list(title=list(text='$M')))
+layout(add_surface(plot_ly(z=SD.PV.near[,,'g','all-g'], y=c_f_vals, x=k_g_vals)),
+       title = 'Std. Dev. of NPV Costs, Green-only\nNear Term Only',
+       scene = scene_sd,
+       legend = list(title=list(text='$M')))
+layout(add_surface(plot_ly(z=SD.PV.near[,,'all','all-f'], y=c_f_vals, x=k_g_vals)),
+       title = 'Std. Dev. of NPV Costs, Both Options, starting with All-Fossil Portfolio\nNear Term Only',
+       scene = scene_sd,
+       legend = list(title=list(text='$M')))
+layout(add_surface(plot_ly(z=SD.PV.near[,,'all','all-g'], y=c_f_vals, x=k_g_vals)),
+       title = 'Std. Dev. of NPV Costs, Both Options, starting with All-Green Portfolio\nNear Term Only',
+       scene = scene_sd,
+       legend = list(title=list(text='$M')))
+
 
 
 # bks.near <- bks.near <- seq(min(E.PV.near), max(E.PV), length.out=ncols+1)
@@ -368,7 +441,7 @@ image(SD.PV[,,'all'], x=c_f_vals, y=k_g_vals, main='Both, Long-run', breaks = bk
 # median(test_t4_g$V_g[1,])
 # test_t4_g$value_func$V_min[index_nearest(median(c_f_vals), c_f_vals),
 #                            index_nearest(median(k_g_vals), k_g_vals),
-                           string2bin('ggg')]
+#                           string2bin('ggg')]
 (median(k_g_vals) + 4*2)*(1+.1)/.1 
 mean(agg_cost(test_t4_g$realized_costs))
 
@@ -431,8 +504,6 @@ message('\n')
 sd(t10_f_rc)
 sd(t10_g_rc)
 sd(t10_rc)
-
-library(plotly)
 
 green_t4_OV[1:5,1:5,string2bin('ggg')]
 green_t4_OV[1:5,1:5,string2bin('fff')]
