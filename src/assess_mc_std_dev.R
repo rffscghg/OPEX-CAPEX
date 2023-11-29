@@ -327,8 +327,7 @@ layout(add_surface(plot_ly(z=test_t10_f$value_func$V_min[,,string2bin('fffffffff
        title = 'NPV Costs, Fossil-only', 
        scene = scene_vf,
        legend = list(title=list(text='$B')))
-orca(file = paste0(out_dir,"my_plot.png"))
-
+# orca(file = paste0(out_dir,"my_plot.png")) # need to fix this error
 layout(add_surface(plot_ly(z=test_t10_g$value_func$V_min[,,string2bin('ggggggggg')]/1e3, y=c_f_vals, x=k_g_vals)),
        title = 'NPV Costs, Green-only',
        scene = scene_vf,
@@ -351,7 +350,6 @@ layout(add_surface(plot_ly(z=SD.PV[,,'f','all-f'], y=c_f_vals, x=k_g_vals)),
        title = 'Std. Dev. of NPV Costs, Fossil-only',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
-       
 layout(add_surface(plot_ly(z=SD.PV[,,'g','all-g'], y=c_f_vals, x=k_g_vals)),
        title = 'Std. Dev. of NPV Costs, Green-only',
        scene = scene_sd,
@@ -384,7 +382,34 @@ layout(add_surface(plot_ly(z=SD.PV.near[,,'all','all-g'], y=c_f_vals, x=k_g_vals
        legend = list(title=list(text='$M')))
 
 
-
+# To do: changes (in % and $) in MC due to 1) each added option and 2) actual change in portfolio
+# Here is a start:
+scene_pct = list(xaxis=list(title='Green CAPEX'),
+                yaxis=list(title='Fossil OPEX'),
+                zaxis=list(title='%', range=c(-100,5)),
+                camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75)))
+# Option value
+layout(add_surface(plot_ly(z=(SD.PV.near[,,'all','all-f']/SD.PV.near[,,'f','all-f']-1)*100, y=c_f_vals, x=k_g_vals)),
+       title = 'Value of Adding Green Option\nNear Term',
+       scene = scene_pct,
+       legend = list(title=list(text='%')))
+layout(add_surface(plot_ly(z=(SD.PV.near[,,'all','all-f']/SD.PV.near[,,'g','all-f']-1)*100, y=c_f_vals, x=k_g_vals)),
+       title = 'Value of Adding Fossil Option\nNear Term',
+       scene = scene_pct,
+       legend = list(title=list(text='%')))
+# Procurement value ($)
+scene_sd2 = list(xaxis=list(title='Green CAPEX'),
+                yaxis=list(title='Fossil OPEX'),
+                zaxis=list(title='$M', range=c(-25,200)),
+                camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+layout(add_surface(plot_ly(z=SD.PV.near[,,'all','all-f']-SD.PV.near[,,'all','all-g'], y=c_f_vals, x=k_g_vals)),
+       title = 'Value of Procuring Green Portfolio\nNear Term',
+       scene = scene_sd2,
+       legend = list(title=list(text='%')))
+layout(add_surface(plot_ly(z=SD.PV[,,'all','all-f']-SD.PV[,,'all','all-g'], y=c_f_vals, x=k_g_vals)),
+       title = 'Value of Procuring Green Portfolio\nLong Term',
+       scene = scene_sd2,
+       legend = list(title=list(text='%')))
 # bks.near <- bks.near <- seq(min(E.PV.near), max(E.PV), length.out=ncols+1)
 par(mfrow=c(1,3))
 # image(E.PV.near[,,'f'], x=c_f_vals, y=k_g_vals, main='Fossil Only, Short-run', breaks = bks.near, col = hcl.colors(ncols, 'Reds', rev=T))
