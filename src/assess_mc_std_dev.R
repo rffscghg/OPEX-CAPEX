@@ -281,9 +281,10 @@ difftime(ed, st)
 # save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_',Sys.Date(),'.RData'))
 load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_2023-11-29.RData'))
 # check:
-hist(E.PV[,,'all']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
-hist(E.PV[,,'f']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
-hist(E.PV[,,'g']/test_t10$value_func$V_min[,,string2bin('ggggggggg')])
+hist(E.PV[,,'all','all-f']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
+hist(E.PV[,,'f','all-f']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
+hist(E.PV[,,'g','all-g']/test_t10$value_func$V_min[,,string2bin('ggggggggg')])
+# can be different along the edges of the parameter space
 
 # figures for paper:
 # 1) show value functions for green only, fossil only, both, and delta (green vs fossil option value) (1x3 panel)
@@ -302,17 +303,21 @@ ncols = 100
 bks.V = seq(min(test_t10_g$value_func$V_min), max(test_t10_g$value_func$V_min), length.out=ncols+1)
 bks.near = seq(0.5*min(SD.PV.near), max(SD.PV.near), length.out=ncols+1)
 bks.far = seq(0.5*min(SD.PV), max(SD.PV), length.out=ncols+1)
-
+bks.delta = seq(min(SD.PV[,,'all','all-f']-SD.PV[,,'all','all-g']), 
+                max(SD.PV[,,'all','all-f']-SD.PV[,,'all','all-g']), length.out=ncols+1)
+bks.delta = c(seq(-50, 0, length.out=ncols/2), 0, seq(0, 200, length.out=ncols/2))
 # This figure:
-par(mfrow=c(2,3))
+par(mfrow=c(3,4))
 image(test_t10_f$value_func$V_min[,,string2bin('fffffffff')], x=c_f_vals, y=k_g_vals, main='Fossil Only, Long-run', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
 image(test_t10_g$value_func$V_min[,,string2bin('ggggggggg')], x=c_f_vals, y=k_g_vals, main='Green Only, Long-run', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
-image(test_t10$value_func$V_min[,,string2bin('fffffffff')], x=c_f_vals, y=k_g_vals, main='Both Options, Long-run, Starting with All-Fossil Portfolio', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
-image(test_t10$value_func$V_min[,,string2bin('ggggggggg')], x=c_f_vals, y=k_g_vals, main='Both Options, Long-run, Starting with All-Green Portfolio', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
-image(SD.PV[,,'f','all-f'], x=c_f_vals, y=k_g_vals, main='Fossil Only, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
-image(SD.PV[,,'g','all-g'], x=c_f_vals, y=k_g_vals, main='Green Only, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
-image(SD.PV[,,'all','all-f'], x=c_f_vals, y=k_g_vals, main='Both, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
-image(SD.PV[,,'all','all-g'], x=c_f_vals, y=k_g_vals, main='Both, Long-run', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(test_t10$value_func$V_min[,,string2bin('fffffffff')], x=c_f_vals, y=k_g_vals, main='Both Options, Long-run\nStarting with All-Fossil Portfolio', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
+image(test_t10$value_func$V_min[,,string2bin('ggggggggg')], x=c_f_vals, y=k_g_vals, main='Both Options, Long-run\nStarting with All-Green Portfolio', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'f','all-f'], x=c_f_vals, y=k_g_vals, main='SD, Fossil Only, Long-run\nStarting with All-Fossil Portfolio', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'g','all-g'], x=c_f_vals, y=k_g_vals, main='SD, Green Only, Long-run\nStarting with All-Green Portfolio', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'all','all-f'], x=c_f_vals, y=k_g_vals, main='SD, Both, Long-run\nStarting with All-Fossil Portfolio', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'all','all-g'], x=c_f_vals, y=k_g_vals, main='SD, Both, Long-run\nStarting with All-Green Portfolio', breaks = bks.far, col = hcl.colors(ncols, 'Reds', rev=T))
+image(SD.PV[,,'all','all-f']-SD.PV[,,'all','all-g'], x=c_f_vals, y=k_g_vals, main='SD, Both, Long-run\nGreen Procurement Benefit', breaks = bks.delta, col = hcl.colors(ncols, 'Red-Green', rev=F))
+image(SD.PV.near[,,'all','all-f']-SD.PV.near[,,'all','all-g'], x=c_f_vals, y=k_g_vals, main='SD, Both, Short-run\nGreen Procurement Benefit', breaks = bks.delta, col = hcl.colors(ncols, 'Red-Green', rev=F))
 
 library(plotly)
 library(orca)
@@ -327,7 +332,7 @@ layout(add_surface(plot_ly(z=test_t10_f$value_func$V_min[,,string2bin('fffffffff
        title = 'NPV Costs, Fossil-only', 
        scene = scene_vf,
        legend = list(title=list(text='$B')))
-# orca(file = paste0(out_dir,"my_plot.png")) # need to fix this error
+orca(file = paste0(out_dir,"my_plot.png")) # need to fix this error
 layout(add_surface(plot_ly(z=test_t10_g$value_func$V_min[,,string2bin('ggggggggg')]/1e3, y=c_f_vals, x=k_g_vals)),
        title = 'NPV Costs, Green-only',
        scene = scene_vf,
