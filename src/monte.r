@@ -16,6 +16,7 @@ monte_carlo <- function(
     max_iter = 100,                         # Maximum number of iterations (value function iteration)
     verbose = FALSE,                        # Print supplementary information to the console
     V_init = NULL,                          # Starting values for value function iteration (`monte_carlo(...)$value_func` format) 
+    skipVFI = FALSE,                        # option to skip the VFI step
     n_mc = 1000,                            # Monte Carlo sample size
     t_mc = 10*t,                            # Monte Carlo time horizon
     start_cf = median(c_f_vals),            # Starting value for c_f
@@ -40,27 +41,31 @@ monte_carlo <- function(
         start_state <- NULL
     }
 
-    # Calculate value function
-    V <- vfi(
-        c_f_vals,
-        k_g_vals,
-        k_f,
-        c_g,
-        mu_cf,
-        mu_kg,
-        sigma_cf,
-        sigma_kg,
-        q,
-        t,
-        r,
-        option = "all", # Monte Carlo simulation depends on V_f and V_g output as currently implemented
-        const_scrap,
-        threshold,
-        max_iter,
-        verbose,
-        V_init
-    )
-
+    if (!skipVFI) {
+        # Calculate value function
+        V <- vfi(
+            c_f_vals,
+            k_g_vals,
+            k_f,
+            c_g,
+            mu_cf,
+            mu_kg,
+            sigma_cf,
+            sigma_kg,
+            q,
+            t,
+            r,
+            option = "all", # Monte Carlo simulation depends on V_f and V_g output as currently implemented
+            const_scrap,
+            threshold,
+            max_iter,
+            verbose,
+            V_init
+        )
+    } else {
+        V = V_init
+    }
+    
     # Sample random walks
     random_cf <- random_walk_gbm(n_mc, mu_cf, sigma_cf, t_mc, start_cf)
     random_kg <- random_walk_gbm(n_mc, mu_kg, sigma_kg, t_mc, start_kg)
