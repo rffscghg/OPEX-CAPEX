@@ -55,9 +55,10 @@ mu_cf = 0
 mu_kg = 0
 k_f = 173.5 # for grid going up to 85
 k_f = 296 # for grid going up to 45
-c_g = 0
+k_f = median(k_g_vals)
+c_g = median(c_f_vals)
 sigma_kg = 0.05
-sigma_cf = 0.0703 # for grid going up to 85
+# sigma_cf = 0.0703 # for grid going up to 85
 sigma_cf = 0.1223 # for grid going up to 45
 t10 = 10
 t4 = 4
@@ -76,14 +77,14 @@ median(k_g_vals)*exp(mu_kg*t10) + sum(c_g*q*DF10) # green
 k_f + median(c_f_vals)*exp(mu_cf*t10)*sum(exp(mu_cf*(1:t10))*q*DF10) # fossil
 
 ## Variance
-c_f_sim = random_walk_gbm(n=(2*t10)*100000, mu=mu_cf, sigma=sigma_cf, t=2*t10, x0=median(c_f_vals))
+c_f_sim = random_walk_gbm(n=(2*t10)*10000, mu=mu_cf, sigma=sigma_cf, t=2*t10, x0=median(c_f_vals))
 
 # t=4
 median(k_g_vals)^2*exp(2*mu_kg*t4) * (exp(sigma_cf^2 * t4) - 1) # green
 var(k_f + apply(c_f_sim, 2, function(x) sum(x[(t4+1):(2*t4)]*q*DF4)))
 
 # t=10 - aligned
-c_f_sim = random_walk_gbm(n=(2*t10)*100000, mu=mu_cf, sigma=sigma_cf, t=2*t10, x0=median(c_f_vals))
+# c_f_sim = random_walk_gbm(n=(2*t10)*10000, mu=mu_cf, sigma=sigma_cf, t=2*t10, x0=median(c_f_vals))
 median(k_g_vals)^2*exp(2*mu_kg*t10) * (exp(sigma_kg^2 * t10) - 1) # green
 var(k_f + apply(c_f_sim, 2, function(x) sum(x[(t10+1):(2*t10)]*q*DF10))) # fossil
 rm(c_f_sim)
@@ -129,7 +130,6 @@ test_t10 <- monte_carlo(
 )
 
 # Only-fossil portfolios
-# to do: fix the monte carlo so it can be run with only f as an option. what happened??
 test_t4_f <- monte_carlo(
   c_f_vals = c_f_vals,
   k_g_vals = k_g_vals,
@@ -228,8 +228,8 @@ for (i in 1:length(c_f_vals)) {
   for (j in 1:length(k_g_vals)) {
     # for (k in 1:(2^(9-1))) {
     # for (k in string2bin('fffffffff')) { 
-      for (o in c('all','g','f')) {
-        for (k in 1:2) {
+    for (o in c('all','g','f')) {
+      for (k in 1:2) {
         if (o=='all') {
           vf_temp = test_t10$value_func
           # k = string2bin('fffffffff')
@@ -279,8 +279,8 @@ for (i in 1:length(c_f_vals)) {
 }
 ed = Sys.time()
 difftime(ed, st)
-# save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_',Sys.Date(),'.RData'))
-load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_2023-11-29.RData'))
+save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_',Sys.Date(),'.RData'))
+# load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_2023-11-30.RData'))
 # check:
 hist(E.PV[,,'all','all-f']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
 hist(E.PV[,,'f','all-f']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
@@ -326,9 +326,9 @@ library(orca)
 # PV Value function
 out_dir = paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/')
 scene_vf = list(xaxis=list(title='Green CAPEX'),
-               yaxis=list(title='Fossil OPEX'),
-               zaxis=list(title='$B', range=c(0,10)),
-               camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+                yaxis=list(title='Fossil OPEX'),
+                zaxis=list(title='$B', range=c(0,10)),
+                camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 layout(add_surface(plot_ly(z=test_t10_f$value_func$V_min[,,string2bin('fffffffff')]/1e3, y=c_f_vals, x=k_g_vals)),
        title = 'NPV Costs, Fossil-only', 
        scene = scene_vf,
@@ -349,9 +349,9 @@ layout(add_surface(plot_ly(z=test_t10$value_func$V_min[,,string2bin('ggggggggg')
 
 # Std Dev under each scenario, long-run
 scene_sd = list(xaxis=list(title='Green CAPEX'),
-               yaxis=list(title='Fossil OPEX'),
-               zaxis=list(title='$M', range=c(0,1000)),
-               camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+                yaxis=list(title='Fossil OPEX'),
+                zaxis=list(title='$M', range=c(0,1000)),
+                camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 layout(add_surface(plot_ly(z=SD.PV[,,'f','all-f'], y=c_f_vals, x=k_g_vals)),
        title = 'Std. Dev. of NPV Costs, Fossil-only',
        scene = scene_sd,
@@ -397,9 +397,9 @@ layout(add_surface(plot_ly(z=SD.PV.near[,,'all','all-g'], y=c_f_vals, x=k_g_vals
 # To do: changes (in % and $) in MC due to 1) each added option and 2) actual change in portfolio
 # Here is a start:
 scene_pct = list(xaxis=list(title='Green CAPEX'),
-                yaxis=list(title='Fossil OPEX'),
-                zaxis=list(title='%', range=c(-100,5)),
-                camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75)))
+                 yaxis=list(title='Fossil OPEX'),
+                 zaxis=list(title='%', range=c(-100,5)),
+                 camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75)))
 # Option value
 layout(add_surface(plot_ly(z=(SD.PV.near[,,'all','all-f']/SD.PV.near[,,'f','all-f']-1)*100, y=c_f_vals, x=k_g_vals)),
        title = 'Value of Adding Green Option\nNear Term',
@@ -411,9 +411,9 @@ layout(add_surface(plot_ly(z=(SD.PV.near[,,'all','all-f']/SD.PV.near[,,'g','all-
        legend = list(title=list(text='%')))
 # Procurement value ($)
 scene_sd2 = list(xaxis=list(title='Green CAPEX'),
-                yaxis=list(title='Fossil OPEX'),
-                zaxis=list(title='$M', range=c(-25,200)),
-                camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+                 yaxis=list(title='Fossil OPEX'),
+                 zaxis=list(title='$M', range=c(-25,200)),
+                 camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 layout(add_surface(plot_ly(z=SD.PV.near[,,'all','all-f']-SD.PV.near[,,'all','all-g'], y=c_f_vals, x=k_g_vals)),
        title = 'Value of Procuring Green Portfolio\nNear Term',
        scene = scene_sd2,
@@ -519,8 +519,8 @@ test_t4$value_func$V_min[index_nearest(median(c_f_vals), c_f_vals),
 
 mean(t4_g_rc)
 test_t4_g$value_func$V_min[index_nearest(median(c_f_vals), c_f_vals),
-                         index_nearest(median(k_g_vals), k_g_vals),
-                         string2bin('fff')]
+                           index_nearest(median(k_g_vals), k_g_vals),
+                           string2bin('fff')]
 
 # On a 4-year horizon, expected costs are smaller under fossil than green (and of course smallest with both)
 mean(t4_f_rc)
