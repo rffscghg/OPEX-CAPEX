@@ -1,8 +1,9 @@
 # Main script to run OPEX-CAPEX model
 rm(list=ls())
 setwd('/Users/Owner/Documents/GitHub/OPEX-CAPEX/')
-setwd('/Users/prest/GitHub/OPEX-CAPEX/')
-root = '/Users/prest/'
+root = '/Users/Owner/'
+# setwd('/Users/prest/GitHub/OPEX-CAPEX/')
+# root = '/Users/prest/'
 library(tidyverse)
 library(hms)
 
@@ -16,39 +17,43 @@ source("src/utils.r")
 
 # Fossil exposure heatmaps
 
-load("data/v_init_f_exposure_26_26_8.RData") # Loads results_1. Workaround.
-
-results_1 <- vfi(
-  c_f_vals = seq(50, 100, by = 2),
-  k_g_vals = seq(500, 1000, by = 20),
-  k_f = 400,
-  c_g = 3,
-  sigma_cf = .05,
-  sigma_kg = .05,
-  t = 4,
-  const_scrap = TRUE,
-  max_iter = 1000,
-  threshold = 1e-5,
-  verbose = TRUE,
-  V_init = results_1
-)
-
-p1 <- tidy_V(results_1) %>%
-  group_by(f_exposure, c_f, k_g) %>%
-  summarise(value = mean(value)) %>%
-  ggplot(aes(x = c_f, y = k_g, fill = value/max(value))) +
-  geom_raster() +
-  facet_wrap(~paste0("fossil-fuel exposure: ", f_exposure)) +
-  scale_fill_viridis_c()
-
+# load("data/v_init_f_exposure_26_26_8.RData") # Loads results_1. Workaround.
+# 
+# results_1 <- vfi(
+#   c_f_vals = seq(50, 100, by = 2),
+#   k_g_vals = seq(500, 1000, by = 20),
+#   k_f = 400,
+#   c_g = 3,
+#   sigma_cf = .05,
+#   sigma_kg = .05,
+#   t = 4,
+#   const_scrap = TRUE,
+#   max_iter = 1000,
+#   threshold = 1e-3,
+#   verbose = TRUE,
+#   V_init = results_1
+# )
+# 
+# p1 <- tidy_V(results_1) %>%
+#   group_by(f_exposure, c_f, k_g) %>%
+#   summarise(value = mean(value)) %>%
+#   ggplot(aes(x = c_f, y = k_g, fill = value/max(value))) +
+#   geom_raster() +
+#   facet_wrap(~paste0("fossil-fuel exposure: ", f_exposure)) +
+#   scale_fill_viridis_c()
+#
 # ggsave("figures/fossil_exposure.png", p1)
 
 # Monte Carlo model ("f" begins as more attractive, "g" improves over time)
 # c_f_vals = seq(5, 85, by = 10)
 # k_g_vals = seq(50, 850, by = 100)
-c_f_vals = seq(5, 45, by = 5)
-k_g_vals = seq(50, 850, by = 50)
+# c_f_vals = seq(5, 45, by = 5)
+# k_g_vals = seq(50, 850, by = 50)
+c_f_vals = seq(5, 45, by = 2.5)
+k_g_vals = seq(50, 850, by = 25)
 length(c_f_vals)
+length(k_g_vals)
+median(c_f_vals)
 # mu_cf = .01
 # mu_kg = -.01
 mu_cf = 0
@@ -83,7 +88,7 @@ median(k_g_vals)^2*exp(2*mu_kg*t4) * (exp(sigma_cf^2 * t4) - 1) # green
 var(k_f + apply(c_f_sim, 2, function(x) sum(x[(t4+1):(2*t4)]*q*DF4)))
 
 # t=10 - aligned
-c_f_sim = random_walk_gbm(n=(2*t10)*100000, mu=mu_cf, sigma=sigma_cf, t=2*t10, x0=median(c_f_vals))
+# c_f_sim = random_walk_gbm(n=(2*t10)*100000, mu=mu_cf, sigma=sigma_cf, t=2*t10, x0=median(c_f_vals))
 median(k_g_vals)^2*exp(2*mu_kg*t10) * (exp(sigma_kg^2 * t10) - 1) # green
 var(k_f + apply(c_f_sim, 2, function(x) sum(x[(t10+1):(2*t10)]*q*DF10))) # fossil
 rm(c_f_sim)
@@ -258,6 +263,7 @@ for (i in 1:length(c_f_vals)) {
           threshold = 1e-3,
           verbose = TRUE,
           V_init = if (exists("vf_temp")) vf_temp,
+          skipVFI = TRUE,
           start_cf = c_f_vals[i],            # Starting value for c_f
           start_kg = k_g_vals[j],            # Starting value for k_g
           start_assets = bin2string(ifelse(k==1, string2bin('fffffffff'), string2bin('ggggggggg')), t=10)
@@ -279,8 +285,9 @@ for (i in 1:length(c_f_vals)) {
 }
 ed = Sys.time()
 difftime(ed, st)
-# save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_',Sys.Date(),'.RData'))
-load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_2023-11-29.RData'))
+save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_',Sys.Date(),'.RData'))
+
+# load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_2023-11-29.RData'))
 # check:
 hist(E.PV[,,'all','all-f']/test_t10$value_func$V_min[,,string2bin('fffffffff')])
 hist(E.PV[,,'f','all-f']/test_t10$value_func$V_min[,,string2bin('fffffffff')])

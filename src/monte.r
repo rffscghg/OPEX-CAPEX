@@ -56,7 +56,7 @@ monte_carlo <- function(
             q,
             t,
             r,
-            option = option
+            option = option,
             const_scrap,
             threshold,
             max_iter,

@@ -258,6 +258,7 @@ for (i in 1:length(c_f_vals)) {
           threshold = 1e-3,
           verbose = TRUE,
           V_init = if (exists("vf_temp")) vf_temp,
+          skipVFI = TRUE,
           start_cf = c_f_vals[i],            # Starting value for c_f
           start_kg = k_g_vals[j],            # Starting value for k_g
           start_assets = bin2string(ifelse(k==1, string2bin('fffffffff'), string2bin('ggggggggg')), t=10)
