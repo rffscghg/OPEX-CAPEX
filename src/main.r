@@ -7,6 +7,7 @@ source("src/monte.r")
 source("src/vfi.r")
 source("src/utils.r")
 
+source("test/test_monte.r")
 source("test/test_vfi.r")
 source("test/test_utils.r")
 
@@ -38,23 +39,3 @@ p1 <- tidy_V(results_1) %>%
     scale_fill_viridis_c()
 
 ggsave("figures/fossil_exposure.png", p1)
-
-# Monte Carlo model ("f" begins as more attractive, "g" improves over time)
-
-test <- monte_carlo(
-    c_f_vals = seq(4, 100, by = 4),
-    k_g_vals = seq(40, 1000, by = 40),
-    k_f = 250,
-    c_g = 2,
-    mu_cf = .01,
-    mu_kg = -.01,
-    sigma_cf = .01,
-    sigma_kg = .01,
-    t = 4,
-    const_scrap = TRUE,
-    max_iter = 1000,
-    threshold = 1e-3,
-    verbose = TRUE,
-    V_init = if (exists("test")) test$value_func,
-    start_assets = "fgf"
-)

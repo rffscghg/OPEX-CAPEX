@@ -11,6 +11,7 @@ monte_carlo <- function(
     q = 1,                                  # Output
     t = 1,                                  # Number of timesteps
     r = 0.1,                                # Discount rate
+    option = "all",                         # Which options to choose from
     const_scrap = FALSE,                    # Constant scrappage (`t` assets held at once, oldest replaced each timestep)
     threshold = 1e-6,                       # Fit threshold (value function iteration)
     max_iter = 100,                         # Maximum number of iterations (value function iteration)
@@ -55,7 +56,7 @@ monte_carlo <- function(
             q,
             t,
             r,
-            option = "all", # Monte Carlo simulation depends on V_f and V_g output as currently implemented
+            option = option
             const_scrap,
             threshold,
             max_iter,
@@ -84,38 +85,44 @@ monte_carlo <- function(
     # Run model
     for (i in 1:nrow(random_cf)) {
         for(j in 1:ncol(random_cf)) {
-
+            
             # Initialize legacy assets
             prior_legacy <- ifelse(i == 1, start_state, legacy_state_mc[i-1,j]) # Decisions and realized costs are based
                                                                                 # on legacy assets at timestep `i - 1`
+
             # Go from a floating point random value to the nearest c_f x k_g grid cell
             c_f_index[i,j] <- index_nearest(random_cf[i,j], c_f_vals)
             k_g_index[i,j] <- index_nearest(random_kg[i,j], k_g_vals)
-
             c_f[i,j] <- c_f_vals[c_f_index[i,j]]
             k_g[i,j] <- k_g_vals[k_g_index[i,j]]
-
+            
+            # Tally legacy assets
             N_f <- binary_digit_sum(prior_legacy - 1) # `prior_legacy - 1` is the binary representation of the legacy state
             N_g <- t - 1 - N_f
             legacy_opex <- N_f*c_f[i,j]*q + N_g*c_g*q
 
-            V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
-            V_g_mc[i,j] <- V$V_g[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+            # Retrieve values from V and choose best option
+            if (option == "all") {
+                V_f_mc[i,j] <- V$V_f[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+                V_g_mc[i,j] <- V$V_g[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+                decision_mc[i,j] <- V_f_mc[i,j] < V_g_mc[i,j] # TRUE = fossil-fuel, FALSE = green, minimize V
+            } else if (option == "f") {
+                V_f_mc[i,j] <- V$V_min[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+                V_g_mc[i,j] <- NA
+                decision_mc [i,j] <- TRUE
+            } else if (option == "g") {
+                V_f_mc[i,j] <- NA
+                V_g_mc[i,j] <- V$V_min[c_f_index[i,j], k_g_index[i,j], prior_legacy]
+                decision_mc[i,j] <- FALSE
+            } else stop("The option argument must be set to 'all', 'f', or 'g'.")
 
-            decision_mc[i,j] <- V_f_mc[i,j] < V_g_mc[i,j] # TRUE = fossil-fuel, FALSE = green, minimize V
-
+            # Calculate realized costs and update legacy assets
             if (decision_mc[i,j]) {
-
                 realized_costs[i,j] <- k_f + c_f[i,j]*q + legacy_opex
-
                 legacy_state_mc[i,j] <- (2*prior_legacy - 1)%%n_states + 1 # Add fossil-fuel
-
             } else {
-
                 realized_costs[i,j] <- k_g[i,j] + c_g*q + legacy_opex
-
                 legacy_state_mc[i,j] <- (2*prior_legacy - 2)%%n_states + 1 # Add green
-
             }
         }
     }
