@@ -3,8 +3,8 @@ rm(list=ls())
 script.start = Sys.time()
 setwd('/Users/Owner/Documents/GitHub/OPEX-CAPEX/')
 root = '/Users/Owner/'
-# setwd('/Users/prest/GitHub/OPEX-CAPEX/')
-# root = '/Users/prest/'
+setwd('/Users/prest/GitHub/OPEX-CAPEX/')
+root = '/Users/prest/'
 library(tidyverse)
 library(hms)
 
@@ -310,7 +310,7 @@ difftime(script.end, script.start)
 dim(test_t10$value_func$V_min)
 prod(dim(test_t10$value_func$V_min))
 # save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_',Sys.Date(),'.RData'))
-load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_2023-12-03.RData'))
+load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_2023-12-05.RData'))
 
 # check:
 hist(E.PV[idx_cf, idx_kg,'all','all-f']/test_t10$value_func$V_min[idx_cf, idx_kg,string2bin('fffffffff')])
@@ -342,7 +342,7 @@ bks.near = seq(0.5*min(SD.PV.near), max(SD.PV.near), length.out=ncols+1)
 bks.far = seq(0.5*min(SD.PV), max(SD.PV), length.out=ncols+1)
 bks.delta = seq(min(SD.PV[idx_cf, idx_kg,'all','all-f']-SD.PV[idx_cf, idx_kg,'all','all-g']), 
                 max(SD.PV[idx_cf, idx_kg,'all','all-f']-SD.PV[idx_cf, idx_kg,'all','all-g']), length.out=ncols+1)
-bks.delta = c(seq(-50, 0, length.out=ncols/2), 0, seq(0, 200, length.out=ncols/2))
+bks.delta = c(seq(-10, 0, length.out=ncols/2), 0, seq(0, 250, length.out=ncols/2))
 # This figure:
 par(mfrow=c(3,4))
 image(test_t10_f$value_func$V_min[idx_cf, idx_kg,string2bin('fffffffff')], x=c_f_vals_core, y=k_g_vals_core, main='Fossil Only, Long-run', breaks = bks.V, col = hcl.colors(ncols, 'Reds', rev=T))
@@ -389,27 +389,40 @@ barplot(c(fossil_ov_sd[2,2], green_ov_sd[2,2]), names.arg=c('Fossil OV','Green O
 
 library(plotly)
 library(orca)
+library(RColorBrewer)
+
+# display.brewer.all()
+plotly::colors(type = "continuous")
+colscale = brewer.pal(3, 'YlOrRd')
+colscale = 'RdOrYl'
+# colscale = 'Plasma'
+# colscale = NULL
+
 # 3D Surface version
 # PV Value function
-out_dir = paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/')
-scene_vf = list(xaxis=list(title='Green CAPEX'),
-                yaxis=list(title='Fossil OPEX'),
+out_dir = paste0('C:',root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/')
+out_dir=='C:/Users/prest//OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/'
+scene_vf = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
+                yaxis=list(title='Fossil OPEX<br> ($M/year)'),
+                colorscale = colscale,
                 zaxis=list(title='$B', range=c(0,10)),
-                camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
-layout(add_surface(plot_ly(z=test_t10_f$value_func$V_min[idx_cf, idx_kg,string2bin('fffffffff')]/1e3, y=c_f_vals_core, x=k_g_vals_core)),
-       title = 'NPV Costs, Fossil-only', 
+                camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+p = layout(add_surface(plot_ly(z=test_t10_f$value_func$V_min[idx_cf, idx_kg,string2bin('fffffffff')]/1e3, showlegend=F, y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+       title = list(text='NPV Costs, Fossil-only', y = 0.9),
+       margin = list(t = 0),
        scene = scene_vf,
-       legend = list(title=list(text='$B')))
-# orca(file = paste0(out_dir,"my_plot.png")) # need to fix this error
-layout(add_surface(plot_ly(z=test_t10_g$value_func$V_min[idx_cf, idx_kg,string2bin('ggggggggg')]/1e3, y=c_f_vals_core, x=k_g_vals_core)),
+       legend = list(title='$B', font=list(size=12)))
+p
+orca(p, file = "my_plot.png", scale=0.75, width=800*0.8, height=800*0.8) 
+layout(add_surface(plot_ly(z=test_t10_g$value_func$V_min[idx_cf, idx_kg,string2bin('ggggggggg')]/1e3, y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'NPV Costs, Green-only',
        scene = scene_vf,
        legend = list(title=list(text='$B')))
-layout(add_surface(plot_ly(z=test_t10$value_func$V_min[idx_cf, idx_kg,string2bin('fffffffff')]/1e3, y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=test_t10$value_func$V_min[idx_cf, idx_kg,string2bin('fffffffff')]/1e3, y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'NPV Costs, Both Options, starting with All-Fossil Portfolio',
        scene = scene_vf,
        legend = list(title=list(text='$B')))
-layout(add_surface(plot_ly(z=test_t10$value_func$V_min[idx_cf, idx_kg,string2bin('ggggggggg')]/1e3, y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=test_t10$value_func$V_min[idx_cf, idx_kg,string2bin('ggggggggg')]/1e3, y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'NPV Costs, Both Options, starting with All-Green Portfolio',
        scene = scene_vf,
        legend = list(title=list(text='$B')))
@@ -419,37 +432,37 @@ scene_sd = list(xaxis=list(title='Green CAPEX'),
                 yaxis=list(title='Fossil OPEX'),
                 zaxis=list(title='$M', range=c(0,1000)),
                 camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
-layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'f','all-f'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'f','all-f'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Std. Dev. of NPV Costs, Fossil-only',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
-layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'g','all-g'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'g','all-g'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Std. Dev. of NPV Costs, Green-only',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
-layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'all','all-f'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'all','all-f'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Std. Dev. of NPV Costs, Both Options, starting with All-Fossil Portfolio',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
-layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'all','all-g'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'all','all-g'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Std. Dev. of NPV Costs, Both Options, starting with All-Green Portfolio',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
 
 # Std Dev under each scenario, short-run
-layout(add_surface(plot_ly(z=SD.PV.near[idx_cf, idx_kg,'f','all-f'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV.near[idx_cf, idx_kg,'f','all-f'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Std. Dev. of NPV Costs, Fossil-only\nNear Term Only',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
-layout(add_surface(plot_ly(z=SD.PV.near[idx_cf, idx_kg,'g','all-g'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV.near[idx_cf, idx_kg,'g','all-g'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Std. Dev. of NPV Costs, Green-only\nNear Term Only',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
-layout(add_surface(plot_ly(z=SD.PV.near[idx_cf, idx_kg,'all','all-f'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV.near[idx_cf, idx_kg,'all','all-f'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Std. Dev. of NPV Costs, Both Options, starting with All-Fossil Portfolio\nNear Term Only',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
-layout(add_surface(plot_ly(z=SD.PV.near[idx_cf, idx_kg,'all','all-g'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV.near[idx_cf, idx_kg,'all','all-g'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Std. Dev. of NPV Costs, Both Options, starting with All-Green Portfolio\nNear Term Only',
        scene = scene_sd,
        legend = list(title=list(text='$M')))
@@ -469,12 +482,12 @@ scene_pct = list(xaxis=list(title='Green CAPEX'),
                  camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75)))
 # Option value (%)
 # Green
-layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-f']/SD.PV[idx_cf, idx_kg,'f','all-f']-1)*100, y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-f']/SD.PV[idx_cf, idx_kg,'f','all-f']-1)*100, y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Value of Adding Green Option\nLong Term',
        scene = scene_pct,
        legend = list(title=list(text='%')))
 # Fossil
-layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-g']/SD.PV[idx_cf, idx_kg,'g','all-g']-1)*100, y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-g']/SD.PV[idx_cf, idx_kg,'g','all-g']-1)*100, y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Value of Adding Fossil Option\nLong Term',
        scene = scene_pct,
        legend = list(title=list(text='%')))
@@ -484,11 +497,11 @@ scene_sd_delta = list(xaxis=list(title='Green CAPEX'),
                       zaxis=list(title='$M', range=c(-800,200)),
                       camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 # Option value ($)
-layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-f']-SD.PV[idx_cf, idx_kg,'f','all-f']), y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-f']-SD.PV[idx_cf, idx_kg,'f','all-f']), y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Value of Adding Green Option\nLong Term',
        scene = scene_sd_delta,
        legend = list(title=list(text='$M')))
-layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-f']-SD.PV[idx_cf, idx_kg,'g','all-f']), y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-f']-SD.PV[idx_cf, idx_kg,'g','all-f']), y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Value of Adding Fossil Option\nLong Term',
        scene = scene_sd_delta,
        legend = list(title=list(text='$M')))
@@ -503,11 +516,11 @@ scene_pct2 = list(xaxis=list(title='Green CAPEX'),
                  zaxis=list(title='%', range=c(-100,5)),
                  camera=list(eye=list(x=1.25*-1, y=1.25*-1, z=1.25*0.75)))
 
-layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'all','all-f']-SD.PV[idx_cf, idx_kg,'all','all-g'], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=SD.PV[idx_cf, idx_kg,'all','all-f']-SD.PV[idx_cf, idx_kg,'all','all-g'], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Reduction in SD ($) from Procuring Green Portfolio\nLong Term',
        scene = scene_sd2,
        legend = list(title=list(text='$M')))
-layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-g']/SD.PV[idx_cf, idx_kg,'all','all-f']-1)*100, y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=(SD.PV[idx_cf, idx_kg,'all','all-g']/SD.PV[idx_cf, idx_kg,'all','all-f']-1)*100, y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Reduction in SD (%) from Procuring Green Portfolio\nLong Term',
        scene = scene_pct,
        legend = list(title=list(text='%')))
@@ -638,14 +651,14 @@ green_t10_OV[1:5,1:5,string2bin('ggg')]
 green_t10_OV[1:5,1:5,string2bin('fff')]
 
 # layout(add_surface(plot_ly(z=kernel2dsmooth(x=100*SD.pct.diff.near, kernel.type='disk', r=5)[-(1:3),-c(1:5, 49:51)], y=c_f_vals_core[-(1:3)], x=k_g_vals_core[-c(1:5, 49:51)])),
-layout(add_surface(plot_ly(z=green_t10_OV[idx_cf, idx_kg,string2bin('ggg')], y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=green_t10_OV[idx_cf, idx_kg,string2bin('ggg')], y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Green Option Value, L=10',
        legend = list(title=list(text='$M Difference')),
        scene = list(xaxis=list(title='Green CAPEX'),
                     yaxis=list(title='Fossil OPEX'),
                     zaxis=list(title='$M')))
 
-layout(add_surface(plot_ly(z=green_t10_OV[idx_cf, idx_kg,string2bin('fff')]-green_t4_OV[idx_cf, idx_kg,string2bin('fff')] , y=c_f_vals_core, x=k_g_vals_core)),
+layout(add_surface(plot_ly(z=green_t10_OV[idx_cf, idx_kg,string2bin('fff')]-green_t4_OV[idx_cf, idx_kg,string2bin('fff')] , y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
        title = 'Difference in green Option Value, L=10 vs. L=4',
        legend = list(title=list(text='$ Difference')),
        scene = list(xaxis=list(title='Green CAPEX'),
