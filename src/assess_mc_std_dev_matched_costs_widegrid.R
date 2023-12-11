@@ -325,7 +325,8 @@ difftime(script.end, script.start)
 dim(test_t10$value_func$V_min)
 prod(dim(test_t10$value_func$V_min))
 save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_large_grid_',Sys.Date(),'.RData'))
-# load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_2023-12-05.RData'))
+# load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_large_grid_2023-12-08.RData'))
+
 
 # check:
 hist(E.PV[idx_cf, idx_kg,'all','all-f']/test_t10$value_func$V_min[idx_cf, idx_kg,string2bin('fffffffff')])
