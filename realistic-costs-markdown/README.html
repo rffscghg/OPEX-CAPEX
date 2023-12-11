@@ -649,12 +649,11 @@ functions</h2>
 parameters</h2>
 <p>We intend to run our OPEX-CAPEX model for realistic scenarios. The
 most important parameters we need to determine are <span class="math inline">\(\sigma_f\)</span>, <span class="math inline">\(\sigma_g\)</span>, <span class="math inline">\(\mu_f\)</span>, and <span class="math inline">\(\mu_g\)</span>, which represent uncertanty and
-drift values for future “fossil” OPEX and “green” CAPEX. We will also
-want to tune our state space for OPEX and CAPEX costs to cover the range
-of realistic values for actual investments, including fossil CAPEX and
-green OPEX, which are constants in the current version of our model. We
-are planning to present results for two scenarios: power plants and
-cars.</p>
+drift values for future “green” CAPEX (<span class="math inline">\(k_g\)</span>) and “fossil” OPEX (<span class="math inline">\(c_f\)</span>). We will also want to tune our state
+space for OPEX and CAPEX costs to cover the range of realistic values
+for actual investments, including fossil CAPEX and green OPEX, which are
+constants in the current version of our model. We are planning to
+present results for two scenarios: power plants and cars.</p>
 <p>Our main source is the Rhodium Climate Outlook, which was just
 released a couple weeks ago (November 30, 2023). We got these values
 from the authors:</p>
@@ -739,21 +738,55 @@ from the authors:</p>
 (fossil). The “Wind Land Overnight Capital Cost” row above provides
 present-day and 2050 prices for capital expense per kW of green power
 generation. We will use the “Henry Hub Natural Gas Price” for fossil
-OPEX. We also plan to incorporate fixed O&amp;M expenses in the CAPEX
-figures, and some dimensional analysis is required to get to the correct
-units. The <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(\mu\)</span> parameters do not require
-dimensional, so let’s start there:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>mu_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, x0, t, t0) <span class="fu">log</span>(x<span class="sc">/</span>x0)<span class="sc">/</span>(t<span class="sc">-</span>t0) <span class="co"># Adapted from &quot;Model Documentation.docx&quot;</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>sigma_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, sd_x, t, t0) <span class="fu">sqrt</span>(<span class="fu">log</span>((sd_x<span class="sc">/</span>x)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">/</span>(t<span class="sc">-</span>t0))</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>c_f     <span class="ot">=</span> <span class="fl">3.27788226897</span> <span class="co"># 2030 value</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>c_f_0   <span class="ot">=</span> <span class="fl">6.45</span>          <span class="co"># 2022 value</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>sd_c_f  <span class="ot">=</span> <span class="fl">1.30384615402</span> <span class="co"># StdDv in 2030</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>t_f       <span class="ot">=</span> <span class="dv">2030</span>          </span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>t_f_0     <span class="ot">=</span> <span class="dv">2022</span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>mu_c_f <span class="ot">=</span> <span class="fu">mu_formula</span>(c_f, c_f_0, t_f, t_f_0)</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>sigma_c_f <span class="ot">=</span> <span class="fu">sigma_formula</span>(c_f, sd_c_f, t_f, t_f_0)</span></code></pre></div>
+OPEX, although because 2022 was a price spike, we will use the average
+of all of the 2023 monthly data currently available in the <a href="https://fred.stlouisfed.org/series/MHHNGSP">FRED</a> database. We
+also plan to incorporate fixed O&amp;M expenses in the CAPEX figures,
+and some dimensional analysis is required to get to the correct units.
+The unitless <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(\mu\)</span> parameters do not require dimensional
+analysis, so let’s start there:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>FRED_HH_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">3.27</span>, <span class="fl">2.38</span>, <span class="fl">2.31</span>, <span class="fl">2.16</span>, <span class="fl">2.15</span>, <span class="fl">2.18</span>, <span class="fl">2.55</span>, <span class="fl">2.58</span>, <span class="fl">2.64</span>, <span class="fl">2.98</span>, <span class="fl">2.71</span>) <span class="co"># Jan to Nov</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>mu_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, x0, t, t0) <span class="fu">log</span>(x<span class="sc">/</span>x0)<span class="sc">/</span>(t<span class="sc">-</span>t0) <span class="co"># Adapted from &quot;Model Documentation.docx&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>sigma_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, sd_x, t, t0) <span class="fu">sqrt</span>(<span class="fu">log</span>((sd_x<span class="sc">/</span>x)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">/</span>(t<span class="sc">-</span>t0))</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>k_g         <span class="ot">=</span> <span class="dv">928</span>                   <span class="co"># 2050 value</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>k_g_0       <span class="ot">=</span> <span class="fl">1519.08</span>               <span class="co"># 2022 value</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>sd_k_g      <span class="ot">=</span> <span class="fl">291.7610619</span>           <span class="co"># StdDv in 2050</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>t_g         <span class="ot">=</span> <span class="dv">2050</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>t_g_0       <span class="ot">=</span> <span class="dv">2022</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>mu_k_g      <span class="ot">=</span> <span class="fu">mu_formula</span>(k_g, k_g_0, t_g, t_g_0)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>sigma_k_g   <span class="ot">=</span> <span class="fu">sigma_formula</span>(k_g, sd_k_g, t_g, t_g_0)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>c_f         <span class="ot">=</span> <span class="fl">3.27788226897</span>         <span class="co"># 2030 value</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>c_f_0       <span class="ot">=</span> <span class="fu">mean</span>(FRED_HH_values)  <span class="co"># Average of 2023 monthly values</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>sd_c_f      <span class="ot">=</span> <span class="fl">1.30384615402</span>         <span class="co"># StdDv in 2030</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>t_f         <span class="ot">=</span> <span class="dv">2030</span>          </span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>t_f_0       <span class="ot">=</span> <span class="dv">2022</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>mu_c_f      <span class="ot">=</span> <span class="fu">mu_formula</span>(c_f, c_f_0, t_f, t_f_0)</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>sigma_c_f   <span class="ot">=</span> <span class="fu">sigma_formula</span>(c_f, sd_c_f, t_f, t_f_0)</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Variable</th>
+<th align="left">Drift (<span class="math inline">\(\mu\)</span>)</th>
+<th align="left">Volatility (<span class="math inline">\(\sigma\)</span>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><span class="math inline">\(k_g\)</span></td>
+<td align="left">-0.017601</td>
+<td align="left">0.0580211</td>
+</tr>
+<tr class="even">
+<td align="left"><span class="math inline">\(c_f\)</span></td>
+<td align="left">0.0320135</td>
+<td align="left">0.1355018</td>
+</tr>
+</tbody>
+</table>
 <h3 id="vehicles">Vehicles</h3>
 <h2 id="model-runs">Model runs</h2>
 
