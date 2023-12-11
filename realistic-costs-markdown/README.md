@@ -23,8 +23,7 @@ future “fossil” OPEX and “green” CAPEX. We will also want to tune our
 state space for OPEX and CAPEX costs to cover the range of realistic
 values for actual investments, including fossil CAPEX and green OPEX,
 which are constants in the current version of our model. We are planning
-to present results for two scenarios: power plants and consumer
-vehicles.
+to present results for two scenarios: power plants and cars.
 
 Our main source is the Rhodium Climate Outlook, which was just released
 a couple weeks ago (November 30, 2023). We got these values from the
@@ -44,7 +43,26 @@ authors:
 We’re going to compare onshore wind (green) with natural gas (fossil).
 The “Wind Land Overnight Capital Cost” row above provides present-day
 and 2050 prices for capital expense per kW of green power generation. We
-will use the “Henry Hub Natural Gas Price” for fossil OPEX. Some
-dimensional analysis is required.
+will use the “Henry Hub Natural Gas Price” for fossil OPEX. We also plan
+to incorporate fixed O&M expenses in the CAPEX figures, and some
+dimensional analysis is required to get to the correct units. The
+$\sigma$ and $\mu$ parameters do not require dimensional, so let’s start
+there:
+
+``` r
+mu_formula <- function(x, x0, t, t0) log(x/x0)/(t-t0) # Adapted from "Model Documentation.docx"
+sigma_formula <- function(x, sd_x, t, t0) sqrt(log((sd_x/x)^2 + 1)/(t-t0))
+
+c_f     = 3.27788226897 # 2030 value
+c_f_0   = 6.45          # 2022 value
+sd_c_f  = 1.30384615402 # StdDv in 2030
+t_f       = 2030          
+t_f_0     = 2022
+
+mu_c_f = mu_formula(c_f, c_f_0, t_f, t_f_0)
+sigma_c_f = sigma_formula(c_f, sd_c_f, t_f, t_f_0)
+```
+
+### Vehicles
 
 ## Model runs
