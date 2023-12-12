@@ -20,7 +20,7 @@ source("../src/monte.r")
 
 ## Determine appropriate parameters
 
-We intend to run our OPEX-CAPEX model for realistic scenarios. The most important parameters we need to determine are $\sigma_f$, $\sigma_g$, $\mu_f$, and $\mu_g$, which represent uncertanty and drift values for future "green" CAPEX ($k_g$) and "fossil" OPEX ($c_f$). We will also want to tune our state space for OPEX and CAPEX costs to cover the range of realistic values for actual investments, including fossil CAPEX and green OPEX, which are constants in the current version of our model. We are planning to present results for two scenarios: power plants and cars.
+We intend to run our OPEX-CAPEX model for realistic scenarios. The most important parameters we need to determine are $\sigma_f$, $\sigma_g$, $\mu_f$, and $\mu_g$, which represent uncertanty and drift values for future "green" CAPEX ($k_g$) and "fossil" OPEX ($c_f$). We will also want to tune other parameters and ranges for OPEX and CAPEX costs to be as realistic as possible, including fossil CAPEX ($k_f$) and green OPEX ($c_g$), which are constants in the current version of our model. We are planning to present results for two scenarios: power plants and cars.
 
 Our main source is the Rhodium Climate Outlook, which was just released a couple weeks ago (November 30, 2023). We got these values from the authors:
 
@@ -35,7 +35,11 @@ Our main source is the Rhodium Climate Outlook, which was just released a couple
 
 ### Power plants
 
-We're going to compare onshore wind (green) with natural gas (fossil). The "Wind Land Overnight Capital Cost" row above provides present-day and 2050 prices for capital expense per kW of green power generation. We will use the "Henry Hub Natural Gas Price" for fossil OPEX, although because 2022 was a price spike, we will use the average of all of the 2023 monthly data currently available in the [FRED](https://fred.stlouisfed.org/series/MHHNGSP) database. We also plan to incorporate fixed O&M expenses in the CAPEX figures, and some dimensional analysis is required to get to the correct units. The unitless $\sigma$ and $\mu$ parameters do not require dimensional analysis, so let's start there:
+We're going to compare onshore wind (green) with natural gas (fossil). The "Wind Land Overnight Capital Cost" row above provides present-day and 2050 prices for capital expense per kW of green power generation, which will inform our $k_g$ variable. We will use the "Henry Hub Natural Gas Price" to calculate $c_f$, although because 2022 was a price spike, we will use the average of all of the 2023 monthly data currently available in the [FRED](https://fred.stlouisfed.org/series/MHHNGSP) database. We also plan to incorporate fixed O&M expenses in the CAPEX figures, and some dimensional analysis is required to get to units that can be meaningfully compared between the two technologies. 
+
+#### $\mu$ and $\sigma$
+
+These parameters are unitless and do not require dimensional analysis. The [NREL ATB](https://atb.nrel.gov/electricity/2023/land-based_wind) estimates fixed O&M values to decline over time, with pretty high uncertainty, so it seems wrong to assume the same values for present and future $k_g$, so I am going to ignore that for this part.
 
 ```{r}
 
@@ -57,17 +61,29 @@ c_f         = 3.27788226897         # 2030 value
 c_f_0       = mean(FRED_HH_values)  # Average of 2023 monthly values
 sd_c_f      = 1.30384615402         # StdDv in 2030
 t_f         = 2030          
-t_f_0       = 2022
+t_f_0       = 2023
 
 mu_c_f      = mu_formula(c_f, c_f_0, t_f, t_f_0)
 sigma_c_f   = sigma_formula(c_f, sd_c_f, t_f, t_f_0)
 
 ```
 
-|Variable |Drift ($\mu$)      |Volatility ($\sigma$)      |
+This results in the following estimates:
+
+|Variable |Drift ($\mu$) |Volatility ($\sigma$) |
 |:------|:------|:------|
 |$k_g$  |`r mu_k_g`|`r sigma_k_g`|
 |$c_f$  |`r mu_c_f`|`r sigma_c_f`|
+
+#### $k$ values
+
+To convert units for $k$ values from \$/kW to investment cost for a plant, we will make assumptions about capacity factor and the generation ($q$) size of the plant, and we will add in fixed O&M costs. Capacity factors come from [Waiting for Clarity](https://www.rff.org/publications/reports/waiting-for-clarity-how-a-price-on-carbon-can-inspire-investment/), the 2021 report authored by Brian and his colleagues. We'll run the Monte Carlo simulation for a wide range of starting values for $k_g$ but it would be good to have one, probably the central one, match the actual value from Rhodium. We want to keep everything in the same start year, so we will adjust that $k_{g,0}$ starting value to 2023 to match the $c_{f,0}$ year.
+
+We also need our $k_f$ value, which we will get from the [NREL Annual Technology Baseline](https://atb.nrel.gov/electricity/2023/fossil_energy_technologies), specifically using the values for "NG Combined Cycle" plants. They have two specifications for those plants, "H-Frame" and "F-Frame", and their starting year is 2021, so their 2023 projections are slightly uncertain. I will use a simple average of all of their values for now, which we can adjust as need be.
+
+```{r}
+
+```
 
 ### Vehicles
 

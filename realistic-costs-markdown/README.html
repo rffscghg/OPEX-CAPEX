@@ -636,7 +636,7 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.mhchemParser=void 0;var r=fun
 <body>
 
 <h1 id="opex-capex-model">OPEX-CAPEX model</h1>
-<p>Last updated by Jordan Wingenroth on 12/11/23</p>
+<p>Last updated by Jordan Wingenroth on 12/12/23</p>
 <h2 id="load-vfi-and-monte-carlo-functions">Load VFI and Monte Carlo
 functions</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -649,11 +649,11 @@ functions</h2>
 parameters</h2>
 <p>We intend to run our OPEX-CAPEX model for realistic scenarios. The
 most important parameters we need to determine are <span class="math inline">\(\sigma_f\)</span>, <span class="math inline">\(\sigma_g\)</span>, <span class="math inline">\(\mu_f\)</span>, and <span class="math inline">\(\mu_g\)</span>, which represent uncertanty and
-drift values for future “green” CAPEX (<span class="math inline">\(k_g\)</span>) and “fossil” OPEX (<span class="math inline">\(c_f\)</span>). We will also want to tune our state
-space for OPEX and CAPEX costs to cover the range of realistic values
-for actual investments, including fossil CAPEX and green OPEX, which are
-constants in the current version of our model. We are planning to
-present results for two scenarios: power plants and cars.</p>
+drift values for future “green” CAPEX (<span class="math inline">\(k_g\)</span>) and “fossil” OPEX (<span class="math inline">\(c_f\)</span>). We will also want to tune other
+parameters and ranges for OPEX and CAPEX costs to be as realistic as
+possible, including fossil CAPEX (<span class="math inline">\(k_f\)</span>) and green OPEX (<span class="math inline">\(c_g\)</span>), which are constants in the current
+version of our model. We are planning to present results for two
+scenarios: power plants and cars.</p>
 <p>Our main source is the Rhodium Climate Outlook, which was just
 released a couple weeks ago (November 30, 2023). We got these values
 from the authors:</p>
@@ -737,13 +737,20 @@ from the authors:</p>
 <p>We’re going to compare onshore wind (green) with natural gas
 (fossil). The “Wind Land Overnight Capital Cost” row above provides
 present-day and 2050 prices for capital expense per kW of green power
-generation. We will use the “Henry Hub Natural Gas Price” for fossil
-OPEX, although because 2022 was a price spike, we will use the average
-of all of the 2023 monthly data currently available in the <a href="https://fred.stlouisfed.org/series/MHHNGSP">FRED</a> database. We
+generation, which will inform our <span class="math inline">\(k_g\)</span> variable. We will use the “Henry Hub
+Natural Gas Price” to calculate <span class="math inline">\(c_f\)</span>, although because 2022 was a price
+spike, we will use the average of all of the 2023 monthly data currently
+available in the <a href="https://fred.stlouisfed.org/series/MHHNGSP">FRED</a> database. We
 also plan to incorporate fixed O&amp;M expenses in the CAPEX figures,
-and some dimensional analysis is required to get to the correct units.
-The unitless <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(\mu\)</span> parameters do not require dimensional
-analysis, so let’s start there:</p>
+and some dimensional analysis is required to get to units that can be
+meaningfully compared between the two technologies.</p>
+<h4 id="mu-and-sigma"><span class="math inline">\(\mu\)</span> and <span class="math inline">\(\sigma\)</span></h4>
+<p>These parameters are unitless and do not require dimensional
+analysis. The <a href="https://atb.nrel.gov/electricity/2023/land-based_wind">NREL
+ATB</a> estimates fixed O&amp;M values to decline over time, with pretty
+high uncertainty, so it seems wrong to assume the same values for
+present and future <span class="math inline">\(k_g\)</span>, so I am
+going to ignore that for this part.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>FRED_HH_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">3.27</span>, <span class="fl">2.38</span>, <span class="fl">2.31</span>, <span class="fl">2.16</span>, <span class="fl">2.15</span>, <span class="fl">2.18</span>, <span class="fl">2.55</span>, <span class="fl">2.58</span>, <span class="fl">2.64</span>, <span class="fl">2.98</span>, <span class="fl">2.71</span>) <span class="co"># Jan to Nov</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>mu_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, x0, t, t0) <span class="fu">log</span>(x<span class="sc">/</span>x0)<span class="sc">/</span>(t<span class="sc">-</span>t0) <span class="co"># Adapted from &quot;Model Documentation.docx&quot;</span></span>
@@ -762,10 +769,11 @@ analysis, so let’s start there:</p>
 <span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>c_f_0       <span class="ot">=</span> <span class="fu">mean</span>(FRED_HH_values)  <span class="co"># Average of 2023 monthly values</span></span>
 <span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>sd_c_f      <span class="ot">=</span> <span class="fl">1.30384615402</span>         <span class="co"># StdDv in 2030</span></span>
 <span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>t_f         <span class="ot">=</span> <span class="dv">2030</span>          </span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>t_f_0       <span class="ot">=</span> <span class="dv">2022</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>t_f_0       <span class="ot">=</span> <span class="dv">2023</span></span>
 <span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a></span>
 <span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>mu_c_f      <span class="ot">=</span> <span class="fu">mu_formula</span>(c_f, c_f_0, t_f, t_f_0)</span>
 <span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>sigma_c_f   <span class="ot">=</span> <span class="fu">sigma_formula</span>(c_f, sd_c_f, t_f, t_f_0)</span></code></pre></div>
+<p>This results in the following estimates:</p>
 <table>
 <thead>
 <tr class="header">
@@ -782,11 +790,30 @@ analysis, so let’s start there:</p>
 </tr>
 <tr class="even">
 <td align="left"><span class="math inline">\(c_f\)</span></td>
-<td align="left">0.0320135</td>
-<td align="left">0.1355018</td>
+<td align="left">0.0365868</td>
+<td align="left">0.1448575</td>
 </tr>
 </tbody>
 </table>
+<h4 id="k-values"><span class="math inline">\(k\)</span> values</h4>
+<p>To convert units for <span class="math inline">\(k\)</span> values
+from $/kW to investment cost for a plant, we will make assumptions about
+capacity factor and the generation (<span class="math inline">\(q\)</span>) size of the plant, and we will add in
+fixed O&amp;M costs. Capacity factors come from <a href="https://www.rff.org/publications/reports/waiting-for-clarity-how-a-price-on-carbon-can-inspire-investment/">Waiting
+for Clarity</a>, the 2021 report authored by Brian and his colleagues.
+We’ll run the Monte Carlo simulation for a wide range of starting values
+for <span class="math inline">\(k_g\)</span> but it would be good to
+have one, probably the central one, match the actual value from Rhodium.
+We want to keep everything in the same start year, so we will adjust
+that <span class="math inline">\(k_{g,0}\)</span> starting value to 2023
+to match the <span class="math inline">\(c_{f,0}\)</span> year.</p>
+<p>We also need our <span class="math inline">\(k_f\)</span> value,
+which we will get from the <a href="https://atb.nrel.gov/electricity/2023/fossil_energy_technologies">NREL
+Annual Technology Baseline</a>, specifically using the values for “NG
+Combined Cycle” plants. They have two specifications for those plants,
+“H-Frame” and “F-Frame”, and their starting year is 2021, so their 2023
+projections are slightly uncertain. I will use a simple average of all
+of their values for now, which we can adjust as need be.</p>
 <h3 id="vehicles">Vehicles</h3>
 <h2 id="model-runs">Model runs</h2>
 
