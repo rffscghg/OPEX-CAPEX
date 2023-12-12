@@ -320,11 +320,11 @@ difftime(script.end, script.start)
 dim(test_t10$value_func$V_min)
 prod(dim(test_t10$value_func$V_min))
 # save.image(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_',Sys.Date(),'.RData'))
-load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_2023-12-05.RData'))
+# load(paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/working_opex_capex_data_matched_costs_2023-12-05.RData'))
 
 ############# Make figures
 out_dir = paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/matched_costs/')
-out_dir = paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/matched_costs_test/')
+# out_dir = paste0(root,'/OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/matched_costs_test/')
 dir.create(out_dir)
 setwd(out_dir)
 # out_dir=='C:/Users/prest//OneDrive - rff/Documents - RPE-Electric Power/OPEX CAPEX Price Risk/output/figures/'
@@ -506,11 +506,12 @@ scene_pct = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
                 camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 # To do here: 
 # 1) fix the color scale so that reductions are always blue (or green), and not red
+custom_colors = 'Greens'
 
 # Chang in SD from option, in percent (%)
 green_option_pct_reduc = (SD.PV[,,'all','all-f']/SD.PV[,,'f','all-f']-1)*100
 p13 = layout(add_surface(plot_ly(z=smooth_matrix(green_option_pct_reduc, window_size = 6)[idx_cf, idx_kg],
-                                y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+                                y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors),
             title = list(text='Percent Change in Std. Dev. of NPV Costs<br>from Adding Green Option', y = 0.9),
             scene = scene_pct,
             legend = list(title=list(text='%')))
@@ -518,7 +519,7 @@ orca(p13, file = "pct_change_std_dev_green_option.png", scale=0.75, width=800*0.
 
 fossil_option_pct_reduc = (SD.PV[,,'all','all-g']/SD.PV[,,'g','all-g']-1)*100
 p14 = layout(add_surface(plot_ly(z=smooth_matrix(fossil_option_pct_reduc, window_size = 6)[idx_cf, idx_kg],
-                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors),
              title = list(text='Percent Change in Std. Dev. of NPV Costs<br>from Adding Fossil Option', y = 0.9),
              scene = scene_pct,
              legend = list(title=list(text='%')))
@@ -530,17 +531,28 @@ scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
                       zaxis=list(title='$M', range=c(-900,250)),
                       camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
-green_option_dol_reduc = SD.PV[,,'all','all-f']-SD.PV[,,'f','all-f']
+green_option_dol_reduc = SD.PV[,,'all','all-f']-SD.PV[,,'f','all-f'] # (c) - (a)
+# custom_colors <- list(
+#   c(0, "green"),    # Value at 0, green color
+#   c(mean(smooth_matrix(green_option_dol_reduc, window_size = 6)[idx_cf, idx_kg]<0), "yellow"),  # Value at 0.5, white color
+#   c(1, "red")       # Value at 1, red color
+# )
 p15 = layout(add_surface(plot_ly(z=smooth_matrix(green_option_dol_reduc, window_size = 6)[idx_cf, idx_kg],
-                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors),
              title = list(text='Dollar Change in Std. Dev. of NPV Costs<br>from Adding Green Option', y = 0.9),
              scene = scene_sd_delta,
              legend = list(title=list(text='$')))
 orca(p15, file = "dol_change_std_dev_green_option.png", scale=0.75, width=800*0.8, height=800*0.8)
 
-fossil_option_dol_reduc = SD.PV[,,'all','all-g']-SD.PV[,,'g','all-g']
+fossil_option_dol_reduc = SD.PV[,,'all','all-g']-SD.PV[,,'g','all-g']  # (d) - (b)
+# custom_colors <- list(
+#   c(0, "green"),    # Value at 0, green color
+#   c(0.99, "yellow"),  # Value at 0.5, white color
+#   c(1, "red")       # Value at 1, red color
+# )
+
 p16 = layout(add_surface(plot_ly(z=smooth_matrix(fossil_option_dol_reduc, window_size = 8)[idx_cf, idx_kg],
-                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors),
              title = list(text='Dollar Change in Std. Dev. of NPV Costs<br>from Adding Fossil Option', y = 0.9),
              scene = scene_sd_delta,
              legend = list(title=list(text="$M")))
@@ -552,15 +564,15 @@ image(green_option_dol_reduc<fossil_option_dol_reduc)
 # Procurement value
 green_own_pct_reduc = (SD.PV[,,'all','all-g']/SD.PV[,,'all','all-f']-1)*100
 p17 = layout(add_surface(plot_ly(z=smooth_matrix(green_own_pct_reduc)[idx_cf, idx_kg],
-                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors),
              title = list(text='Percent Change in Std. Dev. of NPV Costs<br>from Procuring Green Asset', y = 0.9),
              scene = scene_pct,
              legend = list(title=list(text='%')))
 orca(p17, file = "pct_change_std_dev_green_procurement.png", scale=0.75, width=800*0.8, height=800*0.8)
 
-green_own_dol_reduc = SD.PV[,,'all','all-g']-SD.PV[,,'all','all-f']
+green_own_dol_reduc = SD.PV[,,'all','all-g']-SD.PV[,,'all','all-f'] # (d) - (c)
 p18 = layout(add_surface(plot_ly(z=smooth_matrix(green_own_dol_reduc)[idx_cf, idx_kg],
-                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors),
              title = list(text='Dollar Change in Std. Dev. of NPV Costs<br>from Procuring Green Asset', y = 0.9),
              scene = scene_sd_delta,
              legend = list(title=list(text='$M')))
@@ -569,7 +581,7 @@ orca(p18, file = "dol_change_std_dev_green_procurement.png", scale=0.75, width=8
 # Near term
 green_own_pct_reduc_near = (SD.PV.near[,,'all','all-g']/SD.PV.near[,,'all','all-f']-1)*100
 p17 = layout(add_surface(plot_ly(z=smooth_matrix(green_own_pct_reduc_near)[idx_cf, idx_kg],
-                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors),
              title = list(text='Percent Change in Std. Dev. of NPV Costs<br>from Procuring Green Asset<br>Near-term Only', y = 0.9),
              scene = scene_pct,
              legend = list(title=list(text='%')))
@@ -577,7 +589,7 @@ orca(p17, file = "pct_change_std_dev_green_procurement_near.png", scale=0.75, wi
 
 green_own_dol_reduc_near = SD.PV.near[,,'all','all-g']-SD.PV.near[,,'all','all-f']
 p18 = layout(add_surface(plot_ly(z=smooth_matrix(green_own_dol_reduc_near)[idx_cf, idx_kg],
-                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = colscale),
+                                 y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors),
              title = list(text='Dollar Change in Std. Dev. of NPV Costs<br>from Procuring Green Asset<br>Near-term Only', y = 0.9),
              scene = scene_sd_delta,
              legend = list(title=list(text='$M')))
