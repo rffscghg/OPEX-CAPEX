@@ -88,8 +88,8 @@ This results in the following estimates:
 
 | Variable | Drift ($\mu$) | Volatility ($\sigma$) |
 |:---------|:--------------|:----------------------|
-| $k_g$    | -0.017601     | 0.0580211             |
-| $c_f$    | 0.0365868     | 0.1448575             |
+| $k_g$    | -0.0176       | 0.05802               |
+| $c_f$    | 0.03659       | 0.14486               |
 
 #### $k$ values
 
@@ -103,7 +103,8 @@ Monte Carlo simulation for a wide range of starting values for $k_g$ but
 it would be good to have one, probably the central one, match the actual
 value from Rhodium. We want to keep everything in the same start year,
 so we will adjust that $k_{g,0}$ starting value to 2023 to match the
-$c_{f,0}$ year.
+$c_{f,0}$ year, using the drift calculated above from the Rhodium
+values.
 
 We also need our $k_f$ value, which we will get from the [NREL Annual
 Technology
@@ -111,8 +112,43 @@ Baseline](https://atb.nrel.gov/electricity/2023/fossil_energy_technologies),
 specifically using the values for “NG Combined Cycle” plants. They have
 two specifications for those plants, “H-Frame” and “F-Frame”, and their
 starting year is 2021, so their 2023 projections are slightly uncertain.
-I will use a simple average of all of their values for now, which we can
-adjust as need be.
+I will use estimates in the center of their range for now, for both
+CAPEX and O&M costs, as well as for green O&M costs. We can change this
+later if need be, but it seems like it will have a negligible effect.
+
+Reminder: code chunks in this document can use variables from earlier
+chunks.
+
+``` r
+dr              = 0.1                        # Our model uses a 10% discount rate
+T               = 10                         # Our model assumes plants last 10 years
+q               = 1                          # Our model assumes generation of 1 million MWh/year
+
+# Convert $/kW to total cost in millions of $ (where q is in millions of MWh/year)
+k_unit_conversion <- function(k, onm, CF, dr, T, q) {
+
+    k_plus_onm  = k + sum(onm*(1-dr)^(1:T))  # Add in O&M
+    k_millionMW = k_plus_onm * 1000          # $/kW to millions of dollars per million MW
+    k_capacity  = k_millionMW/CF             # Need to build 1/CF units to provide 1 unit of power
+    k_milMWh_yr = k_capacity / 8760          # $1 per million MW = $1/8760 per million MWh/year
+
+    return(k_milMWh_yr)    
+}
+
+k_g_2023        = exp(log(k_g_0) + mu_k_g)   # In $/kW units
+k_f_2023        = mean(c(1234.2, 1274.6))
+
+onm_g_2023      = mean(28.8, 29.9)           # In $/kW-year units
+onm_f_2023      = mean(c(30.4, 30.9))
+
+CF_g            = .409
+CF_f            = .550
+
+k_g_adj         = k_unit_conversion(k_g_2023, onm_g_2023, CF_g, dr, T, q)
+k_f_adj         = k_unit_conversion(k_f_2023, onm_f_2023, CF_f, dr, T, q)
+```
+
+This lands us at $k_g$ = \$463.71 million and $k_f$ = \$297.65 million.
 
 ### Vehicles
 

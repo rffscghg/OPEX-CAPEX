@@ -785,13 +785,13 @@ going to ignore that for this part.</p>
 <tbody>
 <tr class="odd">
 <td align="left"><span class="math inline">\(k_g\)</span></td>
-<td align="left">-0.017601</td>
-<td align="left">0.0580211</td>
+<td align="left">-0.0176</td>
+<td align="left">0.05802</td>
 </tr>
 <tr class="even">
 <td align="left"><span class="math inline">\(c_f\)</span></td>
-<td align="left">0.0365868</td>
-<td align="left">0.1448575</td>
+<td align="left">0.03659</td>
+<td align="left">0.14486</td>
 </tr>
 </tbody>
 </table>
@@ -806,14 +806,48 @@ for <span class="math inline">\(k_g\)</span> but it would be good to
 have one, probably the central one, match the actual value from Rhodium.
 We want to keep everything in the same start year, so we will adjust
 that <span class="math inline">\(k_{g,0}\)</span> starting value to 2023
-to match the <span class="math inline">\(c_{f,0}\)</span> year.</p>
+to match the <span class="math inline">\(c_{f,0}\)</span> year, using
+the drift calculated above from the Rhodium values.</p>
 <p>We also need our <span class="math inline">\(k_f\)</span> value,
 which we will get from the <a href="https://atb.nrel.gov/electricity/2023/fossil_energy_technologies">NREL
 Annual Technology Baseline</a>, specifically using the values for “NG
 Combined Cycle” plants. They have two specifications for those plants,
 “H-Frame” and “F-Frame”, and their starting year is 2021, so their 2023
-projections are slightly uncertain. I will use a simple average of all
-of their values for now, which we can adjust as need be.</p>
+projections are slightly uncertain. I will use estimates in the center
+of their range for now, for both CAPEX and O&amp;M costs, as well as for
+green O&amp;M costs. We can change this later if need be, but it seems
+like it will have a negligible effect.</p>
+<p>Reminder: code chunks in this document can use variables from earlier
+chunks.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>dr              <span class="ot">=</span> <span class="fl">0.1</span>                        <span class="co"># Our model uses a 10% discount rate</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>T               <span class="ot">=</span> <span class="dv">10</span>                         <span class="co"># Our model assumes plants last 10 years</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>q               <span class="ot">=</span> <span class="dv">1</span>                          <span class="co"># Our model assumes generation of 1 million MWh/year</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co"># Convert $/kW to total cost in millions of $ (where q is in millions of MWh/year)</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>k_unit_conversion <span class="ot">&lt;-</span> <span class="cf">function</span>(k, onm, CF, dr, T, q) {</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>    k_plus_onm  <span class="ot">=</span> k <span class="sc">+</span> <span class="fu">sum</span>(onm<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>dr)<span class="sc">^</span>(<span class="dv">1</span><span class="sc">:</span>T))  <span class="co"># Add in O&amp;M</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    k_millionMW <span class="ot">=</span> k_plus_onm <span class="sc">*</span> <span class="dv">1000</span>          <span class="co"># $/kW to millions of dollars per million MW</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    k_capacity  <span class="ot">=</span> k_millionMW<span class="sc">/</span>CF             <span class="co"># Need to build 1/CF units to provide 1 unit of power</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>    k_milMWh_yr <span class="ot">=</span> k_capacity <span class="sc">/</span> <span class="dv">8760</span>          <span class="co"># $1 per million MW = $1/8760 per million MWh/year</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    <span class="fu">return</span>(k_milMWh_yr)    </span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>}</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>k_g_2023        <span class="ot">=</span> <span class="fu">exp</span>(<span class="fu">log</span>(k_g_0) <span class="sc">+</span> mu_k_g)   <span class="co"># In $/kW units</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>k_f_2023        <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">1234.2</span>, <span class="fl">1274.6</span>))</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>onm_g_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fl">28.8</span>, <span class="fl">29.9</span>)           <span class="co"># In $/kW-year units</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>onm_f_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">30.4</span>, <span class="fl">30.9</span>))</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>CF_g            <span class="ot">=</span> .<span class="dv">409</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>CF_f            <span class="ot">=</span> .<span class="dv">550</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>k_g_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_g_2023, onm_g_2023, CF_g, dr, T, q)</span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>k_f_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_f_2023, onm_f_2023, CF_f, dr, T, q)</span></code></pre></div>
+<p>This lands us at <span class="math inline">\(k_g\)</span> = $463.71
+million and <span class="math inline">\(k_f\)</span> = $297.65
+million.</p>
 <h3 id="vehicles">Vehicles</h3>
 <h2 id="model-runs">Model runs</h2>
 
