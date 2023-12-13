@@ -175,10 +175,36 @@ so we assume $c_g$ = 0.
 
 Parameterizing for “green” electric vehicles (EVs) versus “fossil”
 internal-combustion engine vehicles (ICEVs) is a similar process. We
-want to use the “EV Batteries” values from Rhodium for $k_g$, but we
-need to find a way to scale them to a fossil analogue. This [ICCT
-report](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf)
-seems very helpful.
+want to use the “EV Batteries” values from Rhodium for $k_g$ and the
+“Brent Crude Oil Price” values for $c_f$, but we need to find a way to
+scale them to their respective $k_f$ and $c_g$ analogues. Two ICCT
+reports from
+[2019](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf),
+and
+[2022](https://theicct.org/wp-content/uploads/2022/10/ev-cost-benefits-2035-oct22.pdf)
+were the best references I found.
+
+Also, as with the Henry Hub natural gas prices, 2022 was a bit of a
+spike in crude oil prices, so we will use the average of the 2023 values
+from FRED. Additionally, we want gasoline prices rather than crude oil
+prices. Brian found a pretty consistent linear relationship, so we will
+use those coefficients to convert.
+
+![](images/crude-gasoline-regression.png)
+
+#### $\mu$ and $\sigma$
+
+As with power plants, these parameters are unitless so they don’t
+require conversion between EVs and ICEVs and are a good starting place.
+One conversion is necessary, between crude oil and gasoline prices,
+because the latter is relevant in this case. Brian adjusted historical
+values for inflation and found a
+
+``` r
+k_ev            = 112           # $/kWh
+k_ev_0          = 240.83238     # $/kWh
+sd_k_ev         = 86.88         # $/kWh
+```
 
 Side note: the Rhodium values are considerably higher than the [DoE
 estimate](https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly)
