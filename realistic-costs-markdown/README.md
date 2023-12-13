@@ -117,7 +117,7 @@ CAPEX and fixed O&M costs, as well as for green fixed O&M costs. We can
 change this later if need be, but it seems like it will have a
 negligible effect.
 
-Reminder: code chunks in this document can use variables from earlier
+Side note: code chunks in this document use variables from earlier
 chunks.
 
 ``` r
@@ -130,7 +130,7 @@ k_unit_conversion <- function(k, onm, CF, dr, T, q) {
 
     k_plus_onm  = k + sum(onm*(1-dr)^(1:T))  # Add in fixed O&M
     k_millionMW = k_plus_onm * 1000          # $/kW to millions of dollars per million MW
-    k_capacity  = k_millionMW/CF             # Need to build 1/CF units to provide 1 unit of power
+    k_capacity  = k_millionMW/CF             # Need to build 1/CF units for 1 unit of generation
     k_milMWh_yr = k_capacity / 8760          # $1 per million MW = $1/8760 per million MWh/year
 
     return(k_milMWh_yr)    
@@ -149,32 +149,27 @@ k_g_adj         = k_unit_conversion(k_g_2023, onm_g_2023, CF_g, dr, T, q)
 k_f_adj         = k_unit_conversion(k_f_2023, onm_f_2023, CF_f, dr, T, q)
 ```
 
-This lands us at $k_g$ = \$463.71 million and $k_f$ = \$297.65 million.
+This lands us at $k_{g,0}$ = \$463.71 million and $k_f$ = \$297.65
+million.
 
 We address future decline in $k_g$ as part of our model, but we assume a
-constant $k_f$, which seems like it might bias results a bit based on
-the NREL ATB projections.
+constant $k_f$, which seems like it might bias results in favor of wind
+based on the NREL ATB projections.
 
 #### $c$ values
 
-Converting operating expenses is easier in terms of units, because we
-are leaving out variable O&M and assuming that price per mmbtu scales
-linearly. We could add in variable O&M but we’d want to do so for both
-options to stay consistent, and I wasn’t sure what values to use for
-green power. The best source I found was an [LBNL
-report](https://eta-publications.lbl.gov/sites/default/files/opex_paper_final.pdf),
-in case we do want to add it in.
-
-So all we need to do to get from the Rhodium Henry Hub value to millions
-of dollars per million MWh/year is multiply by a [heat
+Converting operating expenses is easier in terms of units. All we need
+to do to get from the Rhodium Henry Hub value to millions of dollars per
+million MWh/year is multiply by a [heat
 rate](https://www.eia.gov/electricity/annual/html/epa_08_02.html) that
 was most recently estimated at 7,596 Btu/kWh, converted to the correct
-units: 7.596 mmbtu/MWh. \$/MWh equals millions of dollars per million
-MWh. Thus, the 2023 $c_{f,0}$ estimate converts to \$19.273 million per
-year.
+units: 7.596 mmbtu/MWh. We also want to add variable O&M costs, which
+the NREL ATB estimates at \$1.94/MWh for 2023. \$/MWh equals millions of
+dollars per million MWh. Combining converted fuel costs with variable
+O&M yields $c_{f,0}$ = \$21.213 million per year.
 
-With zero variable O&M and zero fuel costs, we effectively assume
-$c_{g,0}$ = 0.
+Many sources describe variable O&M for land-based wind as “negligible”,
+so we assume $c_g$ = 0.
 
 ### Vehicles
 

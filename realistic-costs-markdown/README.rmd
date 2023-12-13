@@ -81,7 +81,7 @@ To convert units for $k$ values from \$/kW to investment cost for a plant, we wi
 
 We also need our $k_f$ value, which we will get from the [NREL Annual Technology Baseline](https://atb.nrel.gov/electricity/2023/fossil_energy_technologies), specifically using the values for "NG Combined Cycle" plants. They have two specifications for those plants, "H-Frame" and "F-Frame", and their starting year is 2021, so their 2023 projections are slightly uncertain. I will use estimates in the center of their range for now, for both CAPEX and fixed O&M costs, as well as for green fixed O&M costs. We can change this later if need be, but it seems like it will have a negligible effect. 
 
-Reminder: code chunks in this document can use variables from earlier chunks.
+Side note: code chunks in this document use variables from earlier chunks.
 
 ```{r}
 
@@ -94,7 +94,7 @@ k_unit_conversion <- function(k, onm, CF, dr, T, q) {
 
     k_plus_onm  = k + sum(onm*(1-dr)^(1:T))  # Add in fixed O&M
     k_millionMW = k_plus_onm * 1000          # $/kW to millions of dollars per million MW
-    k_capacity  = k_millionMW/CF             # Need to build 1/CF units to provide 1 unit of power
+    k_capacity  = k_millionMW/CF             # Need to build 1/CF units for 1 unit of generation
     k_milMWh_yr = k_capacity / 8760          # $1 per million MW = $1/8760 per million MWh/year
 
     return(k_milMWh_yr)    
@@ -114,24 +114,22 @@ k_f_adj         = k_unit_conversion(k_f_2023, onm_f_2023, CF_f, dr, T, q)
 
 ```
 
-This lands us at $k_g$ = \$`r round(k_g_adj, 2)` million and $k_f$ = \$`r round(k_f_adj, 2)` million. 
+This lands us at $k_{g,0}$ = \$`r round(k_g_adj, 2)` million and $k_f$ = \$`r round(k_f_adj, 2)` million. 
 
-We address future decline in $k_g$ as part of our model, but we assume a constant $k_f$, which seems like it might bias results a bit based on the NREL ATB projections.
+We address future decline in $k_g$ as part of our model, but we assume a constant $k_f$, which seems like it might bias results in favor of wind based on the NREL ATB projections.
 
 #### $c$ values
 
-Converting operating expenses is easier in terms of units, because we are leaving out variable O&M and assuming that price per mmbtu scales linearly. We could add in variable O&M but we'd want to do so for both options to stay consistent, and I wasn't sure what values to use for green power. The best source I found was an [LBNL report](https://eta-publications.lbl.gov/sites/default/files/opex_paper_final.pdf), in case we do want to add it in.
+Converting operating expenses is easier in terms of units. All we need to do to get from the Rhodium Henry Hub value to millions of dollars per million MWh/year is multiply by a [heat rate](https://www.eia.gov/electricity/annual/html/epa_08_02.html) that was most recently estimated at 7,596 Btu/kWh, converted to the correct units: 7.596 mmbtu/MWh. We also want to add variable O&M costs, which the NREL ATB estimates at $1.94/MWh for 2023. \$/MWh equals millions of dollars per million MWh. Combining converted fuel costs with variable O&M yields $c_{f,0}$ = \$`r round(c_f_0*7.596 + 1.94, 3)` million per year.
 
-So all we need to do to get from the Rhodium Henry Hub value to millions of dollars per million MWh/year is multiply by a [heat rate](https://www.eia.gov/electricity/annual/html/epa_08_02.html) that was most recently estimated at 7,596 Btu/kWh, converted to the correct units: 7.596 mmbtu/MWh. \$/MWh equals millions of dollars per million MWh. Thus, the 2023 $c_{f,0}$ estimate converts to \$`r round(c_f_0*7.596, 3)` million per year.
-
-With zero variable O&M and zero fuel costs, we effectively assume $c_{g,0}$ = 0.
+Many sources describe variable O&M for land-based wind as "negligible", so we assume $c_g$ = 0.
 
 ### Vehicles
 
 Parameterizing for "green" electric vehicles (EVs) versus "fossil" internal-combustion engine vehicles (ICEVs) is a similar process. We want to use the "EV Batteries" values from Rhodium for $k_g$, but we need to find a way to scale them to a fossil analogue. This [ICCT report](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf) seems very helpful.
 
+
+
 Side note: the Rhodium values are considerably higher than the [DoE estimate](https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly) for 2023, which is "$153/kWh on a usable-energy basis for production at scale of at least 100,000 units per year." I assume the Rhodium estimates are higher because they represent sale price as opposed to production price. 
-
-
 
 ## Model runs

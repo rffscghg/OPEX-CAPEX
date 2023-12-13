@@ -817,7 +817,7 @@ projections are slightly uncertain. I will use estimates in the center
 of their range for now, for both CAPEX and fixed O&amp;M costs, as well
 as for green fixed O&amp;M costs. We can change this later if need be,
 but it seems like it will have a negligible effect.</p>
-<p>Reminder: code chunks in this document can use variables from earlier
+<p>Side note: code chunks in this document use variables from earlier
 chunks.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>dr              <span class="ot">=</span> <span class="fl">0.1</span>                        <span class="co"># Our model uses a 10% discount rate</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>T               <span class="ot">=</span> <span class="dv">10</span>                         <span class="co"># Our model assumes plants last 10 years</span></span>
@@ -828,7 +828,7 @@ chunks.</p>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
 <span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>    k_plus_onm  <span class="ot">=</span> k <span class="sc">+</span> <span class="fu">sum</span>(onm<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>dr)<span class="sc">^</span>(<span class="dv">1</span><span class="sc">:</span>T))  <span class="co"># Add in fixed O&amp;M</span></span>
 <span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    k_millionMW <span class="ot">=</span> k_plus_onm <span class="sc">*</span> <span class="dv">1000</span>          <span class="co"># $/kW to millions of dollars per million MW</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    k_capacity  <span class="ot">=</span> k_millionMW<span class="sc">/</span>CF             <span class="co"># Need to build 1/CF units to provide 1 unit of power</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    k_capacity  <span class="ot">=</span> k_millionMW<span class="sc">/</span>CF             <span class="co"># Need to build 1/CF units for 1 unit of generation</span></span>
 <span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>    k_milMWh_yr <span class="ot">=</span> k_capacity <span class="sc">/</span> <span class="dv">8760</span>          <span class="co"># $1 per million MW = $1/8760 per million MWh/year</span></span>
 <span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a></span>
 <span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    <span class="fu">return</span>(k_milMWh_yr)    </span>
@@ -845,27 +845,25 @@ chunks.</p>
 <span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a></span>
 <span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>k_g_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_g_2023, onm_g_2023, CF_g, dr, T, q)</span>
 <span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>k_f_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_f_2023, onm_f_2023, CF_f, dr, T, q)</span></code></pre></div>
-<p>This lands us at <span class="math inline">\(k_g\)</span> = $463.71
-million and <span class="math inline">\(k_f\)</span> = $297.65
+<p>This lands us at <span class="math inline">\(k_{g,0}\)</span> =
+$463.71 million and <span class="math inline">\(k_f\)</span> = $297.65
 million.</p>
 <p>We address future decline in <span class="math inline">\(k_g\)</span>
 as part of our model, but we assume a constant <span class="math inline">\(k_f\)</span>, which seems like it might bias
-results a bit based on the NREL ATB projections.</p>
+results in favor of wind based on the NREL ATB projections.</p>
 <h4 id="c-values"><span class="math inline">\(c\)</span> values</h4>
-<p>Converting operating expenses is easier in terms of units, because we
-are leaving out variable O&amp;M and assuming that price per mmbtu
-scales linearly. We could add in variable O&amp;M but we’d want to do so
-for both options to stay consistent, and I wasn’t sure what values to
-use for green power. The best source I found was an <a href="https://eta-publications.lbl.gov/sites/default/files/opex_paper_final.pdf">LBNL
-report</a>, in case we do want to add it in.</p>
-<p>So all we need to do to get from the Rhodium Henry Hub value to
-millions of dollars per million MWh/year is multiply by a <a href="https://www.eia.gov/electricity/annual/html/epa_08_02.html">heat
+<p>Converting operating expenses is easier in terms of units. All we
+need to do to get from the Rhodium Henry Hub value to millions of
+dollars per million MWh/year is multiply by a <a href="https://www.eia.gov/electricity/annual/html/epa_08_02.html">heat
 rate</a> that was most recently estimated at 7,596 Btu/kWh, converted to
-the correct units: 7.596 mmbtu/MWh. $/MWh equals millions of dollars per
-million MWh. Thus, the 2023 <span class="math inline">\(c_{f,0}\)</span>
-estimate converts to $19.273 million per year.</p>
-<p>With zero variable O&amp;M and zero fuel costs, we effectively assume
-<span class="math inline">\(c_{g,0}\)</span> = 0.</p>
+the correct units: 7.596 mmbtu/MWh. We also want to add variable O&amp;M
+costs, which the NREL ATB estimates at $1.94/MWh for 2023. $/MWh equals
+millions of dollars per million MWh. Combining converted fuel costs with
+variable O&amp;M yields <span class="math inline">\(c_{f,0}\)</span> =
+$21.213 million per year.</p>
+<p>Many sources describe variable O&amp;M for land-based wind as
+“negligible”, so we assume <span class="math inline">\(c_g\)</span> =
+0.</p>
 <h3 id="vehicles">Vehicles</h3>
 <p>Parameterizing for “green” electric vehicles (EVs) versus “fossil”
 internal-combustion engine vehicles (ICEVs) is a similar process. We
