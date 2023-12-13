@@ -12,6 +12,8 @@ library(hms)
 source("../src/utils.r")
 source("../src/vfi.r")
 source("../src/monte.r")
+
+options(scipen = 999) # Don't use scientific notation in printed results
 ```
 
 ## Determine appropriate parameters
@@ -168,12 +170,21 @@ million MWh/year is multiply by a [heat
 rate](https://www.eia.gov/electricity/annual/html/epa_08_02.html) that
 was most recently estimated at 7,596 Btu/kWh, converted to the correct
 units: 7.596 mmbtu/MWh. We also want to add variable O&M costs, which
-the NREL ATB estimates at \$1.94/MWh for 2023. \$/MWh equals millions of
-dollars per million MWh. Combining converted fuel costs with variable
-O&M yields $c_{f,0}$ = \$21.213 million per year.
+the NREL ATB estimates at \$1.94/MWh for 2023.
+
+``` r
+c_f_0_adj <- c_f_0*7.596 + 1.94
+```
+
+\$/MWh equals millions of dollars per million MWh so we land at
+$c_{f,0}$ = \$21.213 million per year.
 
 Many sources describe variable O&M for land-based wind as “negligible”,
 so we assume $c_g$ = 0.
+
+``` r
+c_g = 0
+```
 
 ### Vehicles
 
@@ -196,29 +207,60 @@ use those coefficients to convert.
 
 ![](images/crude-gasoline-regression.png)
 
-Side note: the Rhodium values are considerably higher than the [DoE
-estimate](https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly)
-for 2023, which is “\$153/kWh on a usable-energy basis for production at
-scale of at least 100,000 units per year.” I assume the Rhodium
-estimates are higher because they represent sale price as opposed to
-production price.
+Since we are modeling OPEX using fuel costs for a car owner, we should
+theoretically convert CAPEX from battery pack prices (per kWh) to an
+estimate of the price the buyer would pay. Figure 4 of the ICCT report
+shows a fairly linear relationship between total price and vehicle
+range, the latter of which scales almost directly with kWh. Vexingly,
+the linear relationship in that figure suggests a far lower EV battery
+cost than Rhodium, about \$150 as opposed to \$240 in 2022. It almost
+feels like it could be a typo.
 
-#### $\mu$ and $\sigma$
+The crude solution I have come up with is to use the vehicle price from
+ICCT for a middle-of-the-road battery size (say a 250-mile-range
+crossover), then use the 2022 Rhodium price and other parameters from
+ICCT to back out a y-intercept (hypothetical cost of a 0-mile-range
+crossover). I pulled estimates from Figure 4 using
+[WebPlotDigitizer](https://apps.automeris.io/wpd/). I am going to
+estimate $k$, $c$, $\mu$, and $\sigma$ values in one go because of all
+these linear relationships.
 
-As with power plants, these parameters are unitless so they don’t
-require conversion between EVs and ICEVs and are a good starting place.
+We also use electricity cost from
+[EIA](https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a)
+and average US annual mileage from
+[DOT](https://www.fhwa.dot.gov/ohim/onh00/bar8.htm).
 
 ``` r
 ### k_ev ###
 
-k_ev            = 112                       # 2050 value
-k_ev_0          = 240.83238                 # 2022 value
-sd_k_ev         = 86.88                     # StdDv in 2050
+k_ev            = 112                       # 2050 value from Rhodium
+k_ev_0          = 240.83238                 # 2022 value from Rhodium
+sd_k_ev         = 86.88                     # StdDv in 2050 from Rhodium
 t_ev            = 2050
 t_ev_0          = 2022
 
-mu_k_ev         = mu_formula(k_ev, k_ev_0, t_ev, t_ev_0)
-sigma_k_ev      = sigma_formula(k_ev, sd_k_ev, t_ev, t_ev_0)
+k_tot_ev_0      = 39543                     # 2022 price for a crossover EV with 250-mile range from ICCT
+kWh_per_mi      = 0.34                      # From ICCT
+EV_yint         = k_tot_ev_0 - 250*kWh_per_mi*k_ev_0
+k_tot_ev        = EV_yint + 250*kWh_per_mi*k_ev
+sd_k_tot_ev     = sd_k_ev*250*kWh_per_mi
+
+mu_k_ev         = mu_formula(k_tot_ev, k_tot_ev_0, t_ev, t_ev_0)
+sigma_k_ev      = sigma_formula(k_tot_ev, sd_k_tot_ev, t_ev, t_ev_0)
+
+k_tot_ev_2023   = exp(log(k_tot_ev_0) + mu_k_ev)   # Estimate 2023 value from 2022 value
+
+### k_icev ###
+
+k_icev          = 31228.6                   # Estimated 2023 price for a crossover ICEV from ICCT
+
+### c_ev ###
+
+annual_mileage  = 13476                     # Miles per year, from DOT, page updated in 2022
+kWh_per_yr      = annual_mileage*kWh_per_mi
+cost_per_kWh    = 0.1629                    # September 2023, residential, from EIA
+
+c_ev            = kWh_per_yr*cost_per_kWh
 
 ### c_icev ###
 
@@ -233,19 +275,24 @@ t_icev_0        = 2023
 gas_crude_slope = 0.024128708
 gas_crude_yint  = 0.639988127
 
-c_icev_gas      = gas_crude_slope*c_icev + gas_crude_yint
-c_icev_0_gas    = gas_crude_slope*c_icev_0 + gas_crude_yint
+c_icev_gas      = gas_crude_slope*c_icev + gas_crude_yint   # Price per gallon
+c_icev_0_gas    = gas_crude_slope*c_icev_0 + gas_crude_yint # Price per gallon
 sd_c_icev_gas   = gas_crude_slope*sd_c_icev
 
 mu_c_icev       = mu_formula(c_icev_gas, c_icev_0_gas, t_icev, t_icev_0)
 sigma_c_icev    = sigma_formula(c_icev_gas, sd_c_icev_gas, t_icev, t_icev_0)
+
+mpg             = 28 + 2.1*3/2              # 2023 ICCT crossover fuel efficiency, estimated from 2020 and 2022
+c_icev_0_adj    = c_icev_0_gas/mpg*annual_mileage
 ```
 
 This results in the following estimates:
 
-| Variable | Drift ($\mu$) | Volatility ($\sigma$) |
-|:---------|:--------------|:----------------------|
-| $k_g$    | -0.02734      | 0.12971               |
-| $c_f$    | 0.00672       | 0.13854               |
+| Variable | $x_0$ ($x$ for constants) | Drift ($\mu$) | Volatility ($\sigma$) |
+|:---------|:--------------------------|:--------------|:----------------------|
+| $k_g$    | \$39087.71                | -0.01158      | 0.04802               |
+| $k_f$    | \$31228.6                 | NA            | NA                    |
+| $c_g$    | \$746.38 per year         | NA            | NA                    |
+| $c_f$    | \$1141.32 per year        | 0.00672       | 0.13854               |
 
 ## Model runs
