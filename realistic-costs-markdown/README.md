@@ -1,7 +1,7 @@
 OPEX-CAPEX model
 ================
 Last updated by Jordan Wingenroth on
-12/12/23
+12/13/23
 
 ## Load VFI and Monte Carlo functions
 
@@ -177,5 +177,19 @@ With zero variable O&M and zero fuel costs, we effectively assume
 $c_{g,0}$ = 0.
 
 ### Vehicles
+
+Parameterizing for “green” electric vehicles (EVs) versus “fossil”
+internal-combustion engine vehicles (ICEVs) is a similar process. We
+want to use the “EV Batteries” values from Rhodium for $k_g$, but we
+need to find a way to scale them to a fossil analogue. This [ICCT
+report](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf)
+seems very helpful.
+
+Side note: the Rhodium values are considerably higher than the [DoE
+estimate](https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly)
+for 2023, which is “\$153/kWh on a usable-energy basis for production at
+scale of at least 100,000 units per year.” I assume the Rhodium
+estimates are higher because they represent sale price as opposed to
+production price.
 
 ## Model runs

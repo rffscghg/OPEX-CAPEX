@@ -636,7 +636,7 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.mhchemParser=void 0;var r=fun
 <body>
 
 <h1 id="opex-capex-model">OPEX-CAPEX model</h1>
-<p>Last updated by Jordan Wingenroth on 12/12/23</p>
+<p>Last updated by Jordan Wingenroth on 12/13/23</p>
 <h2 id="load-vfi-and-monte-carlo-functions">Load VFI and Monte Carlo
 functions</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -867,6 +867,16 @@ estimate converts to $19.273 million per year.</p>
 <p>With zero variable O&amp;M and zero fuel costs, we effectively assume
 <span class="math inline">\(c_{g,0}\)</span> = 0.</p>
 <h3 id="vehicles">Vehicles</h3>
+<p>Parameterizing for “green” electric vehicles (EVs) versus “fossil”
+internal-combustion engine vehicles (ICEVs) is a similar process. We
+want to use the “EV Batteries” values from Rhodium for <span class="math inline">\(k_g\)</span>, but we need to find a way to scale
+them to a fossil analogue. This <a href="https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf">ICCT
+report</a> seems very helpful.</p>
+<p>Side note: the Rhodium values are considerably higher than the <a href="https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly">DoE
+estimate</a> for 2023, which is “$153/kWh on a usable-energy basis for
+production at scale of at least 100,000 units per year.” I assume the
+Rhodium estimates are higher because they represent sale price as
+opposed to production price.</p>
 <h2 id="model-runs">Model runs</h2>
 
 </body>
