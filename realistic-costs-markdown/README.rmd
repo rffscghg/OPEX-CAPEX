@@ -146,7 +146,7 @@ c_g = 0
 
 ### Vehicles
 
-Parameterizing for "green" electric vehicles (EVs) versus "fossil" internal-combustion engine vehicles (ICEVs) is a similar process. We want to use the "EV Batteries" values from Rhodium for $k_g$ and the "Brent Crude Oil Price" values for $c_f$, but we need to find a way to scale them to their respective $k_f$ and $c_g$ analogues. Two ICCT reports from [2019](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf) and [2022](https://theicct.org/wp-content/uploads/2022/10/ev-cost-benefits-2035-oct22.pdf) are the best references I found.
+Parameterizing for "green" electric vehicles (EVs) versus "fossil" internal-combustion engine vehicles (ICEVs) is a similar process. We want to use the "EV Batteries" values from Rhodium for $k_g$ and the "Brent Crude Oil Price" values for $c_f$, but we need to find a way to scale them to their respective $k_f$ and $c_g$ analogues. Two ICCT reports from [2019](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf) and [2022](https://theicct.org/wp-content/uploads/2022/10/ev-cost-benefits-2035-oct22.pdf) are the best references I found. I use the 2022 one below.
 
 Also, as with the Henry Hub natural gas prices, 2022 was a bit of a spike in crude oil prices, so we will use the average of the 2023 values from FRED. Additionally, we want gasoline prices rather than crude oil prices. Brian found a pretty consistent linear relationship, so we will use those coefficients to convert.
 

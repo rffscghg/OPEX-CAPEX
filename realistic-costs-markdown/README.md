@@ -197,7 +197,7 @@ reports from
 [2019](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf)
 and
 [2022](https://theicct.org/wp-content/uploads/2022/10/ev-cost-benefits-2035-oct22.pdf)
-are the best references I found.
+are the best references I found. I use the 2022 one below.
 
 Also, as with the Henry Hub natural gas prices, 2022 was a bit of a
 spike in crude oil prices, so we will use the average of the 2023 values
