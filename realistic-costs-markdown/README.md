@@ -60,10 +60,10 @@ uncertainty, so it seems wrong to assume the same values for present and
 future $k_g$, so I am going to ignore that for this part.
 
 ``` r
-FRED_HH_values <- c(3.27, 2.38, 2.31, 2.16, 2.15, 2.18, 2.55, 2.58, 2.64, 2.98, 2.71) # Jan to Nov
-
 mu_formula <- function(x, x0, t, t0) log(x/x0)/(t-t0) # Adapted from "Model Documentation.docx"
 sigma_formula <- function(x, sd_x, t, t0) sqrt(log((sd_x/x)^2 + 1)/(t-t0))
+
+### k_g ###
 
 k_g         = 928                   # 2050 value
 k_g_0       = 1519.08               # 2022 value
@@ -73,6 +73,10 @@ t_g_0       = 2022
 
 mu_k_g      = mu_formula(k_g, k_g_0, t_g, t_g_0)
 sigma_k_g   = sigma_formula(k_g, sd_k_g, t_g, t_g_0)
+
+### c_f ###
+
+FRED_HH_values <- c(3.27, 2.38, 2.31, 2.16, 2.15, 2.18, 2.55, 2.58, 2.64, 2.98, 2.71) # Jan to Nov
 
 c_f         = 3.27788226897         # 2030 value
 c_f_0       = mean(FRED_HH_values)  # Average of 2023 monthly values
@@ -179,10 +183,10 @@ want to use the “EV Batteries” values from Rhodium for $k_g$ and the
 “Brent Crude Oil Price” values for $c_f$, but we need to find a way to
 scale them to their respective $k_f$ and $c_g$ analogues. Two ICCT
 reports from
-[2019](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf),
+[2019](https://theicct.org/sites/default/files/publications/EV_cost_2020_2030_20190401.pdf)
 and
 [2022](https://theicct.org/wp-content/uploads/2022/10/ev-cost-benefits-2035-oct22.pdf)
-were the best references I found.
+are the best references I found.
 
 Also, as with the Henry Hub natural gas prices, 2022 was a bit of a
 spike in crude oil prices, so we will use the average of the 2023 values
@@ -192,25 +196,56 @@ use those coefficients to convert.
 
 ![](images/crude-gasoline-regression.png)
 
-#### $\mu$ and $\sigma$
-
-As with power plants, these parameters are unitless so they don’t
-require conversion between EVs and ICEVs and are a good starting place.
-One conversion is necessary, between crude oil and gasoline prices,
-because the latter is relevant in this case. Brian adjusted historical
-values for inflation and found a
-
-``` r
-k_ev            = 112           # $/kWh
-k_ev_0          = 240.83238     # $/kWh
-sd_k_ev         = 86.88         # $/kWh
-```
-
 Side note: the Rhodium values are considerably higher than the [DoE
 estimate](https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly)
 for 2023, which is “\$153/kWh on a usable-energy basis for production at
 scale of at least 100,000 units per year.” I assume the Rhodium
 estimates are higher because they represent sale price as opposed to
 production price.
+
+#### $\mu$ and $\sigma$
+
+As with power plants, these parameters are unitless so they don’t
+require conversion between EVs and ICEVs and are a good starting place.
+
+``` r
+### k_ev ###
+
+k_ev            = 112                       # 2050 value
+k_ev_0          = 240.83238                 # 2022 value
+sd_k_ev         = 86.88                     # StdDv in 2050
+t_ev            = 2050
+t_ev_0          = 2022
+
+mu_k_ev         = mu_formula(k_ev, k_ev_0, t_ev, t_ev_0)
+sigma_k_ev      = sigma_formula(k_ev, sd_k_ev, t_ev, t_ev_0)
+
+### c_icev ###
+
+FRED_crude_values <- c(84.08, 83.63, 79.26, 83.54, 75.75, 74.98, 80.11, 85.17, 92.67, 88.95) # Jan to Oct
+
+c_icev          = 88.0835                   # 2030 value
+c_icev_0        = mean(FRED_crude_values)   # Average of 2023 monthly values
+sd_c_icev       = 43.4598                   # StdDv in 2030
+t_icev          = 2030
+t_icev_0        = 2023
+
+gas_crude_slope = 0.024128708
+gas_crude_yint  = 0.639988127
+
+c_icev_gas      = gas_crude_slope*c_icev + gas_crude_yint
+c_icev_0_gas    = gas_crude_slope*c_icev_0 + gas_crude_yint
+sd_c_icev_gas   = gas_crude_slope*sd_c_icev
+
+mu_c_icev       = mu_formula(c_icev_gas, c_icev_0_gas, t_icev, t_icev_0)
+sigma_c_icev    = sigma_formula(c_icev_gas, sd_c_icev_gas, t_icev, t_icev_0)
+```
+
+This results in the following estimates:
+
+| Variable | Drift ($\mu$) | Volatility ($\sigma$) |
+|:---------|:--------------|:----------------------|
+| $k_g$    | -0.02734      | 0.12971               |
+| $c_f$    | 0.00672       | 0.13854               |
 
 ## Model runs
