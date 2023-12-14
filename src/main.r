@@ -4,13 +4,14 @@ library(tidyverse)
 library(hms)
 library(parallel)
 library(plotly)
-library(orca)
 library(RColorBrewer)
+library(orca)
 
 source("src/monte.r")
 source("src/vfi.r")
 source("src/utils.r")
 source("src/parallelize.r")
+source("src/surfaces.r")
 
 # source("test/test_monte.r")
 # source("test/test_vfi.r")
@@ -120,9 +121,19 @@ write_csv(results, paste0("output/tidy-results ", write_time,".csv"))
 
 # Make plots
 
-p1 <- results %>%
-    ggplot(aes(x = k_g_multiples*k_g, y = c_f_multiples*c_f, fill = SD_PV/E_PV)) +
-    geom_raster() +
-    facet_wrap(scenario~opt_name, scales = "free")
+#temporary
+results <- read_csv("output/tidy-results 2023-12-14 072304.csv")
 
-ggsave("figures/p1.png", p1)
+scene_sd = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
+                yaxis=list(title='Fossil OPEX<br> ($M/year)'),
+                zaxis=list(title='$M', range=c(0,1200)),
+                camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+
+coords <- results_to_SD_PV_xyz(results, "neutral", "fossil-only")
+
+save_surface_plot(
+    coords = coords,
+    title = "",
+    scene = scene_sd,
+    file = "figures/p1.svg"
+)
