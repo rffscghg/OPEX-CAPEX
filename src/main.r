@@ -121,9 +121,6 @@ write_csv(results, paste0("output/tidy-results ", write_time,".csv"))
 
 # Make plots
 
-#temporary
-results <- read_csv("output/tidy-results 2023-12-14 072304.csv")
-
 plot_scenarios <- distinct(results, scenario, opt_name)
 
 # SD_PV
