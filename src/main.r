@@ -124,16 +124,23 @@ write_csv(results, paste0("output/tidy-results ", write_time,".csv"))
 #temporary
 results <- read_csv("output/tidy-results 2023-12-14 072304.csv")
 
-scene_sd = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
-                yaxis=list(title='Fossil OPEX<br> ($M/year)'),
+plot_scenarios <- distinct(results, scenario, opt_name)
+
+scene_sd = list(xaxis=list(title='Green CAPEX<br>     ($M)', range = c(45, 855)),
+                yaxis=list(title='Fossil OPEX<br> ($M/year)', range = c(2,48)),
                 zaxis=list(title='$M', range=c(0,1200)),
                 camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
-coords <- results_to_SD_PV_xyz(results, "neutral", "fossil-only")
+scene_ev = list(xaxis=list(title='Green CAPEX<br>     ($)', range = c(2000, 78000)),
+                yaxis=list(title='Fossil OPEX<br> ($/year)', range = c(100,1900)),
+                zaxis=list(title='$', range=c(0,1e5)),
+                camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
-save_surface_plot(
-    coords = coords,
-    title = "",
-    scene = scene_sd,
-    file = "figures/p1.svg"
-)
+for (i in 1:nrow(plot_scenarios)) {
+    save_surface_plot(
+        coords = results_to_SD_PV_xyz(results, plot_scenarios$scenario[i], plot_scenarios$opt_name[i]),
+        title = "",
+        scene = scene_sd,
+        file = paste0("figures/", plot_scenarios$scenario[i], "---", plot_scenarios$opt_name[i],".png")
+    )
+}
