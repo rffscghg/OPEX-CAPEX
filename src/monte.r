@@ -22,7 +22,8 @@ monte_carlo <- function(
     t_mc = 10*t,                            # Monte Carlo time horizon
     start_cf = median(c_f_vals),            # Starting value for c_f
     start_kg = median(k_g_vals),            # Starting value for k_g
-    start_assets = NULL                     # Starting assets (e.g., "ffg" means two older fossil-fuel assets and one new green asset)
+    start_assets = NULL,                    # Starting assets (e.g., "ffg" means two older fossil-fuel assets and one new green asset)
+    running_in_parallel = FALSE             # Suppresses a warning that is annoying when iterated at length
     ) {
 
     # Calculate the number of possible tuples of legacy assets, i.e., those already in operation
@@ -42,7 +43,9 @@ monte_carlo <- function(
         start_state <- NULL
     }
 
-    if (!skipVFI) {
+    if (skipVFI) {
+        V = V_init
+    } else {
         # Calculate value function
         V <- vfi(
             c_f_vals,
@@ -63,8 +66,6 @@ monte_carlo <- function(
             verbose,
             V_init
         )
-    } else {
-        V = V_init
     }
     
     # Sample random walks
@@ -81,6 +82,8 @@ monte_carlo <- function(
     decision_mc <- random_cf
     realized_costs <- random_cf
     legacy_state_mc <- random_cf
+
+    t_start <- Sys.time()
 
     # Run model
     for (i in 1:nrow(random_cf)) {
@@ -127,14 +130,23 @@ monte_carlo <- function(
         }
     }
 
-    if ((min(c_f_index) == 1) | (max(c_f_index) == length(c_f_vals))) {
+    # Calculate and display runtime
+    t_run <- Sys.time() - t_start
+    message(
+        "Completed a Monte Carlo simulation for a sample size of ", n_mc,
+        " and a time horizon of ", t_mc, 
+        " in ", toString(as_hms(round(t_run,1))), 
+        " (hh:mm:ss) at ", Sys.time()
+    )
+
+    if (((min(c_f_index) == 1) | (max(c_f_index) == length(c_f_vals))) & !running_in_parallel) {
         warning(paste0(
             "The simulation reached the edge of the c_f state space. ",
             "Consider expanding the range to maintain consistent Brownian motion."
         ))
     }
 
-    if ((min(k_g_index) == 1) | (max(k_g_index) == length(k_g_vals))) {
+    if (((min(k_g_index) == 1) | (max(k_g_index) == length(k_g_vals))) & !running_in_parallel) {
         warning(paste0(
             "The simulation reached the edge of the k_g state space. ",
             "Consider expanding the range to maintain consistent Brownian motion."

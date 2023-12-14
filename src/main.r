@@ -40,10 +40,11 @@ clusterExport(cl, c("k_g_multiples", "c_f_multiples", "t"))
 scenarios <- read_csv("data/scenarios.csv", col_select = -1) # See doc/README
 
 options = tibble(
-    opt_name = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
-    option = c("f", "g", "all", "all"),
-    start_assets = c("f", "g", "f", "g")
-)
+        opt_name = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
+        option = c("f", "g", "all", "all"),
+        start_assets = c("f", "g", "f", "g")
+    ) %>% 
+    mutate(start_assets = strrep(start_assets, t - 1))
 
 grid <- expand_grid(
     scenario = c("neutral", "power-plant", "vehicle"),
@@ -55,13 +56,30 @@ grid <- expand_grid(
 
 # Solve VFI for each scenario
 
-V_func_params <- distinct(grid, across(k_g:option))
+V_func_params <- distinct(grid, across(k_g:option)) %>%
+    mutate(V_id = row_number()) # So we can key the Monte Carlo to the right V
 
-V_funcs <-parApply(cl, V_func_params, MARGIN = 1, FUN = function(x){
+V_funcs <- parApply(cl, V_func_params, MARGIN = 1, FUN = function(x){
     parallel_vfi(
         params = x,
         c_f_multiples = c_f_multiples,
         k_g_multiples = k_g_multiples,
+        t = t
+    )
+})
+
+# Add V_id back into grid and pass V_funcs to worker processes
+
+grid_w_id <- left_join(grid, V_func_params)
+
+clusterExport(cl, "V_funcs")
+
+# Run Monte Carlo simulations
+
+mc_stats <- parApply(cl, grid_w_id, MARGIN = 1, FUN = function(x){
+    monte_carlo_npv_stats(
+        params = x,
+        V_list = V_funcs,
         t = t
     )
 })

@@ -89,7 +89,7 @@ vfi <- function(
 
     # Calculate and display runtime
     t_run <- Sys.time() - t_start
-    message(iter, " iterations yielded a fit to a precision of ", delta, " in ", toString(as_hms(round(t_run,1))), " (hh:mm:ss)")
+    message(iter, " iterations yielded a fit to a precision of ", delta, " in ", toString(as_hms(round(t_run,1))), " (hh:mm:ss)\n")
 
     # Calculate single-option value functions
     V_f = if (option == "all") {value_V(V, "f")} else {NA} # Otherwise V_min = V_f
