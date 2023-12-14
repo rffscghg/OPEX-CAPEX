@@ -126,7 +126,7 @@ results <- read_csv("output/tidy-results 2023-12-14 072304.csv")
 
 plot_scenarios <- distinct(results, scenario, opt_name)
 
-# 
+# SD_PV
 
 scene_sd = list(xaxis=list(title='Green CAPEX<br>     ($M)', range = c(45, 855)),
                 yaxis=list(title='Fossil OPEX<br> ($M/year)', range = c(2,48)),
@@ -145,5 +145,51 @@ for (i in 1:nrow(plot_scenarios)) {
         title = "",
         scene = scene,
         file = paste0("figures/", plot_scenarios$scenario[i], "---", plot_scenarios$opt_name[i],".png")
+    )
+}
+
+# Delta plots
+
+# Change in SD from option, in dollars
+scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
+                      yaxis=list(title='Fossil OPEX<br> ($M/year)'),
+                      zaxis=list(title='$M', range=c(-1250,250)),
+                      camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+
+scene_ev_delta = list(xaxis=list(title='Green CAPEX<br>     ($)', range = c(2000, 78000)),
+                yaxis=list(title='Fossil OPEX<br> ($/year)', range = c(100,1900)),
+                zaxis=list(title='$', range=c(-1e5,2e4)),
+                camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+
+delta_plot_scenarios <- expand_grid(plot_scenarios, opt_b = plot_scenarios$opt_name) %>%
+    filter(
+        opt_name != opt_b, 
+        !str_detect(opt_name, "only"),
+        !(str_detect(opt_name, "fossil")&str_detect(opt_b, "green")),
+        !(str_detect(opt_name, "begin-green")&str_detect(opt_b, "fossil-only"))
+    ) %>% 
+    distinct_all()
+
+for (i in 1:nrow(delta_plot_scenarios)) {
+    if (delta_plot_scenarios$scenario[i] == "vehicle") {scene <- scene_ev_delta} else {scene <- scene_sd_delta}
+    save_surface_plot(
+        coords = a_minus_b_SD_PV_xyz(
+            results, 
+            delta_plot_scenarios$scenario[i], 
+            delta_plot_scenarios$opt_name[i],
+            delta_plot_scenarios$opt_b[i]
+        ),
+        title = "",
+        scene = scene,
+        file = paste0(
+            "figures/", 
+            delta_plot_scenarios$scenario[i], 
+            "---delta---", 
+            delta_plot_scenarios$opt_name[i],
+            "---",
+            delta_plot_scenarios$opt_b[i],
+            ".png"
+        ),
+        color_scale = "Greens"
     )
 }

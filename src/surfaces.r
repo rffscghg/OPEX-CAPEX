@@ -17,6 +17,35 @@ save_surface_plot <- function(
 
 }
 
+a_minus_b_SD_PV_xyz <- function(
+    results,
+    scenario_name,
+    opt_a,
+    opt_b,
+    smooth_w = 3
+    ) {
+
+    xyz_a <- results_to_SD_PV_xyz(
+        results, 
+        scenario_name, 
+        opt_a, 
+        smooth_w
+    )
+
+    xyz_b <- results_to_SD_PV_xyz(
+        results, 
+        scenario_name, 
+        opt_b, 
+        smooth_w
+    )
+
+    # x and y are the same
+    xyz_b$z <- xyz_a$z - xyz_b$z
+
+    return(xyz_b)
+
+}
+
 # Only works on current format of `results` in main.jl, not ideal
 results_to_SD_PV_xyz <- function(
     results, 
@@ -43,13 +72,14 @@ results_to_SD_PV_xyz <- function(
         y = cfs,
         z = smooth_matrix(sds, window_size = smooth_w)
     ))
-
 }
 
 # Function to apply moving average smoothing to a matrix
 smooth_matrix <- function(mat, window_size = 3) {
+
   n <- nrow(mat)
   m <- ncol(mat)
+  
   smoothed_mat <- matrix(NA, nrow = n, ncol = m)
   
   for (i in 1:n) {
@@ -64,5 +94,6 @@ smooth_matrix <- function(mat, window_size = 3) {
       smoothed_mat[i, j] <- mean(mat[row_start:row_end, col_start:col_end])
     }
   }
+
   return(smoothed_mat)
 }
