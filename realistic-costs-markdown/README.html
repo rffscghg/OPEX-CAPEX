@@ -981,6 +981,22 @@ and average US annual mileage from <a href="https://www.fhwa.dot.gov/ohim/onh00/
 </tr>
 </tbody>
 </table>
+<h3 id="save-results">Save results</h3>
+<p>The neutral paramters are used for a third scenario that assumes no
+drift and equivalent uncertainty for the green and fossil options.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>    <span class="at">scenario =</span> <span class="fu">c</span>(<span class="st">&quot;power-plant&quot;</span>, <span class="st">&quot;vehicle&quot;</span>, <span class="st">&quot;neutral&quot;</span>),</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>    <span class="at">k_g =</span> <span class="fu">c</span>(k_g_adj, k_tot_ev_2023, <span class="dv">450</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>    <span class="at">k_f =</span> <span class="fu">c</span>(k_f_adj, k_icev, <span class="dv">450</span>),</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>    <span class="at">c_g =</span> <span class="fu">c</span>(<span class="dv">0</span>, c_ev, <span class="dv">25</span>),</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>    <span class="at">c_f =</span> <span class="fu">c</span>(c_f_0_adj, c_icev_0_adj, <span class="dv">25</span>),</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>    <span class="at">mu_g =</span> <span class="fu">c</span>(mu_k_g, mu_k_ev, <span class="dv">0</span>),</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>    <span class="at">mu_f =</span> <span class="fu">c</span>(mu_c_f, mu_c_icev, <span class="dv">0</span>),</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>    <span class="at">sigma_g =</span> <span class="fu">c</span>(sigma_k_g, sigma_k_ev, .<span class="dv">05</span>),</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    <span class="at">sigma_f =</span> <span class="fu">c</span>(sigma_c_f, sigma_c_icev, .<span class="dv">1223</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>)</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="fu">write.csv</span>(results, <span class="st">&quot;../data/scenarios.csv&quot;</span>)</span></code></pre></div>
 
 </body>
 </html>
