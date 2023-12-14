@@ -833,7 +833,7 @@ chunks.</p>
 <span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>k_g_2023        <span class="ot">=</span> <span class="fu">exp</span>(<span class="fu">log</span>(k_g_0) <span class="sc">+</span> mu_k_g)   <span class="co"># Estimate 2023 value from 2022 value</span></span>
 <span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>k_f_2023        <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">1234.2</span>, <span class="fl">1274.6</span>))</span>
 <span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>onm_g_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fl">28.8</span>, <span class="fl">29.9</span>)           <span class="co"># In $/kW-year units</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>onm_g_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">28.8</span>, <span class="fl">29.9</span>))           <span class="co"># In $/kW-year units</span></span>
 <span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>onm_f_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">30.4</span>, <span class="fl">30.9</span>))</span>
 <span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a></span>
 <span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>CF_g            <span class="ot">=</span> .<span class="dv">409</span></span>
@@ -842,7 +842,7 @@ chunks.</p>
 <span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>k_g_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_g_2023, onm_g_2023, CF_g, dr, T, q)</span>
 <span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>k_f_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_f_2023, onm_f_2023, CF_f, dr, T, q)</span></code></pre></div>
 <p>This lands us at <span class="math inline">\(k_{g,0}\)</span> =
-$463.71 million and <span class="math inline">\(k_f\)</span> = $297.65
+$464.61 million and <span class="math inline">\(k_f\)</span> = $297.65
 million.</p>
 <p>We address future decline in <span class="math inline">\(k_g\)</span>
 as part of our model, but we assume a constant <span class="math inline">\(k_f\)</span>, which seems like it might bias

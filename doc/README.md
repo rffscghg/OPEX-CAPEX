@@ -132,7 +132,7 @@ k_unit_conversion <- function(k, onm, CF, dr, T, q) {
 k_g_2023        = exp(log(k_g_0) + mu_k_g)   # Estimate 2023 value from 2022 value
 k_f_2023        = mean(c(1234.2, 1274.6))
 
-onm_g_2023      = mean(28.8, 29.9)           # In $/kW-year units
+onm_g_2023      = mean(c(28.8, 29.9))           # In $/kW-year units
 onm_f_2023      = mean(c(30.4, 30.9))
 
 CF_g            = .409
@@ -142,7 +142,7 @@ k_g_adj         = k_unit_conversion(k_g_2023, onm_g_2023, CF_g, dr, T, q)
 k_f_adj         = k_unit_conversion(k_f_2023, onm_f_2023, CF_f, dr, T, q)
 ```
 
-This lands us at $k_{g,0}$ = \$463.71 million and $k_f$ = \$297.65
+This lands us at $k_{g,0}$ = \$464.61 million and $k_f$ = \$297.65
 million.
 
 We address future decline in $k_g$ as part of our model, but we assume a
