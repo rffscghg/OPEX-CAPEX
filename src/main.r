@@ -23,6 +23,7 @@ c_f_multiples  = seq(0.1, 3.1, length = 11) # Relate state space to central valu
 t = 7                                      # Lifespan/number of assets
 n_mc = 50                                 # Number of reps for Monte Carlo
 t_mc = 50                                  # Number of timesteps for Monte Carlo
+save_value_funcs = TRUE
 
 # Set up parallel compute
 
@@ -71,6 +72,13 @@ V_funcs <- parApply(cl, V_func_params, MARGIN = 1, FUN = function(x){
     )
 })
 
+if (save_value_funcs) {
+
+    write_V_time <- gsub("[:]", "" , round(Sys.time()), perl=TRUE)
+    save(V_funcs, file = paste0("output/V-funcs ", write_V_time,".Rdata"))
+
+}
+
 # Add V_id back into grid and pass V_funcs to worker processes
 
 grid_w_id <- left_join(grid, V_func_params)
@@ -113,8 +121,8 @@ write_csv(results, paste0("output/tidy-results ", write_time,".csv"))
 # Make plots
 
 p1 <- results %>%
-    ggplot(aes(x = k_g_multiples*k_g, y = c_f_multiples*c_f, fill = SD_PV)) +
+    ggplot(aes(x = k_g_multiples*k_g, y = c_f_multiples*c_f, fill = SD_PV/E_PV)) +
     geom_raster() +
-    facet_wrap(paste(scenario, opt_name), scales = "free")
+    facet_wrap(scenario~opt_name, scales = "free")
 
 ggsave("figures/p1.png", p1)
