@@ -28,7 +28,7 @@ save_value_funcs = TRUE
 
 # Set up parallel compute
 
-cl <- makeCluster(7, outfile = "") # number of worker processes
+cl <- makeCluster(detectCores() - 1, outfile = "") # number of worker processes
 
 clusterEvalQ(cl, library(hms))
 
@@ -148,8 +148,8 @@ for (i in 1:nrow(plot_scenarios)) {
 # Delta plots
 
 # Change in SD from option, in dollars
-scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
-                      yaxis=list(title='Fossil OPEX<br> ($M/year)'),
+scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)', range = c(45, 855)),
+                      yaxis=list(title='Fossil OPEX<br> ($M/year)', range = c(2,48)),
                       zaxis=list(title='$M', range=c(-1250,250)),
                       camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
