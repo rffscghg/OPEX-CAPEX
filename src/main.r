@@ -2,6 +2,10 @@
 
 library(tidyverse)
 library(hms)
+library(parallel)
+library(plotly)
+library(orca)
+library(RColorBrewer)
 
 source("src/monte.r")
 source("src/vfi.r")
@@ -11,31 +15,17 @@ source("test/test_monte.r")
 source("test/test_vfi.r")
 source("test/test_utils.r")
 
-# Fossil exposure heatmaps
+scenarios <- read_csv("data/scenarios.csv", col_select = -1) # Calculated in .../README.rmd document
 
-load("data/v_init_f_exposure_26_26_8.RData") # Loads results_1. Workaround.
-
-results_1 <- vfi(
-    c_f_vals = seq(50, 100, by = 2),
-    k_g_vals = seq(500, 1000, by = 20),
-    k_f = 400,
-    c_g = 3,
-    sigma_cf = .05,
-    sigma_kg = .05,
-    t = 4,
-    const_scrap = TRUE,
-    max_iter = 1000,
-    threshold = 1e-5,
-    verbose = TRUE,
-    V_init = results_1
+options = tibble(
+    opt_name = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
+    option = c("f", "g", "all", "all"),
+    start_assets = c("f", "g", "f", "g")
 )
 
-p1 <- tidy_V(results_1) %>%
-    group_by(f_exposure, c_f, k_g) %>%
-    summarise(value = mean(value)) %>%
-    ggplot(aes(x = c_f, y = k_g, fill = value/max(value))) +
-    geom_raster() +
-    facet_wrap(~paste0("fossil-fuel exposure: ", f_exposure)) +
-    scale_fill_viridis_c()
-
-ggsave("figures/fossil_exposure.png", p1)
+grid <- expand_grid(
+    scenario = c("neutral", "power-plant", "vehicle"),
+    opt_name = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green")
+    ) %>%
+    left_join(scenarios) %>%
+    left_join(options)
