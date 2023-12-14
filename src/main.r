@@ -16,15 +16,17 @@ source("src/parallelize.r")
 # source("test/test_vfi.r")
 # source("test/test_utils.r")
 
-# Parameters to adjust computational intensity
+# Parameters to adjust computational load
 
-k_g_multiples  = seq(.1, 3.1, length = 4) # Relate state space to central value
-c_f_multiples  = seq(.1, 3.1, length = 4) # Relate state space to central value
-t = 7                                     # Lifespan/number of assets
+k_g_multiples  = seq(0.1, 3.1, length = 11) # Relate state space to central value
+c_f_multiples  = seq(0.1, 3.1, length = 11) # Relate state space to central value
+t = 7                                      # Lifespan/number of assets
+n_mc = 50                                 # Number of reps for Monte Carlo
+t_mc = 50                                  # Number of timesteps for Monte Carlo
 
 # Set up parallel compute
 
-cl <- makeCluster(3, outfile = "") # number of worker processes
+cl <- makeCluster(5, outfile = "") # number of worker processes
 
 clusterEvalQ(cl, library(hms))
 
@@ -33,7 +35,7 @@ clusterEvalQ(cl, source("src/vfi.r"))
 clusterEvalQ(cl, source("src/utils.r"))
 clusterEvalQ(cl, source("src/parallelize.r"))
 
-clusterExport(cl, c("k_g_multiples", "c_f_multiples", "t"))
+clusterExport(cl, c("k_g_multiples", "c_f_multiples", "t", "n_mc", "t_mc"))
 
 # Create grid of parameterizations
 
@@ -64,7 +66,8 @@ V_funcs <- parApply(cl, V_func_params, MARGIN = 1, FUN = function(x){
         params = x,
         c_f_multiples = c_f_multiples,
         k_g_multiples = k_g_multiples,
-        t = t
+        t = t, 
+        verbose = TRUE
     )
 })
 
@@ -79,8 +82,12 @@ clusterExport(cl, "V_funcs")
 mc_stats <- parApply(cl, grid_w_id, MARGIN = 1, FUN = function(x){
     monte_carlo_npv_stats(
         params = x,
+        c_f_multiples = c_f_multiples,
+        k_g_multiples = k_g_multiples,
         V_list = V_funcs,
-        t = t
+        t = t, 
+        n_mc = n_mc, 
+        t_mc = t_mc
     )
 })
 

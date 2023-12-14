@@ -39,6 +39,8 @@ parallel_vfi <- function(
 
 monte_carlo_npv_stats <- function(
     params,
+    c_f_multiples,
+    k_g_multiples,
     V_list,
     t,
     q = 1,
@@ -52,8 +54,8 @@ monte_carlo_npv_stats <- function(
     ) {
     
     mc <- monte_carlo(
-        c_f_vals = as.numeric(params["c_f"]) * sort(unique(as.numeric(params["c_f_multiples"]))),
-        k_g_vals = as.numeric(params["k_g"]) * sort(unique(as.numeric(params["k_g_multiples"]))),
+        c_f_vals = as.numeric(params["c_f"]) * c_f_multiples,
+        k_g_vals = as.numeric(params["k_g"]) * k_g_multiples,
         start_cf = as.numeric(params["c_f"]) * as.numeric(params["c_f_multiples"]),
         start_kg = as.numeric(params["k_g"]) * as.numeric(params["k_g_multiples"]),
         k_f = as.numeric(params["k_f"]),
