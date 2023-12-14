@@ -190,6 +190,6 @@ for (i in 1:nrow(delta_plot_scenarios)) {
             delta_plot_scenarios$opt_b[i],
             ".png"
         ),
-        color_scale = "Greens"
+        color_scale = list(c(0, 1), c("blue", "#c0b3a2"))
     )
 }
