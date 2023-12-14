@@ -94,3 +94,27 @@ mc_stats <- parApply(cl, grid_w_id, MARGIN = 1, FUN = function(x){
 # Shut down parallel compute
 
 stopCluster(cl)
+
+# Add mc_stats to grid
+
+results <- bind_cols(
+    grid, 
+    tibble(
+        SD_PV =         unlist(lapply(mc_stats, function(x) x$SD.PV)),
+        SD_PV_near =    unlist(lapply(mc_stats, function(x) x$SD.PV.near)),
+        E_PV =          unlist(lapply(mc_stats, function(x) x$E.PV)),
+        E_PV_near =     unlist(lapply(mc_stats, function(x) x$E.PV.near))
+    )
+)
+
+write_time <- gsub("[:]", "" , round(Sys.time()), perl=TRUE)
+write_csv(results, paste0("output/tidy-results ", write_time,".csv"))
+
+# Make plots
+
+p1 <- results %>%
+    ggplot(aes(x = k_g_multiples*k_g, y = c_f_multiples*c_f, fill = SD_PV)) +
+    geom_raster() +
+    facet_wrap(paste(scenario, opt_name), scales = "free")
+
+ggsave("figures/p1.png", p1)
