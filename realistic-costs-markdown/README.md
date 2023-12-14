@@ -1,22 +1,9 @@
-OPEX-CAPEX model
+Parameterizing the OPEX-CAPEX model
 ================
 Last updated by Jordan Wingenroth on
 12/13/23
 
-## Load VFI and Monte Carlo functions
-
-``` r
-library(tidyverse)
-library(hms)
-
-source("../src/utils.r")
-source("../src/vfi.r")
-source("../src/monte.r")
-
-options(scipen = 999) # Don't use scientific notation in printed results
-```
-
-## Determine appropriate parameters
+### Overview
 
 We intend to run our OPEX-CAPEX model for realistic scenarios. The most
 important parameters we need to determine are $\sigma_f$, $\sigma_g$,
@@ -294,5 +281,3 @@ This results in the following estimates:
 | $k_f$    | \$31228.6                 | NA            | NA                    |
 | $c_g$    | \$746.38 per year         | NA            | NA                    |
 | $c_f$    | \$1141.32 per year        | 0.00672       | 0.13854               |
-
-## Model runs

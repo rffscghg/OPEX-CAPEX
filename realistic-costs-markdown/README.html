@@ -635,20 +635,10 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.mhchemParser=void 0;var r=fun
 
 <body>
 
-<h1 id="opex-capex-model">OPEX-CAPEX model</h1>
+<h1 id="parameterizing-the-opex-capex-model">Parameterizing the
+OPEX-CAPEX model</h1>
 <p>Last updated by Jordan Wingenroth on 12/13/23</p>
-<h2 id="load-vfi-and-monte-carlo-functions">Load VFI and Monte Carlo
-functions</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(hms)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;../src/utils.r&quot;</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;../src/vfi.r&quot;</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;../src/monte.r&quot;</span>)</span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen =</span> <span class="dv">999</span>) <span class="co"># Don&#39;t use scientific notation in printed results</span></span></code></pre></div>
-<h2 id="determine-appropriate-parameters">Determine appropriate
-parameters</h2>
+<h3 id="overview">Overview</h3>
 <p>We intend to run our OPEX-CAPEX model for realistic scenarios. The
 most important parameters we need to determine are <span class="math inline">\(\sigma_f\)</span>, <span class="math inline">\(\sigma_g\)</span>, <span class="math inline">\(\mu_f\)</span>, and <span class="math inline">\(\mu_g\)</span>, which represent uncertanty and
 drift values for future “green” CAPEX (<span class="math inline">\(k_g\)</span>) and “fossil” OPEX (<span class="math inline">\(c_f\)</span>). We will also want to tune other
@@ -753,32 +743,32 @@ ATB</a> estimates fixed O&amp;M values to decline over time, with pretty
 high uncertainty, so it seems wrong to assume the same values for
 present and future <span class="math inline">\(k_g\)</span>, so I am
 going to ignore that for this part.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>mu_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, x0, t, t0) <span class="fu">log</span>(x<span class="sc">/</span>x0)<span class="sc">/</span>(t<span class="sc">-</span>t0) <span class="co"># Adapted from &quot;Model Documentation.docx&quot;</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>sigma_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, sd_x, t, t0) <span class="fu">sqrt</span>(<span class="fu">log</span>((sd_x<span class="sc">/</span>x)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">/</span>(t<span class="sc">-</span>t0))</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="do">### k_g </span><span class="al">###</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>k_g         <span class="ot">=</span> <span class="dv">928</span>                   <span class="co"># 2050 value</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>k_g_0       <span class="ot">=</span> <span class="fl">1519.08</span>               <span class="co"># 2022 value</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>sd_k_g      <span class="ot">=</span> <span class="fl">291.7610619</span>           <span class="co"># StdDv in 2050</span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>t_g         <span class="ot">=</span> <span class="dv">2050</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>t_g_0       <span class="ot">=</span> <span class="dv">2022</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>mu_k_g      <span class="ot">=</span> <span class="fu">mu_formula</span>(k_g, k_g_0, t_g, t_g_0)</span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>sigma_k_g   <span class="ot">=</span> <span class="fu">sigma_formula</span>(k_g, sd_k_g, t_g, t_g_0)</span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="do">### c_f </span><span class="al">###</span></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>FRED_HH_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">3.27</span>, <span class="fl">2.38</span>, <span class="fl">2.31</span>, <span class="fl">2.16</span>, <span class="fl">2.15</span>, <span class="fl">2.18</span>, <span class="fl">2.55</span>, <span class="fl">2.58</span>, <span class="fl">2.64</span>, <span class="fl">2.98</span>, <span class="fl">2.71</span>) <span class="co"># Jan to Nov</span></span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>c_f         <span class="ot">=</span> <span class="fl">3.27788226897</span>         <span class="co"># 2030 value</span></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>c_f_0       <span class="ot">=</span> <span class="fu">mean</span>(FRED_HH_values)  <span class="co"># Average of 2023 monthly values</span></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>sd_c_f      <span class="ot">=</span> <span class="fl">1.30384615402</span>         <span class="co"># StdDv in 2030</span></span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>t_f         <span class="ot">=</span> <span class="dv">2030</span>          </span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>t_f_0       <span class="ot">=</span> <span class="dv">2023</span></span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a></span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>mu_c_f      <span class="ot">=</span> <span class="fu">mu_formula</span>(c_f, c_f_0, t_f, t_f_0)</span>
-<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>sigma_c_f   <span class="ot">=</span> <span class="fu">sigma_formula</span>(c_f, sd_c_f, t_f, t_f_0)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>mu_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, x0, t, t0) <span class="fu">log</span>(x<span class="sc">/</span>x0)<span class="sc">/</span>(t<span class="sc">-</span>t0) <span class="co"># Adapted from &quot;Model Documentation.docx&quot;</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>sigma_formula <span class="ot">&lt;-</span> <span class="cf">function</span>(x, sd_x, t, t0) <span class="fu">sqrt</span>(<span class="fu">log</span>((sd_x<span class="sc">/</span>x)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">/</span>(t<span class="sc">-</span>t0))</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="do">### k_g </span><span class="al">###</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>k_g         <span class="ot">=</span> <span class="dv">928</span>                   <span class="co"># 2050 value</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>k_g_0       <span class="ot">=</span> <span class="fl">1519.08</span>               <span class="co"># 2022 value</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>sd_k_g      <span class="ot">=</span> <span class="fl">291.7610619</span>           <span class="co"># StdDv in 2050</span></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>t_g         <span class="ot">=</span> <span class="dv">2050</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>t_g_0       <span class="ot">=</span> <span class="dv">2022</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>mu_k_g      <span class="ot">=</span> <span class="fu">mu_formula</span>(k_g, k_g_0, t_g, t_g_0)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>sigma_k_g   <span class="ot">=</span> <span class="fu">sigma_formula</span>(k_g, sd_k_g, t_g, t_g_0)</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="do">### c_f </span><span class="al">###</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>FRED_HH_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">3.27</span>, <span class="fl">2.38</span>, <span class="fl">2.31</span>, <span class="fl">2.16</span>, <span class="fl">2.15</span>, <span class="fl">2.18</span>, <span class="fl">2.55</span>, <span class="fl">2.58</span>, <span class="fl">2.64</span>, <span class="fl">2.98</span>, <span class="fl">2.71</span>) <span class="co"># Jan to Nov</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>c_f         <span class="ot">=</span> <span class="fl">3.27788226897</span>         <span class="co"># 2030 value</span></span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>c_f_0       <span class="ot">=</span> <span class="fu">mean</span>(FRED_HH_values)  <span class="co"># Average of 2023 monthly values</span></span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>sd_c_f      <span class="ot">=</span> <span class="fl">1.30384615402</span>         <span class="co"># StdDv in 2030</span></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>t_f         <span class="ot">=</span> <span class="dv">2030</span>          </span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>t_f_0       <span class="ot">=</span> <span class="dv">2023</span></span>
+<span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>mu_c_f      <span class="ot">=</span> <span class="fu">mu_formula</span>(c_f, c_f_0, t_f, t_f_0)</span>
+<span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>sigma_c_f   <span class="ot">=</span> <span class="fu">sigma_formula</span>(c_f, sd_c_f, t_f, t_f_0)</span></code></pre></div>
 <p>This results in the following estimates:</p>
 <table>
 <thead>
@@ -825,32 +815,32 @@ as for green fixed O&amp;M costs. We can change this later if need be,
 but it seems like it will have a negligible effect.</p>
 <p>Side note: code chunks in this document use variables from earlier
 chunks.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>dr              <span class="ot">=</span> <span class="fl">0.1</span>                        <span class="co"># Our model uses a 10% discount rate</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>T               <span class="ot">=</span> <span class="dv">10</span>                         <span class="co"># Our model assumes plants last 10 years</span></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>q               <span class="ot">=</span> <span class="dv">1</span>                          <span class="co"># Our model assumes generation of 1 million MWh/year</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co"># Convert $/kW to total cost in millions of $ (where q is in millions of MWh/year)</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>k_unit_conversion <span class="ot">&lt;-</span> <span class="cf">function</span>(k, onm, CF, dr, T, q) {</span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>    k_plus_onm  <span class="ot">=</span> k <span class="sc">+</span> <span class="fu">sum</span>(onm<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>dr)<span class="sc">^</span>(<span class="dv">1</span><span class="sc">:</span>T))  <span class="co"># Add in fixed O&amp;M</span></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    k_millionMW <span class="ot">=</span> k_plus_onm <span class="sc">*</span> <span class="dv">1000</span>          <span class="co"># $/kW to millions of dollars per million MW</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    k_capacity  <span class="ot">=</span> k_millionMW<span class="sc">/</span>CF             <span class="co"># Need to build 1/CF units for 1 unit of generation</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>    k_milMWh_yr <span class="ot">=</span> k_capacity <span class="sc">/</span> <span class="dv">8760</span>          <span class="co"># $1 per million MW = $1/8760 per million MWh/year</span></span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    <span class="fu">return</span>(k_milMWh_yr)    </span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>}</span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>k_g_2023        <span class="ot">=</span> <span class="fu">exp</span>(<span class="fu">log</span>(k_g_0) <span class="sc">+</span> mu_k_g)   <span class="co"># Estimate 2023 value from 2022 value</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>k_f_2023        <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">1234.2</span>, <span class="fl">1274.6</span>))</span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>onm_g_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fl">28.8</span>, <span class="fl">29.9</span>)           <span class="co"># In $/kW-year units</span></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>onm_f_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">30.4</span>, <span class="fl">30.9</span>))</span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>CF_g            <span class="ot">=</span> .<span class="dv">409</span></span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>CF_f            <span class="ot">=</span> .<span class="dv">550</span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a></span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>k_g_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_g_2023, onm_g_2023, CF_g, dr, T, q)</span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>k_f_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_f_2023, onm_f_2023, CF_f, dr, T, q)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>dr              <span class="ot">=</span> <span class="fl">0.1</span>                        <span class="co"># Our model uses a 10% discount rate</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>T               <span class="ot">=</span> <span class="dv">10</span>                         <span class="co"># Our model assumes plants last 10 years</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>q               <span class="ot">=</span> <span class="dv">1</span>                          <span class="co"># Our model assumes generation of 1 million MWh/year</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co"># Convert $/kW to total cost in millions of $ (where q is in millions of MWh/year)</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>k_unit_conversion <span class="ot">&lt;-</span> <span class="cf">function</span>(k, onm, CF, dr, T, q) {</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    k_plus_onm  <span class="ot">=</span> k <span class="sc">+</span> <span class="fu">sum</span>(onm<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>dr)<span class="sc">^</span>(<span class="dv">1</span><span class="sc">:</span>T))  <span class="co"># Add in fixed O&amp;M</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    k_millionMW <span class="ot">=</span> k_plus_onm <span class="sc">*</span> <span class="dv">1000</span>          <span class="co"># $/kW to millions of dollars per million MW</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>    k_capacity  <span class="ot">=</span> k_millionMW<span class="sc">/</span>CF             <span class="co"># Need to build 1/CF units for 1 unit of generation</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>    k_milMWh_yr <span class="ot">=</span> k_capacity <span class="sc">/</span> <span class="dv">8760</span>          <span class="co"># $1 per million MW = $1/8760 per million MWh/year</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    <span class="fu">return</span>(k_milMWh_yr)    </span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>}</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>k_g_2023        <span class="ot">=</span> <span class="fu">exp</span>(<span class="fu">log</span>(k_g_0) <span class="sc">+</span> mu_k_g)   <span class="co"># Estimate 2023 value from 2022 value</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>k_f_2023        <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">1234.2</span>, <span class="fl">1274.6</span>))</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>onm_g_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fl">28.8</span>, <span class="fl">29.9</span>)           <span class="co"># In $/kW-year units</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>onm_f_2023      <span class="ot">=</span> <span class="fu">mean</span>(<span class="fu">c</span>(<span class="fl">30.4</span>, <span class="fl">30.9</span>))</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>CF_g            <span class="ot">=</span> .<span class="dv">409</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>CF_f            <span class="ot">=</span> .<span class="dv">550</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>k_g_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_g_2023, onm_g_2023, CF_g, dr, T, q)</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>k_f_adj         <span class="ot">=</span> <span class="fu">k_unit_conversion</span>(k_f_2023, onm_f_2023, CF_f, dr, T, q)</span></code></pre></div>
 <p>This lands us at <span class="math inline">\(k_{g,0}\)</span> =
 $463.71 million and <span class="math inline">\(k_f\)</span> = $297.65
 million.</p>
@@ -864,12 +854,12 @@ dollars per million MWh/year is multiply by a <a href="https://www.eia.gov/elect
 rate</a> that was most recently estimated at 7,596 Btu/kWh, converted to
 the correct units: 7.596 mmbtu/MWh. We also want to add variable O&amp;M
 costs, which the NREL ATB estimates at $1.94/MWh for 2023.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>c_f_0_adj <span class="ot">&lt;-</span> c_f_0<span class="sc">*</span><span class="fl">7.596</span> <span class="sc">+</span> <span class="fl">1.94</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>c_f_0_adj <span class="ot">&lt;-</span> c_f_0<span class="sc">*</span><span class="fl">7.596</span> <span class="sc">+</span> <span class="fl">1.94</span></span></code></pre></div>
 <p>$/MWh equals millions of dollars per million MWh so we land at <span class="math inline">\(c_{f,0}\)</span> = $21.213 million per year.</p>
 <p>Many sources describe variable O&amp;M for land-based wind as
 “negligible”, so we assume <span class="math inline">\(c_g\)</span> =
 0.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>c_g <span class="ot">=</span> <span class="dv">0</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>c_g <span class="ot">=</span> <span class="dv">0</span></span></code></pre></div>
 <h3 id="vehicles">Vehicles</h3>
 <p>Parameterizing for “green” electric vehicles (EVs) versus “fossil”
 internal-combustion engine vehicles (ICEVs) is a similar process. We
@@ -901,59 +891,59 @@ to estimate <span class="math inline">\(k\)</span>, <span class="math inline">\(
 these linear relationships.</p>
 <p>We also use electricity cost from <a href="https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a">EIA</a>
 and average US annual mileage from <a href="https://www.fhwa.dot.gov/ohim/onh00/bar8.htm">DOT</a>.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">### k_ev </span><span class="al">###</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>k_ev            <span class="ot">=</span> <span class="dv">112</span>                       <span class="co"># 2050 value from Rhodium</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>k_ev_0          <span class="ot">=</span> <span class="fl">240.83238</span>                 <span class="co"># 2022 value from Rhodium</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>sd_k_ev         <span class="ot">=</span> <span class="fl">86.88</span>                     <span class="co"># StdDv in 2050 from Rhodium</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>t_ev            <span class="ot">=</span> <span class="dv">2050</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>t_ev_0          <span class="ot">=</span> <span class="dv">2022</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>k_tot_ev_0      <span class="ot">=</span> <span class="dv">39543</span>                     <span class="co"># 2022 price for a crossover EV with 250-mile range from ICCT</span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>kWh_per_mi      <span class="ot">=</span> <span class="fl">0.34</span>                      <span class="co"># From ICCT</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>EV_yint         <span class="ot">=</span> k_tot_ev_0 <span class="sc">-</span> <span class="dv">250</span><span class="sc">*</span>kWh_per_mi<span class="sc">*</span>k_ev_0</span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>k_tot_ev        <span class="ot">=</span> EV_yint <span class="sc">+</span> <span class="dv">250</span><span class="sc">*</span>kWh_per_mi<span class="sc">*</span>k_ev</span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>sd_k_tot_ev     <span class="ot">=</span> sd_k_ev<span class="sc">*</span><span class="dv">250</span><span class="sc">*</span>kWh_per_mi</span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a></span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>mu_k_ev         <span class="ot">=</span> <span class="fu">mu_formula</span>(k_tot_ev, k_tot_ev_0, t_ev, t_ev_0)</span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>sigma_k_ev      <span class="ot">=</span> <span class="fu">sigma_formula</span>(k_tot_ev, sd_k_tot_ev, t_ev, t_ev_0)</span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>k_tot_ev_2023   <span class="ot">=</span> <span class="fu">exp</span>(<span class="fu">log</span>(k_tot_ev_0) <span class="sc">+</span> mu_k_ev)   <span class="co"># Estimate 2023 value from 2022 value</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="do">### k_icev </span><span class="al">###</span></span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>k_icev          <span class="ot">=</span> <span class="fl">31228.6</span>                   <span class="co"># Estimated 2023 price for a crossover ICEV from ICCT</span></span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a></span>
-<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="do">### c_ev </span><span class="al">###</span></span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a></span>
-<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a>annual_mileage  <span class="ot">=</span> <span class="dv">13476</span>                     <span class="co"># Miles per year, from DOT, page updated in 2022</span></span>
-<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a>kWh_per_yr      <span class="ot">=</span> annual_mileage<span class="sc">*</span>kWh_per_mi</span>
-<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a>cost_per_kWh    <span class="ot">=</span> <span class="fl">0.1629</span>                    <span class="co"># September 2023, residential, from EIA</span></span>
-<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a></span>
-<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>c_ev            <span class="ot">=</span> kWh_per_yr<span class="sc">*</span>cost_per_kWh</span>
-<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a></span>
-<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="do">### c_icev </span><span class="al">###</span></span>
-<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a></span>
-<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a>FRED_crude_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">84.08</span>, <span class="fl">83.63</span>, <span class="fl">79.26</span>, <span class="fl">83.54</span>, <span class="fl">75.75</span>, <span class="fl">74.98</span>, <span class="fl">80.11</span>, <span class="fl">85.17</span>, <span class="fl">92.67</span>, <span class="fl">88.95</span>) <span class="co"># Jan to Oct</span></span>
-<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a></span>
-<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>c_icev          <span class="ot">=</span> <span class="fl">88.0835</span>                   <span class="co"># 2030 value</span></span>
-<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>c_icev_0        <span class="ot">=</span> <span class="fu">mean</span>(FRED_crude_values)   <span class="co"># Average of 2023 monthly values</span></span>
-<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a>sd_c_icev       <span class="ot">=</span> <span class="fl">43.4598</span>                   <span class="co"># StdDv in 2030</span></span>
-<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a>t_icev          <span class="ot">=</span> <span class="dv">2030</span></span>
-<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a>t_icev_0        <span class="ot">=</span> <span class="dv">2023</span></span>
-<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a></span>
-<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a>gas_crude_slope <span class="ot">=</span> <span class="fl">0.024128708</span></span>
-<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a>gas_crude_yint  <span class="ot">=</span> <span class="fl">0.639988127</span></span>
-<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a></span>
-<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>c_icev_gas      <span class="ot">=</span> gas_crude_slope<span class="sc">*</span>c_icev <span class="sc">+</span> gas_crude_yint   <span class="co"># Price per gallon</span></span>
-<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a>c_icev_0_gas    <span class="ot">=</span> gas_crude_slope<span class="sc">*</span>c_icev_0 <span class="sc">+</span> gas_crude_yint <span class="co"># Price per gallon</span></span>
-<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a>sd_c_icev_gas   <span class="ot">=</span> gas_crude_slope<span class="sc">*</span>sd_c_icev</span>
-<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a></span>
-<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a>mu_c_icev       <span class="ot">=</span> <span class="fu">mu_formula</span>(c_icev_gas, c_icev_0_gas, t_icev, t_icev_0)</span>
-<span id="cb6-50"><a href="#cb6-50" tabindex="-1"></a>sigma_c_icev    <span class="ot">=</span> <span class="fu">sigma_formula</span>(c_icev_gas, sd_c_icev_gas, t_icev, t_icev_0)</span>
-<span id="cb6-51"><a href="#cb6-51" tabindex="-1"></a></span>
-<span id="cb6-52"><a href="#cb6-52" tabindex="-1"></a>mpg             <span class="ot">=</span> <span class="dv">28</span> <span class="sc">+</span> <span class="fl">2.1</span><span class="sc">*</span><span class="dv">3</span><span class="sc">/</span><span class="dv">2</span>              <span class="co"># 2023 ICCT crossover fuel efficiency, estimated from 2020 and 2022</span></span>
-<span id="cb6-53"><a href="#cb6-53" tabindex="-1"></a>c_icev_0_adj    <span class="ot">=</span> c_icev_0_gas<span class="sc">/</span>mpg<span class="sc">*</span>annual_mileage</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">### k_ev </span><span class="al">###</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>k_ev            <span class="ot">=</span> <span class="dv">112</span>                       <span class="co"># 2050 value from Rhodium</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>k_ev_0          <span class="ot">=</span> <span class="fl">240.83238</span>                 <span class="co"># 2022 value from Rhodium</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>sd_k_ev         <span class="ot">=</span> <span class="fl">86.88</span>                     <span class="co"># StdDv in 2050 from Rhodium</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>t_ev            <span class="ot">=</span> <span class="dv">2050</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>t_ev_0          <span class="ot">=</span> <span class="dv">2022</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>k_tot_ev_0      <span class="ot">=</span> <span class="dv">39543</span>                     <span class="co"># 2022 price for a crossover EV with 250-mile range from ICCT</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>kWh_per_mi      <span class="ot">=</span> <span class="fl">0.34</span>                      <span class="co"># From ICCT</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>EV_yint         <span class="ot">=</span> k_tot_ev_0 <span class="sc">-</span> <span class="dv">250</span><span class="sc">*</span>kWh_per_mi<span class="sc">*</span>k_ev_0</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>k_tot_ev        <span class="ot">=</span> EV_yint <span class="sc">+</span> <span class="dv">250</span><span class="sc">*</span>kWh_per_mi<span class="sc">*</span>k_ev</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>sd_k_tot_ev     <span class="ot">=</span> sd_k_ev<span class="sc">*</span><span class="dv">250</span><span class="sc">*</span>kWh_per_mi</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>mu_k_ev         <span class="ot">=</span> <span class="fu">mu_formula</span>(k_tot_ev, k_tot_ev_0, t_ev, t_ev_0)</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>sigma_k_ev      <span class="ot">=</span> <span class="fu">sigma_formula</span>(k_tot_ev, sd_k_tot_ev, t_ev, t_ev_0)</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>k_tot_ev_2023   <span class="ot">=</span> <span class="fu">exp</span>(<span class="fu">log</span>(k_tot_ev_0) <span class="sc">+</span> mu_k_ev)   <span class="co"># Estimate 2023 value from 2022 value</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="do">### k_icev </span><span class="al">###</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>k_icev          <span class="ot">=</span> <span class="fl">31228.6</span>                   <span class="co"># Estimated 2023 price for a crossover ICEV from ICCT</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="do">### c_ev </span><span class="al">###</span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a>annual_mileage  <span class="ot">=</span> <span class="dv">13476</span>                     <span class="co"># Miles per year, from DOT, page updated in 2022</span></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a>kWh_per_yr      <span class="ot">=</span> annual_mileage<span class="sc">*</span>kWh_per_mi</span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a>cost_per_kWh    <span class="ot">=</span> <span class="fl">0.1629</span>                    <span class="co"># September 2023, residential, from EIA</span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a></span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a>c_ev            <span class="ot">=</span> kWh_per_yr<span class="sc">*</span>cost_per_kWh</span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a><span class="do">### c_icev </span><span class="al">###</span></span>
+<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a>FRED_crude_values <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">84.08</span>, <span class="fl">83.63</span>, <span class="fl">79.26</span>, <span class="fl">83.54</span>, <span class="fl">75.75</span>, <span class="fl">74.98</span>, <span class="fl">80.11</span>, <span class="fl">85.17</span>, <span class="fl">92.67</span>, <span class="fl">88.95</span>) <span class="co"># Jan to Oct</span></span>
+<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a></span>
+<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a>c_icev          <span class="ot">=</span> <span class="fl">88.0835</span>                   <span class="co"># 2030 value</span></span>
+<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a>c_icev_0        <span class="ot">=</span> <span class="fu">mean</span>(FRED_crude_values)   <span class="co"># Average of 2023 monthly values</span></span>
+<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a>sd_c_icev       <span class="ot">=</span> <span class="fl">43.4598</span>                   <span class="co"># StdDv in 2030</span></span>
+<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a>t_icev          <span class="ot">=</span> <span class="dv">2030</span></span>
+<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a>t_icev_0        <span class="ot">=</span> <span class="dv">2023</span></span>
+<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a></span>
+<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a>gas_crude_slope <span class="ot">=</span> <span class="fl">0.024128708</span></span>
+<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a>gas_crude_yint  <span class="ot">=</span> <span class="fl">0.639988127</span></span>
+<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a></span>
+<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a>c_icev_gas      <span class="ot">=</span> gas_crude_slope<span class="sc">*</span>c_icev <span class="sc">+</span> gas_crude_yint   <span class="co"># Price per gallon</span></span>
+<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a>c_icev_0_gas    <span class="ot">=</span> gas_crude_slope<span class="sc">*</span>c_icev_0 <span class="sc">+</span> gas_crude_yint <span class="co"># Price per gallon</span></span>
+<span id="cb5-47"><a href="#cb5-47" tabindex="-1"></a>sd_c_icev_gas   <span class="ot">=</span> gas_crude_slope<span class="sc">*</span>sd_c_icev</span>
+<span id="cb5-48"><a href="#cb5-48" tabindex="-1"></a></span>
+<span id="cb5-49"><a href="#cb5-49" tabindex="-1"></a>mu_c_icev       <span class="ot">=</span> <span class="fu">mu_formula</span>(c_icev_gas, c_icev_0_gas, t_icev, t_icev_0)</span>
+<span id="cb5-50"><a href="#cb5-50" tabindex="-1"></a>sigma_c_icev    <span class="ot">=</span> <span class="fu">sigma_formula</span>(c_icev_gas, sd_c_icev_gas, t_icev, t_icev_0)</span>
+<span id="cb5-51"><a href="#cb5-51" tabindex="-1"></a></span>
+<span id="cb5-52"><a href="#cb5-52" tabindex="-1"></a>mpg             <span class="ot">=</span> <span class="dv">28</span> <span class="sc">+</span> <span class="fl">2.1</span><span class="sc">*</span><span class="dv">3</span><span class="sc">/</span><span class="dv">2</span>              <span class="co"># 2023 ICCT crossover fuel efficiency, estimated from 2020 and 2022</span></span>
+<span id="cb5-53"><a href="#cb5-53" tabindex="-1"></a>c_icev_0_adj    <span class="ot">=</span> c_icev_0_gas<span class="sc">/</span>mpg<span class="sc">*</span>annual_mileage</span></code></pre></div>
 <p>This results in the following estimates:</p>
 <table>
 <thead>
@@ -991,7 +981,6 @@ and average US annual mileage from <a href="https://www.fhwa.dot.gov/ohim/onh00/
 </tr>
 </tbody>
 </table>
-<h2 id="model-runs">Model runs</h2>
 
 </body>
 </html>

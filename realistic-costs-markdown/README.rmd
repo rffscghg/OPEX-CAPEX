@@ -1,26 +1,17 @@
 ---
-title: "OPEX-CAPEX model"
+title: "Parameterizing the OPEX-CAPEX model"
 author: "Last updated by Jordan Wingenroth on "
 date: "`r format(Sys.time(), '%D')`"
 output: github_document
 ---
 
-## Load VFI and Monte Carlo functions
-
-```{r,message=FALSE}
-
-library(tidyverse)
-library(hms)
-
-source("../src/utils.r")
-source("../src/vfi.r")
-source("../src/monte.r")
+```{r,message=FALSE, include = FALSE}
 
 options(scipen = 999) # Don't use scientific notation in printed results
 
 ```
 
-## Determine appropriate parameters
+### Overview
 
 We intend to run our OPEX-CAPEX model for realistic scenarios. The most important parameters we need to determine are $\sigma_f$, $\sigma_g$, $\mu_f$, and $\mu_g$, which represent uncertanty and drift values for future "green" CAPEX ($k_g$) and "fossil" OPEX ($c_f$). We will also want to tune other parameters and ranges for OPEX and CAPEX costs to be as realistic as possible, including fossil CAPEX ($k_f$) and green OPEX ($c_g$), which are constants in the current version of our model. We are planning to present results for two scenarios: power plants and cars.
 
@@ -224,5 +215,3 @@ This results in the following estimates:
 |$k_f$  |\$`r k_icev` |NA|NA|
 |$c_g$  |\$`r round(c_ev, 2)` per year |NA|NA|
 |$c_f$  |\$`r round(c_icev_0_adj, 2)` per year |`r round(mu_c_icev, 5)`|`r round(sigma_c_icev, 5)`|
-
-## Model runs
