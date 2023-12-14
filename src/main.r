@@ -18,16 +18,16 @@ source("src/parallelize.r")
 
 # Parameters to adjust computational load
 
-k_g_multiples  = seq(0.1, 3.1, length = 11) # Relate state space to central value
-c_f_multiples  = seq(0.1, 3.1, length = 11) # Relate state space to central value
-t = 7                                      # Lifespan/number of assets
-n_mc = 50                                 # Number of reps for Monte Carlo
-t_mc = 50                                  # Number of timesteps for Monte Carlo
+k_g_multiples  = seq(0.1, 3.1, length = 21) # Relate state space to central value
+c_f_multiples  = seq(0.1, 3.1, length = 21) # Relate state space to central value
+t = 10                                      # Lifespan/number of assets
+n_mc = 1000                                 # Number of reps for Monte Carlo
+t_mc = 100                                  # Number of timesteps for Monte Carlo
 save_value_funcs = TRUE
 
 # Set up parallel compute
 
-cl <- makeCluster(5, outfile = "") # number of worker processes
+cl <- makeCluster(7, outfile = "") # number of worker processes
 
 clusterEvalQ(cl, library(hms))
 
