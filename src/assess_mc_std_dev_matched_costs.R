@@ -387,6 +387,28 @@ barplot(rbind(SDs_plot, SDs_plot_near), beside=T, col=c(4,5), add=T)
 legend(y=700, x=5, horiz=F, legend=c('Long-run', 'First 10 Years Only'), fill=4:5, x.intersp = 0.25, bty='n')
 dev.off()
 
+# Coefficients of variation
+CVs_plot = c(SD.PV[i,j,'f','all-f']/E.PV[i,j,'f','all-f'], 
+             SD.PV[i,j,'g','all-g']/E.PV[i,j,'g','all-f'], 
+             SD.PV[i,j,'all','all-f']/E.PV[i,j,'all','all-f'],
+             SD.PV[i,j,'all','all-g']/E.PV[i,j,'all','all-g'])
+names(CVs_plot) = c('Fossil-only\nStrategy', 'Green-only\nStrategy',
+                    'Both Options,\nAll-Fossil Chosen', 'Both Options,\nAll-Green Chosen')
+CVs_plot_near = c(SD.PV.near[i,j,'f','all-f']/E.PV.near[i,j,'f','all-f'], 
+                  SD.PV.near[i,j,'g','all-g']/E.PV.near[i,j,'g','all-f'], 
+                  SD.PV.near[i,j,'all','all-f']/E.PV.near[i,j,'all','all-f'],
+                  SD.PV.near[i,j,'all','all-g']/E.PV.near[i,j,'all','all-g'])
+names(CVs_plot_near) = c('Fossil-only\nStrategy', 'Green-only\nStrategy',
+                         'Both Options,\nAll-Fossil Chosen', 'Both Options,\nAll-Green Chosen')
+
+# Long-term and near-term side-by-side
+svg(filename=paste0(out_dir, 'coef_var_barchats_near_vs_long_term.svg'), width=8)
+barplot(rbind(CVs_plot, CVs_plot_near), beside=T, ylab='Coef Var. in NPV Costs', col=c(4,5))
+grid(nx=NA, ny=NULL, lty=1, col='gray90')
+barplot(rbind(CVs_plot, CVs_plot_near), beside=T, col=c(4,5), add=T)
+legend(y=700, x=5, horiz=F, legend=c('Long-run', 'First 10 Years Only'), fill=4:5, x.intersp = 0.25, bty='n')
+dev.off()
+
 #### 3D Surface plots
 library(plotly)
 library(orca)
@@ -560,6 +582,15 @@ orca(p16, file = "dol_change_std_dev_fossil_option.png", scale=0.75, width=800*0
 
 image(green_option_pct_reduc<fossil_option_pct_reduc)
 image(green_option_dol_reduc<fossil_option_dol_reduc)
+image(green_option_dol_reduc-fossil_option_dol_reduc)
+points(0.5, 0.5, pch=19, cex=2, col=4)
+mean(green_option_dol_reduc); mean(fossil_option_dol_reduc)
+mean(green_option_dol_reduc<fossil_option_dol_reduc)
+median(green_option_dol_reduc-fossil_option_dol_reduc)
+mean(green_option_dol_reduc-fossil_option_dol_reduc)
+
+add_surface(plot_ly(z=smooth_matrix(green_option_dol_reduc - fossil_option_dol_reduc)[idx_cf, idx_kg],
+        y=c_f_vals_core, x=k_g_vals_core), colorscale = custom_colors)
 
 # Procurement value
 green_own_pct_reduc = (SD.PV[,,'all','all-g']/SD.PV[,,'all','all-f']-1)*100
