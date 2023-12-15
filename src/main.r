@@ -188,14 +188,14 @@ for (i in 1:nrow(plot_scenarios)) {
 # Delta plots
 
 # Change in SD from option, in dollars
-scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)', range = c(45, 855)),
-                      yaxis=list(title='Fossil OPEX<br> ($M/year)', range = c(2,48)),
-                      zaxis=list(title='$M', range=c(-1250,250)),
+scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
+                      yaxis=list(title='Fossil OPEX<br> ($M/year)'),
+                      zaxis=list(title='$M', range=c(-850,50)),
                       camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
-scene_ev_delta = list(xaxis=list(title='Green CAPEX<br>     ($)', range = c(2000, 78000)),
-                yaxis=list(title='Fossil OPEX<br> ($/year)', range = c(100,1900)),
-                zaxis=list(title='$', range=c(-1e5,2e4)),
+scene_ev_delta = list(xaxis=list(title='Green CAPEX<br>     ($)'),
+                yaxis=list(title='Fossil OPEX<br> ($/year)'),
+                zaxis=list(title='$', range=c(-6e4,1e4)),
                 camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
 delta_plot_scenarios <- expand_grid(plot_scenarios, opt_b = plot_scenarios$opt_name) %>%
@@ -211,7 +211,7 @@ for (i in 1:nrow(delta_plot_scenarios)) {
     if (delta_plot_scenarios$scenario[i] == "vehicle") {scene <- scene_ev_delta} else {scene <- scene_sd_delta}
     save_surface_plot(
         coords = a_minus_b_SD_PV_xyz(
-            results, 
+            plot_data, 
             delta_plot_scenarios$scenario[i], 
             delta_plot_scenarios$opt_name[i],
             delta_plot_scenarios$opt_b[i]
