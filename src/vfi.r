@@ -48,8 +48,8 @@ vfi <- function(
     }
 
     # Compute single-timestep operating expenses (accounting for output, drift, and discounting)
-    opex_f <- c_f_vals * exp(mu_cf) * q / (1 + r)
-    opex_g <- c_g * q / (1 + r)
+    opex_f <- c_f_vals * q
+    opex_g <- c_g * q
 
     # Compute Brownian motion density matrix and total expenses
     if (const_scrap) {
@@ -89,7 +89,7 @@ vfi <- function(
 
     # Calculate and display runtime
     t_run <- Sys.time() - t_start
-    message(iter, " iterations yielded a fit to a precision of ", delta, " in ", toString(as_hms(round(t_run,1))), " (hh:mm:ss)")
+    message(iter, " iterations yielded a fit to a precision of ", delta, " in ", toString(as_hms(round(t_run,1))), " (hh:mm:ss)\n")
 
     # Calculate single-option value functions
     V_f = if (option == "all") {value_V(V, "f")} else {NA} # Otherwise V_min = V_f

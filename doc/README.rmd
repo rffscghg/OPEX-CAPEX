@@ -1,26 +1,17 @@
 ---
-title: "OPEX-CAPEX model"
+title: "Parameterizing the OPEX-CAPEX model"
 author: "Last updated by Jordan Wingenroth on "
 date: "`r format(Sys.time(), '%D')`"
 output: github_document
 ---
 
-## Load VFI and Monte Carlo functions
-
-```{r,message=FALSE}
-
-library(tidyverse)
-library(hms)
-
-source("../src/utils.r")
-source("../src/vfi.r")
-source("../src/monte.r")
+```{r,message=FALSE, include = FALSE}
 
 options(scipen = 999) # Don't use scientific notation in printed results
 
 ```
 
-## Determine appropriate parameters
+### Overview
 
 We intend to run our OPEX-CAPEX model for realistic scenarios. The most important parameters we need to determine are $\sigma_f$, $\sigma_g$, $\mu_f$, and $\mu_g$, which represent uncertanty and drift values for future "green" CAPEX ($k_g$) and "fossil" OPEX ($c_f$). We will also want to tune other parameters and ranges for OPEX and CAPEX costs to be as realistic as possible, including fossil CAPEX ($k_f$) and green OPEX ($c_g$), which are constants in the current version of our model. We are planning to present results for two scenarios: power plants and cars.
 
@@ -109,7 +100,7 @@ k_unit_conversion <- function(k, onm, CF, dr, T, q) {
 k_g_2023        = exp(log(k_g_0) + mu_k_g)   # Estimate 2023 value from 2022 value
 k_f_2023        = mean(c(1234.2, 1274.6))
 
-onm_g_2023      = mean(28.8, 29.9)           # In $/kW-year units
+onm_g_2023      = mean(c(28.8, 29.9))           # In $/kW-year units
 onm_f_2023      = mean(c(30.4, 30.9))
 
 CF_g            = .409
@@ -225,4 +216,24 @@ This results in the following estimates:
 |$c_g$  |\$`r round(c_ev, 2)` per year |NA|NA|
 |$c_f$  |\$`r round(c_icev_0_adj, 2)` per year |`r round(mu_c_icev, 5)`|`r round(sigma_c_icev, 5)`|
 
-## Model runs
+### Save results
+
+The neutral paramters are used for a third scenario that assumes no drift and equivalent uncertainty for the green and fossil options.
+
+```{r}
+
+results <- data.frame(
+    scenario = c("power-plant", "vehicle", "neutral"),
+    k_g = c(k_g_adj, k_tot_ev_2023, 450),
+    k_f = c(k_f_adj, k_icev, 450),
+    c_g = c(0, c_ev, 25),
+    c_f = c(c_f_0_adj, c_icev_0_adj, 25),
+    mu_g = c(mu_k_g, mu_k_ev, 0),
+    mu_f = c(mu_c_f, mu_c_icev, 0),
+    sigma_g = c(sigma_k_g, sigma_k_ev, .05),
+    sigma_f = c(sigma_c_f, sigma_c_icev, .1223)
+)
+
+write.csv(results, "../data/scenarios.csv")
+
+```
