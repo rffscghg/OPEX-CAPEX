@@ -154,8 +154,8 @@ plot_scenarios <- plot_data %>%
         ),
         ztop = if_else(
             scenario == "vehicle",
-            80000,
-            1200
+            70000,
+            1300
         ),
     )
 
@@ -190,7 +190,7 @@ for (i in 1:nrow(plot_scenarios)) {
 # Change in SD from option, in dollars
 scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
                       yaxis=list(title='Fossil OPEX<br> ($M/year)'),
-                      zaxis=list(title='$M', range=c(-850,50)),
+                      zaxis=list(title='$M', range=c(-1050,50)),
                       camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
 scene_ev_delta = list(xaxis=list(title='Green CAPEX<br>     ($)'),
@@ -227,6 +227,6 @@ for (i in 1:nrow(delta_plot_scenarios)) {
             delta_plot_scenarios$opt_b[i],
             ".png"
         ),
-        color_scale = list(c(0, 1), c("blue", "#c0b3a2"))
+        color_scale = list(c(0, 1), c("blue", "#dfd8d4"))
     )
 }
