@@ -168,12 +168,10 @@ for (i in 1:nrow(plot_scenarios)) {
         title = paste("Std. Dev. of NPV costs", plot_scenarios$scenario[i], plot_scenarios$opt_name[i], sep = ", "),
         scene = list(
             xaxis = list(
-                title = plot_scenarios$xtitle[i],
-                range = plot_scenarios$k_g[i] * plot_multiples
+                title = plot_scenarios$xtitle[i]
             ),
             yaxis = list(
-                title = plot_scenarios$ytitle[i],
-                range = plot_scenarios$c_f[i] * plot_multiples
+                title = plot_scenarios$ytitle[i]
             ),
             zaxis = list(
                 title = plot_scenarios$ztitle[i],
