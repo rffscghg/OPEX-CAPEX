@@ -19,12 +19,16 @@ source("src/surfaces.r")
 
 # Parameters to adjust computational load
 
-k_g_multiples  = seq(0.1, 3.1, length = 21) # Relate state space to central value
-c_f_multiples  = seq(0.1, 3.1, length = 21) # Relate state space to central value
+k_g_multiples  = seq(0.2, 4, by = .2)     # Relate state space to central value
+c_f_multiples  = seq(0.2, 4, by = .2)     # Relate state space to central value
 t = 10                                      # Lifespan/number of assets
-n_mc = 1000                                 # Number of reps for Monte Carlo
+n_mc = 1000                                  # Number of reps for Monte Carlo
 t_mc = 100                                  # Number of timesteps for Monte Carlo
 save_value_funcs = TRUE
+
+# Parameters for plots
+
+plot_multiples = c(0.2, 1.8)
 
 # Set up parallel compute
 
@@ -121,28 +125,66 @@ write_csv(results, paste0("output/tidy-results ", write_time,".csv"))
 
 # Make plots
 
-plot_scenarios <- distinct(results, scenario, opt_name)
+plot_data <- results %>%
+    filter(
+        k_g_multiples >= plot_multiples[1],
+        k_g_multiples <= plot_multiples[2],
+        c_f_multiples >= plot_multiples[1],
+        c_f_multiples <= plot_multiples[2],
+    )
+
+plot_scenarios <- plot_data %>%
+    group_by(scenario, opt_name, k_g, c_f) %>%
+    summarise(zmax = max(SD_PV)) %>% # Decided to set z limits manually
+    mutate(
+        xtitle = if_else(
+            scenario == "vehicle",
+            'Green CAPEX<br>     ($)',
+            'Green CAPEX<br>     ($M)'
+        ),
+        ytitle = if_else(
+            scenario == "vehicle",
+            'Fossil OPEX<br> ($/year)',
+            'Fossil OPEX<br> ($M/year)'
+        ),
+        ztitle = if_else(
+            scenario == "vehicle",
+            '$',
+            '$M'
+        ),
+        ztop = if_else(
+            scenario == "vehicle",
+            80000,
+            1200
+        ),
+    )
 
 # SD_PV
 
-scene_sd = list(xaxis=list(title='Green CAPEX<br>     ($M)', range = c(45, 855)),
-                yaxis=list(title='Fossil OPEX<br> ($M/year)', range = c(2,48)),
-                zaxis=list(title='$M', range=c(0,1200)),
-                camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
-
-scene_ev = list(xaxis=list(title='Green CAPEX<br>     ($)', range = c(2000, 78000)),
-                yaxis=list(title='Fossil OPEX<br> ($/year)', range = c(100,1900)),
-                zaxis=list(title='$', range=c(0,8e4)),
-                camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
-
 for (i in 1:nrow(plot_scenarios)) {
-    if (plot_scenarios$scenario[i] == "vehicle") {scene <- scene_ev} else {scene <- scene_sd}
+
     save_surface_plot(
-        coords = results_to_SD_PV_xyz(results, plot_scenarios$scenario[i], plot_scenarios$opt_name[i]),
-        title = "",
-        scene = scene,
+        coords = results_to_SD_PV_xyz(plot_data, plot_scenarios$scenario[i], plot_scenarios$opt_name[i]),
+        title = paste("Std. Dev. of NPV costs", plot_scenarios$scenario[i], plot_scenarios$opt_name[i], sep = ", "),
+        scene = list(
+            xaxis = list(
+                title = plot_scenarios$xtitle[i],
+                range = plot_scenarios$k_g[i] * plot_multiples
+            ),
+            yaxis = list(
+                title = plot_scenarios$ytitle[i],
+                range = plot_scenarios$c_f[i] * plot_multiples
+            ),
+            zaxis = list(
+                title = plot_scenarios$ztitle[i],
+                range = c(0, plot_scenarios$ztop[i])
+            ),
+            camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))
+            # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+        ),
         file = paste0("figures/", plot_scenarios$scenario[i], "---", plot_scenarios$opt_name[i],".png")
     )
+
 }
 
 # Delta plots
