@@ -1,6 +1,11 @@
 # Make figures
 
-plot_data <- results %>%
+results <- read_csv("output/tidy-results 2023-12-14 231102.csv") # temporary
+load("output/V-funcs 2023-12-14 222631.Rdata") # temporary
+
+### Surface plots ###
+
+surface_data <- results %>%
     filter(
         k_g_multiples >= plot_multiples[1],
         k_g_multiples <= plot_multiples[2],
@@ -8,7 +13,7 @@ plot_data <- results %>%
         c_f_multiples <= plot_multiples[2],
     )
 
-plot_scenarios <- plot_data %>%
+surface_scenarios <- surface_data %>%
     group_by(scenario, opt_name, k_g, c_f) %>%
     summarise(zmax = max(SD_PV)) %>% # Decided to set z limits manually
     mutate(
@@ -36,26 +41,26 @@ plot_scenarios <- plot_data %>%
 
 # SD_PV
 
-for (i in 1:nrow(plot_scenarios)) {
+for (i in 1:nrow(surface_scenarios)) {
 
     save_surface_plot(
-        coords = results_to_SD_PV_xyz(plot_data, plot_scenarios$scenario[i], plot_scenarios$opt_name[i]),
-        title = paste("Std. Dev. of NPV costs", plot_scenarios$scenario[i], plot_scenarios$opt_name[i], sep = ", "),
+        coords = results_to_SD_PV_xyz(surface_data, surface_scenarios$scenario[i], surface_scenarios$opt_name[i]),
+        title = paste("Std. Dev. of NPV costs", surface_scenarios$scenario[i], surface_scenarios$opt_name[i], sep = ", "),
         scene = list(
             xaxis = list(
-                title = plot_scenarios$xtitle[i]
+                title = surface_scenarios$xtitle[i]
             ),
             yaxis = list(
-                title = plot_scenarios$ytitle[i]
+                title = surface_scenarios$ytitle[i]
             ),
             zaxis = list(
-                title = plot_scenarios$ztitle[i],
-                range = c(0, plot_scenarios$ztop[i])
+                title = surface_scenarios$ztitle[i],
+                range = c(0, surface_scenarios$ztop[i])
             ),
             camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))
             # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
         ),
-        file = paste0("figures/", plot_scenarios$scenario[i], "---", plot_scenarios$opt_name[i],".png")
+        file = paste0("figures/", surface_scenarios$scenario[i], "---", surface_scenarios$opt_name[i],".png")
     )
 
 }
@@ -73,7 +78,7 @@ scene_ev_delta = list(xaxis=list(title='Green CAPEX<br>     ($)'),
                 zaxis=list(title='$', range=c(-6e4,1e4)),
                 camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
-delta_plot_scenarios <- expand_grid(plot_scenarios, opt_b = plot_scenarios$opt_name) %>%
+delta_surface_scenarios <- expand_grid(surface_scenarios, opt_b = surface_scenarios$opt_name) %>%
     filter(
         opt_name != opt_b, 
         !str_detect(opt_name, "only"),
@@ -82,26 +87,76 @@ delta_plot_scenarios <- expand_grid(plot_scenarios, opt_b = plot_scenarios$opt_n
     ) %>% 
     distinct_all()
 
-for (i in 1:nrow(delta_plot_scenarios)) {
-    if (delta_plot_scenarios$scenario[i] == "vehicle") {scene <- scene_ev_delta} else {scene <- scene_sd_delta}
+for (i in 1:nrow(delta_surface_scenarios)) {
+    if (delta_surface_scenarios$scenario[i] == "vehicle") {scene <- scene_ev_delta} else {scene <- scene_sd_delta}
     save_surface_plot(
         coords = a_minus_b_SD_PV_xyz(
-            plot_data, 
-            delta_plot_scenarios$scenario[i], 
-            delta_plot_scenarios$opt_name[i],
-            delta_plot_scenarios$opt_b[i]
+            surface_data, 
+            delta_surface_scenarios$scenario[i], 
+            delta_surface_scenarios$opt_name[i],
+            delta_surface_scenarios$opt_b[i]
         ),
         title = "",
         scene = scene,
         file = paste0(
             "figures/", 
-            delta_plot_scenarios$scenario[i], 
+            delta_surface_scenarios$scenario[i], 
             "---delta---", 
-            delta_plot_scenarios$opt_name[i],
+            delta_surface_scenarios$opt_name[i],
             "---",
-            delta_plot_scenarios$opt_b[i],
+            delta_surface_scenarios$opt_b[i],
             ".png"
         ),
         color_scale = list(c(0, 1), c("blue", "#dfd8d4"))
     )
 }
+
+### Bar graphs ###
+
+extremes <- results %>%
+    filter(scenario == "neutral") %>%
+    filter(
+        k_g_multiples %in% c(min(plot_multiples), max(plot_multiples)),
+        c_f_multiples %in% c(min(plot_multiples), max(plot_multiples)),
+    )
+
+central <- results %>%
+    filter(scenario == "neutral") %>%
+    filter(k_g_multiples == 1, c_f_multiples == 1)
+
+bar_graph <- bind_rows(extremes, central) %>%
+    mutate(opt_name = factor(
+        opt_name, 
+        levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green")
+    )) %>%
+    select(
+        opt_name, 
+        k_g, 
+        c_f, 
+        k_g_multiples, 
+        c_f_multiples, 
+        SD_PV, 
+        SD_PV_near
+    ) %>%
+    pivot_longer(SD_PV:SD_PV_near) %>%
+    mutate(
+        name = factor(
+            name, 
+            levels = c("SD_PV", "SD_PV_near"), 
+            labels = c("Long-run", "First 10 years only")
+        ),
+        CAPEX = fct_reorder(factor(paste0("Green CAPEX = ", k_g_multiples * k_g)), -k_g_multiples),
+        OPEX = fct_reorder(factor(paste0("Fossil OPEX = ", c_f_multiples * c_f)), c_f_multiples)
+    ) %>%
+    ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
+    geom_col(position = "dodge") +
+    facet_grid(CAPEX~OPEX) +
+    theme_bw() +
+    scale_y_continuous(
+        breaks = c(0, 2.5e8, 5e8, 7.5e8, 1e9, 1.25e9), 
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
+    labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+ggsave("figures/bar_graph.png", bar_graph)
