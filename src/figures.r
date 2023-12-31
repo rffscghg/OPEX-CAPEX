@@ -145,8 +145,8 @@ bar_graph <- bind_rows(extremes, central) %>%
             levels = c("SD_PV", "SD_PV_near"), 
             labels = c("Long-run", "First 10 years only")
         ),
-        CAPEX = fct_reorder(factor(paste0("Green CAPEX = ", k_g_multiples * k_g)), -k_g_multiples),
-        OPEX = fct_reorder(factor(paste0("Fossil OPEX = ", c_f_multiples * c_f)), c_f_multiples)
+        CAPEX = fct_reorder(factor(paste0("Green CAPEX = $", k_g_multiples * k_g, "M")), -k_g_multiples),
+        OPEX = fct_reorder(factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M/yr")), c_f_multiples)
     ) %>%
     ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
     geom_col(position = "dodge") +
