@@ -99,7 +99,7 @@ for (i in 1:nrow(delta_surface_scenarios)) {
         title = "",
         scene = scene,
         file = paste0(
-            "figures/", 
+            "figures/surfaces/", 
             delta_surface_scenarios$scenario[i], 
             "---delta---", 
             delta_surface_scenarios$opt_name[i],
