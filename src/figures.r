@@ -252,11 +252,38 @@ N_f_plot <- tidy_hist_N_f %>%
     scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
     labs(x = "Year", y = "# of legacy fossil-fuel plants")
 
+# Annual costs
+
+tidy_hist_cost <- bind_cols(historical_realized_costs)
+
+colnames(tidy_hist_cost) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1))
+
+annual_cost_plot <- tidy_hist_cost %>%
+    mutate(date = historical$date) %>%
+    pivot_longer(-date) %>%
+    ggplot(aes(x = date, y = value*1e6, color = name)) +
+    geom_line(show.legend = FALSE) +
+    geom_point(show.legend = FALSE) +
+    theme_bw() +
+    scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
+    scale_y_continuous(
+        limits = c(0, 1e9),
+        expand = c(0,0),
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
+    labs(x = "Year", y = "Annual costs", color = "")
+
 # Save plot
 
 ggsave(
     "figures/temporal.png", 
-    plot_grid(k_g_plot, c_f_plot, N_f_plot, ncol = 1, labels = c("a", "b", "c")), 
+    plot_grid(
+        k_g_plot, 
+        c_f_plot, 
+        N_f_plot,
+        annual_cost_plot,
+        ncol = 1, 
+        align = "hv"), 
     width = 7, 
     height = 9
 )
