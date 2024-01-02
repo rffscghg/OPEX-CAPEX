@@ -5,6 +5,8 @@ date: "`r format(Sys.time(), '%D')`"
 output: github_document
 ---
 
+## Parameterizing value functions
+
 ```{r,message=FALSE, include = FALSE}
 
 options(scipen = 999) # Don't use scientific notation in printed results
@@ -121,7 +123,10 @@ Converting operating expenses is easier in terms of units. All we need to do to 
 
 ```{r}
 
-c_f_0_adj <- c_f_0*7.596 + 1.94
+heat_rate = 7.596
+var_onm = 1.94
+
+c_f_0_adj <- c_f_0*heat_rate + var_onm
 
 ```
 
@@ -235,5 +240,35 @@ results <- data.frame(
 )
 
 write.csv(results, "../data/scenarios.csv")
+
+```
+
+## Converting historical data for simulation
+
+We used the value functions we calculated in conjunction with historical data to portray a real-world example. We focused specifically on the power plant example because of the availability of price data for land-based wind and natural gas. Because our model runs in a state space with degrees of freedom for only $c_f$ and $k_g$ (not $c_g$ and $k_f$), we only used historical data for those variables. The others were held constant at the values used to train the value functions.
+
+Annual data are available from 1998 to 2022 for both [Henry Hub Natural Gas Spot Price](https://www.eia.gov/dnav/ng/hist/rngwhhdA.htm) and [installed wind power project costs](https://emp.lbl.gov/wind-technologies-market-report/). We used the same methods for conversion as were used to parameterize the value functions. Perhaps we should use historical data for other variables like capacity factor and O&M too? 
+
+Also, the wind power data specify that they use 2022 dollars. I saw no such information on the EIA page for Henry Hub prices, so it is presumably present day (2023). Should we correct for inflation? It's just one year but consumer price inflation has been high in recent years. Would we use the consumer price value for conversion (annual average? November, since December is not published yet?), or would we find a value specific to the power industry?
+
+```{r, message = FALSE}
+
+library(tidyverse)
+
+k_g_raw <- read_csv("../data/2023_DOE_land_based_wind_market_report_installed_project_costs.csv")
+c_f_raw <- read_csv("../data/henry_hub_natural_gas.csv")
+
+k_g_tidy <- k_g_raw %>%
+    select(1,2) %>% # other columns were empty
+    transmute(date = Date, onshore_wind_installed = parse_number(`2022 $/kW`)) %>%
+    filter(!is.na(onshore_wind_installed)) %>%
+    transmute(date, k_g = k_unit_conversion(onshore_wind_installed, onm_g_2023, CF_g, dr, T, q))
+
+c_f_tidy <- c_f_raw %>%
+    # Convert based on heat rate, as above
+    transmute(date = Date, c_f = `Henry Hub Natural Gas Spot Price (Dollars per Million Btu)` * heat_rate + var_onm)
+
+inner_join(k_g_tidy, c_f_tidy) %>%
+    write_csv("../data/historical.csv")
 
 ```

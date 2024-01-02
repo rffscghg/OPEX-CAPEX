@@ -637,7 +637,9 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.mhchemParser=void 0;var r=fun
 
 <h1 id="parameterizing-the-opex-capex-model">Parameterizing the
 OPEX-CAPEX model</h1>
-<p>Last updated by Jordan Wingenroth on 12/14/23</p>
+<p>Last updated by Jordan Wingenroth on 01/02/24</p>
+<h2 id="parameterizing-value-functions">Parameterizing value
+functions</h2>
 <h3 id="overview">Overview</h3>
 <p>We intend to run our OPEX-CAPEX model for realistic scenarios. The
 most important parameters we need to determine are <span class="math inline">\(\sigma_f\)</span>, <span class="math inline">\(\sigma_g\)</span>, <span class="math inline">\(\mu_f\)</span>, and <span class="math inline">\(\mu_g\)</span>, which represent uncertanty and
@@ -854,7 +856,10 @@ dollars per million MWh/year is multiply by a <a href="https://www.eia.gov/elect
 rate</a> that was most recently estimated at 7,596 Btu/kWh, converted to
 the correct units: 7.596 mmbtu/MWh. We also want to add variable O&amp;M
 costs, which the NREL ATB estimates at $1.94/MWh for 2023.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>c_f_0_adj <span class="ot">&lt;-</span> c_f_0<span class="sc">*</span><span class="fl">7.596</span> <span class="sc">+</span> <span class="fl">1.94</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>heat_rate <span class="ot">=</span> <span class="fl">7.596</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>var_onm <span class="ot">=</span> <span class="fl">1.94</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>c_f_0_adj <span class="ot">&lt;-</span> c_f_0<span class="sc">*</span>heat_rate <span class="sc">+</span> var_onm</span></code></pre></div>
 <p>$/MWh equals millions of dollars per million MWh so we land at <span class="math inline">\(c_{f,0}\)</span> = $21.213 million per year.</p>
 <p>Many sources describe variable O&amp;M for land-based wind as
 “negligible”, so we assume <span class="math inline">\(c_g\)</span> =
@@ -997,6 +1002,45 @@ drift and equivalent uncertainty for the green and fossil options.</p>
 <span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>)</span>
 <span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
 <span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="fu">write.csv</span>(results, <span class="st">&quot;../data/scenarios.csv&quot;</span>)</span></code></pre></div>
+<h2 id="converting-historical-data-for-simulation">Converting historical
+data for simulation</h2>
+<p>We used the value functions we calculated in conjunction with
+historical data to portray a real-world example. We focused specifically
+on the power plant example because of the availability of price data for
+land-based wind and natural gas. Because our model runs in a state space
+with degrees of freedom for only <span class="math inline">\(c_f\)</span> and <span class="math inline">\(k_g\)</span> (not <span class="math inline">\(c_g\)</span> and <span class="math inline">\(k_f\)</span>), we only used historical data for
+those variables. The others were held constant at the values used to
+train the value functions.</p>
+<p>Annual data are available from 1998 to 2022 for both <a href="https://www.eia.gov/dnav/ng/hist/rngwhhdA.htm">Henry Hub Natural
+Gas Spot Price</a> and <a href="https://emp.lbl.gov/wind-technologies-market-report/">installed
+wind power project costs</a>. We used the same methods for conversion as
+were used to parameterize the value functions. Perhaps we should use
+historical data for other variables like capacity factor and O&amp;M
+too?</p>
+<p>Also, the wind power data specify that they use 2022 dollars. I saw
+no such information on the EIA page for Henry Hub prices, so it is
+presumably present day (2023). Should we correct for inflation? It’s
+just one year but consumer price inflation has been high in recent
+years. Would we use the consumer price value for conversion (annual
+average? November, since December is not published yet?), or would we
+find a value specific to the power industry?</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>k_g_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/2023_DOE_land_based_wind_market_report_installed_project_costs.csv&quot;</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>c_f_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/henry_hub_natural_gas.csv&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>k_g_tidy <span class="ot">&lt;-</span> k_g_raw <span class="sc">%&gt;%</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    <span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="co"># other columns were empty</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">date =</span> Date, <span class="at">onshore_wind_installed =</span> <span class="fu">parse_number</span>(<span class="st">`</span><span class="at">2022 $/kW</span><span class="st">`</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(onshore_wind_installed)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>    <span class="fu">transmute</span>(date, <span class="at">k_g =</span> <span class="fu">k_unit_conversion</span>(onshore_wind_installed, onm_g_2023, CF_g, dr, T, q))</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>c_f_tidy <span class="ot">&lt;-</span> c_f_raw <span class="sc">%&gt;%</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>    <span class="co"># Convert based on heat rate, as above</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">date =</span> Date, <span class="at">c_f =</span> <span class="st">`</span><span class="at">Henry Hub Natural Gas Spot Price (Dollars per Million Btu)</span><span class="st">`</span> <span class="sc">*</span> heat_rate <span class="sc">+</span> var_onm)</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="fu">inner_join</span>(k_g_tidy, c_f_tidy) <span class="sc">%&gt;%</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>    <span class="fu">write_csv</span>(<span class="st">&quot;../data/historical.csv&quot;</span>)</span></code></pre></div>
 
 </body>
 </html>
