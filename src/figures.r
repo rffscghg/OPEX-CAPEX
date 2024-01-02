@@ -166,6 +166,8 @@ ggsave("figures/bar_graph.png", bar_graph, width = 7, height = 6)
 
 historical <- read_csv("data/historical.csv")
 
+# Plots of k_g and c_f data
+
 k_g_plot <- historical %>%
     ggplot(aes(x = date, y = k_g*1e6)) +
     geom_line(color = "#50B161") +
@@ -190,9 +192,58 @@ c_f_plot <- historical %>%
     ) +
     labs(x = "Year", y = "Natural Gas Power OPEX")
 
-ggsave("figures/temporal.png", plot_grid(k_g_plot, c_f_plot, ncol = 1, labels = c("a", "b")), width = 7, height = 9)
+# Deterministic model run using `monte_carlo()`
 
-V_f_pp <- V_funcs[[4]]$V_min
-V_g_pp <- V_funcs[[5]]$V_min
-V_all_pp <- V_funcs[[6]]$V_min
+historical_mc_params <- V_func_params[c(4,5,6,6),] %>% # Select power-plant data
+    mutate(
+        start_assets = rep(
+            c(
+                paste(rep("f",t-1), collapse = ""), 
+                paste(rep("g",t-1), collapse = "")
+            ),
+            2
+        ))
 
+historical_results <- list()
+historical_realized_costs <- list()
+historical_legacy_state <- list()
+
+for (i in 1:nrow(historical_mc_params)) {
+
+    historical_results[[i]] <- monte_carlo(
+        c_f_vals = as.numeric(historical_mc_params[i,"c_f"]) * c_f_multiples,
+        k_g_vals = as.numeric(historical_mc_params[i,"k_g"]) * k_g_multiples,
+        k_f = as.numeric(historical_mc_params[i,"k_f"]),
+        c_g = as.numeric(historical_mc_params[i,"c_g"]),
+        mu_cf = as.numeric(historical_mc_params[i,"mu_f"]),
+        mu_kg = as.numeric(historical_mc_params[i,"mu_g"]),
+        sigma_cf = as.numeric(historical_mc_params[i,"sigma_f"]),
+        sigma_kg = as.numeric(historical_mc_params[i,"sigma_g"]),
+        q = 1,
+        r = 0.1,
+        t = t,
+        const_scrap = TRUE,
+        skipVFI = TRUE,
+        deterministic_prices = historical,
+        option = historical_mc_params[i,"option"],          
+        V_init = V_funcs[[as.numeric(historical_mc_params[i,"V_id"])]],               
+        start_assets = historical_mc_params[i,"start_assets"],
+    )
+
+    historical_realized_costs[[i]] <- as.vector(historical_results[[i]]$realized_costs)
+    historical_N_f[[i]] <- as.vector(historical_results[[i]]$legacy_state)
+
+}
+
+historical_realized_costs
+
+historical_legacy_state
+
+# Save plot
+
+ggsave(
+    "figures/temporal.png", 
+    plot_grid(k_g_plot, c_f_plot, ncol = 1, labels = c("a", "b")), 
+    width = 7, 
+    height = 9
+)
