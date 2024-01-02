@@ -156,9 +156,39 @@ bar_graph <- bind_rows(extremes, central) %>%
         breaks = c(0, 2.5e8, 5e8, 7.5e8, 1e9, 1.25e9), 
         labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
     ) +
+    scale_fill_manual(values = c("#04273C", "#88C4F4")) +
     labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-ggsave("figures/bar_graph.png", bar_graph)
+ggsave("figures/bar_graph.png", bar_graph, width = 7, height = 6)
 
 ### Historical data graphs ###
+
+historical <- read_csv("data/historical.csv")
+
+k_g_plot <- historical %>%
+    ggplot(aes(x = date, y = k_g*1e6)) +
+    geom_line(color = "#50B161") +
+    geom_point(color = "#50B161") +
+    theme_bw() +
+    scale_y_continuous(
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
+    labs(x = "Year", y = "Wind Power CAPEX")
+
+c_f_plot <- historical %>%
+    ggplot(aes(x = date, y = c_f*1e6)) +
+    geom_line(color = "#ff6663") +
+    geom_point(color = "#ff6663") +
+    theme_bw() +
+    scale_y_continuous(
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
+    labs(x = "Year", y = "Natural Gas Power OPEX")
+
+ggsave("figures/temporal.png", plot_grid(k_g_plot, c_f_plot, ncol = 1, labels = c("a", "b")), width = 7, height = 9)
+
+V_f_pp <- V_funcs[[4]]$V_min
+V_g_pp <- V_funcs[[5]]$V_min
+V_all_pp <- V_funcs[[6]]$V_min
+
