@@ -172,6 +172,8 @@ k_g_plot <- historical %>%
     geom_point(color = "#50B161") +
     theme_bw() +
     scale_y_continuous(
+        limits = c(0, 9e8),
+        expand = c(0,0),
         labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
     ) +
     labs(x = "Year", y = "Wind Power CAPEX")
@@ -182,6 +184,8 @@ c_f_plot <- historical %>%
     geom_point(color = "#ff6663") +
     theme_bw() +
     scale_y_continuous(
+        limits = c(0, 7.5e7),
+        expand = c(0,0),
         labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
     ) +
     labs(x = "Year", y = "Natural Gas Power OPEX")
