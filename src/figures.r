@@ -60,7 +60,7 @@ for (i in 1:nrow(surface_scenarios)) {
             camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))
             # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
         ),
-        file = paste0("figures/", surface_scenarios$scenario[i], "---", surface_scenarios$opt_name[i],".png")
+        file = paste0("figures/surfaces/", surface_scenarios$scenario[i], "---", surface_scenarios$opt_name[i],".png")
     )
 
 }
@@ -160,3 +160,5 @@ bar_graph <- bind_rows(extremes, central) %>%
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggsave("figures/bar_graph.png", bar_graph)
+
+### Historical data graphs ###
