@@ -205,8 +205,8 @@ historical_mc_params <- V_func_params[c(4,5,6,6),] %>% # Select power-plant data
         ))
 
 historical_results <- list()
+historical_N_f <- list()
 historical_realized_costs <- list()
-historical_legacy_state <- list()
 
 for (i in 1:nrow(historical_mc_params)) {
 
@@ -230,20 +230,33 @@ for (i in 1:nrow(historical_mc_params)) {
         start_assets = historical_mc_params[i,"start_assets"],
     )
 
+    historical_N_f[[i]] <- sapply(as.vector(historical_results[[i]]$legacy_state) - 1, binary_digit_sum)
     historical_realized_costs[[i]] <- as.vector(historical_results[[i]]$realized_costs)
-    historical_N_f[[i]] <- as.vector(historical_results[[i]]$legacy_state)
 
 }
 
-historical_realized_costs
+# N_f figure
 
-historical_legacy_state
+tidy_hist_N_f <- bind_cols(historical_N_f)
+
+colnames(tidy_hist_N_f) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1))
+
+N_f_plot <- tidy_hist_N_f %>%
+    mutate(date = historical$date) %>%
+    pivot_longer(-date) %>%
+    ggplot(aes(x = date, y = value, color = name)) +
+    geom_line(show.legend = FALSE) +
+    geom_point(show.legend = FALSE) +
+    theme_bw() +
+    scale_y_continuous(breaks = 0:10, minor_breaks = NULL) +
+    scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
+    labs(x = "Year", y = "# of legacy fossil-fuel plants")
 
 # Save plot
 
 ggsave(
     "figures/temporal.png", 
-    plot_grid(k_g_plot, c_f_plot, ncol = 1, labels = c("a", "b")), 
+    plot_grid(k_g_plot, c_f_plot, N_f_plot, ncol = 1, labels = c("a", "b", "c")), 
     width = 7, 
     height = 9
 )
