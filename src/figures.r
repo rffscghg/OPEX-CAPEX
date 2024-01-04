@@ -178,7 +178,7 @@ k_g_plot <- historical %>%
     geom_point(color = "#50B161") +
     theme_bw() +
     scale_y_continuous(
-        limits = c(0, 9e8),
+        limits = c(0, 1e9),
         expand = c(0,0),
         labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
     ) +
@@ -190,7 +190,7 @@ c_f_plot <- historical %>%
     geom_point(color = "#ff6663") +
     theme_bw() +
     scale_y_continuous(
-        limits = c(0, 7.5e7),
+        limits = c(0, 1e8),
         expand = c(0,0),
         labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
     ) +
@@ -271,7 +271,7 @@ annual_cost_plot <- tidy_hist_cost %>%
     theme_bw() +
     scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
     scale_y_continuous(
-        limits = c(0, 1e9),
+        limits = c(0, 1.25e9),
         expand = c(0,0),
         labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
     ) +

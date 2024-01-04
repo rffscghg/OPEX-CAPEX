@@ -249,7 +249,7 @@ We used the value functions we calculated in conjunction with historical data to
 
 Annual data are available from 1998 to 2022 for both [Henry Hub Natural Gas Spot Price](https://www.eia.gov/dnav/ng/hist/rngwhhdA.htm) and [installed wind power project costs](https://emp.lbl.gov/wind-technologies-market-report/). We used the same methods for conversion as were used to parameterize the value functions. Perhaps we should use historical data for other variables like capacity factor and O&M too? 
 
-Also, the wind power data specify that they use 2022 dollars. I saw no such information on the EIA page for Henry Hub prices, so it is presumably present day (2023). Should we correct for inflation? It's just one year but consumer price inflation has been high in recent years. Would we use the consumer price value for conversion (annual average? November, since December is not published yet?), or would we find a value specific to the power industry?
+Also, the wind power data specify that they use 2022 dollars. The Henry Hub natural gas data gives no year, so we assume that it needs to be corrected for inflation. We do so with the [GDP price deflator data from FRED](https://fred.stlouisfed.org/series/GDPDEF), scaling to 2022 dollars to match the wind power data.
 
 ```{r, message = FALSE}
 
@@ -257,6 +257,22 @@ library(tidyverse)
 
 k_g_raw <- read_csv("../data/2023_DOE_land_based_wind_market_report_installed_project_costs.csv")
 c_f_raw <- read_csv("../data/henry_hub_natural_gas.csv")
+gdp_def <- read_csv("../data/GDPDEF.csv")
+
+# Combine Henry Hub and deflator data
+c_f_def <- gdp_def %>% 
+    group_by(Date = as.numeric(format(DATE, "%Y"))) %>%
+    summarise(deflate = mean(GDPDEF)) %>%
+    right_join(c_f_raw)
+
+# Get 2022 deflate value
+def_2022 <- c_f_def %>%
+    filter(Date == 2022) %>%
+    .$deflate
+
+# Correct Henry Hub data
+c_f_2022 <- c_f_def %>%
+    transmute(date = Date, c_f_def = `Henry Hub Natural Gas Spot Price (Dollars per Million Btu)` * def_2022/deflate)
 
 k_g_tidy <- k_g_raw %>%
     select(1,2) %>% # other columns were empty
@@ -264,9 +280,9 @@ k_g_tidy <- k_g_raw %>%
     filter(!is.na(onshore_wind_installed)) %>%
     transmute(date, k_g = k_unit_conversion(onshore_wind_installed, onm_g_2023, CF_g, dr, T, q))
 
-c_f_tidy <- c_f_raw %>%
+c_f_tidy <- c_f_2022 %>%
     # Convert based on heat rate, as above
-    transmute(date = Date, c_f = `Henry Hub Natural Gas Spot Price (Dollars per Million Btu)` * heat_rate + var_onm)
+    transmute(date, c_f = c_f_def * heat_rate + var_onm)
 
 inner_join(k_g_tidy, c_f_tidy) %>%
     write_csv("../data/historical.csv")
