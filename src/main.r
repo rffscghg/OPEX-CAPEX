@@ -13,6 +13,7 @@ source("src/vfi.r")
 source("src/utils.r")
 source("src/parallelize.r")
 source("src/surfaces.r")
+source("src/historical_plots.r")
 
 # source("test/test_monte.r")
 # source("test/test_vfi.r")

@@ -174,124 +174,18 @@ h_power <- historical %>%
     transmute(date, c_f = c_f_power, k_g = k_g_power) %>%
     filter(!is.na(c_f), !is.na(k_g))
 
-# Plots of k_g and c_f data
+h_vehic <- historical %>%
+    transmute(date, c_f = c_f_vehicle, k_g = k_g_vehicle) %>%
+    filter(!is.na(c_f), !is.na(k_g))
 
-k_g_plot <- h_power %>%
-    ggplot(aes(x = date, y = k_g*1e6)) +
-    geom_line(color = "#50B161") +
-    geom_point(color = "#50B161") +
-    theme_bw() +
-    scale_y_continuous(
-        limits = c(0, 1e9),
-        expand = c(0,0),
-        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
-    ) +
-    labs(x = "Year", y = "Wind Power CAPEX")
-
-c_f_plot <- h_power %>%
-    ggplot(aes(x = date, y = c_f*1e6)) +
-    geom_line(color = "#ff6663") +
-    geom_point(color = "#ff6663") +
-    theme_bw() +
-    scale_y_continuous(
-        limits = c(0, 1.1e8),
-        expand = c(0,0),
-        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
-    ) +
-    labs(x = "Year", y = "Natural Gas Power OPEX")
-
-# Deterministic model run using `monte_carlo()`
-
-historical_mc_params <- V_func_params[c(4,5,6,6),] %>% # Select power-plant data
-    mutate(
-        start_assets = rep(
-            c(
-                paste(rep("f",t-1), collapse = ""), 
-                paste(rep("g",t-1), collapse = "")
-            ),
-            2
-        ))
-
-historical_results <- list()
-historical_N_f <- list()
-historical_realized_costs <- list()
-
-for (i in 1:nrow(historical_mc_params)) {
-
-    historical_results[[i]] <- monte_carlo(
-        c_f_vals = as.numeric(historical_mc_params[i,"c_f"]) * c_f_multiples,
-        k_g_vals = as.numeric(historical_mc_params[i,"k_g"]) * k_g_multiples,
-        k_f = as.numeric(historical_mc_params[i,"k_f"]),
-        c_g = as.numeric(historical_mc_params[i,"c_g"]),
-        mu_cf = as.numeric(historical_mc_params[i,"mu_f"]),
-        mu_kg = as.numeric(historical_mc_params[i,"mu_g"]),
-        sigma_cf = as.numeric(historical_mc_params[i,"sigma_f"]),
-        sigma_kg = as.numeric(historical_mc_params[i,"sigma_g"]),
-        q = 1,
-        r = 0.1,
-        t = t,
-        const_scrap = TRUE,
-        skipVFI = TRUE,
-        deterministic_prices = h_power,
-        option = historical_mc_params[i,"option"],          
-        V_init = V_funcs[[as.numeric(historical_mc_params[i,"V_id"])]],               
-        start_assets = historical_mc_params[i,"start_assets"],
-    )
-
-    historical_N_f[[i]] <- sapply(as.vector(historical_results[[i]]$legacy_state) - 1, binary_digit_sum)
-    historical_realized_costs[[i]] <- as.vector(historical_results[[i]]$realized_costs)
-
-}
-
-# N_f figure
-
-tidy_hist_N_f <- bind_cols(historical_N_f)
-
-colnames(tidy_hist_N_f) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1))
-
-N_f_plot <- tidy_hist_N_f %>%
-    mutate(date = h_power$date) %>%
-    pivot_longer(-date) %>%
-    ggplot(aes(x = date, y = value, color = name)) +
-    geom_line(show.legend = FALSE) +
-    geom_point(show.legend = FALSE) +
-    theme_bw() +
-    scale_y_continuous(breaks = 0:10, minor_breaks = NULL) +
-    scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
-    labs(x = "Year", y = "# of legacy fossil-fuel plants")
-
-# Annual costs
-
-tidy_hist_cost <- bind_cols(historical_realized_costs)
-
-colnames(tidy_hist_cost) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1))
-
-annual_cost_plot <- tidy_hist_cost %>%
-    mutate(date = h_power$date) %>%
-    pivot_longer(-date) %>%
-    ggplot(aes(x = date, y = value*1e6, color = name)) +
-    geom_line(show.legend = FALSE) +
-    geom_point(show.legend = FALSE) +
-    theme_bw() +
-    scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
-    scale_y_continuous(
-        limits = c(0, 1.25e9),
-        expand = c(0,0),
-        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
-    ) +
-    labs(x = "Year", y = "Annual costs", color = "")
-
-# Save plot
-
-ggsave(
-    "figures/temporal.png", 
-    plot_grid(
-        k_g_plot, 
-        c_f_plot, 
-        N_f_plot,
-        annual_cost_plot,
-        ncol = 1, 
-        align = "hv"), 
-    width = 7, 
-    height = 9
+save_historical_plots(
+    data = h_power,
+    y_axis_title_k_g = "Wind Power CAPEX",
+    y_axis_title_c_f = "Natural Gas Power OPEX",
+    y_axis_title_N_f = "# of legacy fossil-fuel plants",
+    y_max_k_g = 1e9,
+    y_max_c_f = 1.1e8,
+    y_max_annual_cost = 1.25e9,
+    multiplier = 1e6,
+    plot_filename = "figures/temporal_power.png"
 )
