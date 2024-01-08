@@ -1001,7 +1001,7 @@ drift and equivalent uncertainty for the green and fossil options.</p>
 <span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    <span class="at">sigma_f =</span> <span class="fu">c</span>(sigma_c_f, sigma_c_icev, .<span class="dv">1223</span>)</span>
 <span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>)</span>
 <span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="fu">write.csv</span>(results, <span class="st">&quot;../data/scenarios.csv&quot;</span>)</span></code></pre></div>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="fu">write.csv</span>(results, <span class="st">&quot;../data/tidy/scenarios.csv&quot;</span>)</span></code></pre></div>
 <h2 id="converting-historical-data-for-simulation">Converting historical
 data for simulation</h2>
 <p>We used the value functions we calculated in conjunction with
@@ -1022,9 +1022,9 @@ correct these data for inflation using the <a href="https://fred.stlouisfed.org/
 from FRED</a>, scaling to 2023 dollars for both time series.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>k_g_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/2023_DOE_land_based_wind_market_report_installed_project_costs.csv&quot;</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>c_f_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/henry_hub_natural_gas.csv&quot;</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>gdp_def <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/GDPDEF.csv&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>k_g_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/2023_DOE_land_based_wind_market_report_installed_project_costs.csv&quot;</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>c_f_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/henry_hub_natural_gas.csv&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>gdp_def <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/GDPDEF.csv&quot;</span>)</span>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a></span>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co"># Aggregate deflator data by year</span></span>
 <span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>def_tidy <span class="ot">&lt;-</span> gdp_def <span class="sc">%&gt;%</span> </span>
@@ -1086,8 +1086,8 @@ surprisingly well in light of all the caveats.</p>
 <p>I’ll use the gasoline data (<a href="https://fred.stlouisfed.org/series/GASREGW">GASREGW</a>) that
 Brian downloaded from FRED when he was formulating the conversion from
 Brent Crude oil prices.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>k_ev_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/BNEF_lithium-ion_cost_per_kwh.csv&quot;</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>c_icev_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/fredgraph - brent and gasoline.csv&quot;</span>)</span>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>k_ev_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/BNEF_lithium-ion_cost_per_kwh.csv&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>c_icev_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/fredgraph - brent and gasoline.csv&quot;</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a></span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co"># Tidy lithium-ion EV data</span></span>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>k_g_vehicle_tidy <span class="ot">&lt;-</span> <span class="fu">left_join</span>(k_ev_raw, def_tidy, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;dollar_year&quot;</span> <span class="ot">=</span> <span class="st">&quot;Date&quot;</span>)) <span class="sc">%&gt;%</span></span>
@@ -1105,7 +1105,7 @@ Brent Crude oil prices.</p>
 <span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>historical_vehicle_tidy <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(k_g_vehicle_tidy, c_f_vehicle_tidy)</span></code></pre></div>
 <h3 id="save-historical-data">Save historical data</h3>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">full_join</span>(historical_power_tidy, historical_vehicle_tidy) <span class="sc">%&gt;%</span> </span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>    <span class="fu">write_csv</span>(<span class="st">&quot;../data/historical.csv&quot;</span>)</span></code></pre></div>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>    <span class="fu">write_csv</span>(<span class="st">&quot;../data/tidy/historical.csv&quot;</span>)</span></code></pre></div>
 <pre><code>## Joining with `by = join_by(date)`</code></pre>
 
 </body>

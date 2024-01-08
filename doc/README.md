@@ -305,7 +305,7 @@ results <- data.frame(
     sigma_f = c(sigma_c_f, sigma_c_icev, .1223)
 )
 
-write.csv(results, "../data/scenarios.csv")
+write.csv(results, "../data/tidy/scenarios.csv")
 ```
 
 ## Converting historical data for simulation
@@ -335,9 +335,9 @@ dollars for both time series.
 ``` r
 library(tidyverse)
 
-k_g_raw <- read_csv("../data/2023_DOE_land_based_wind_market_report_installed_project_costs.csv")
-c_f_raw <- read_csv("../data/henry_hub_natural_gas.csv")
-gdp_def <- read_csv("../data/GDPDEF.csv")
+k_g_raw <- read_csv("../data/raw/2023_DOE_land_based_wind_market_report_installed_project_costs.csv")
+c_f_raw <- read_csv("../data/raw/henry_hub_natural_gas.csv")
+gdp_def <- read_csv("../data/raw/GDPDEF.csv")
 
 # Aggregate deflator data by year
 def_tidy <- gdp_def %>% 
@@ -409,8 +409,8 @@ downloaded from FRED when he was formulating the conversion from Brent
 Crude oil prices.
 
 ``` r
-k_ev_raw <- read_csv("../data/BNEF_lithium-ion_cost_per_kwh.csv")
-c_icev_raw <- read_csv("../data/fredgraph - brent and gasoline.csv")
+k_ev_raw <- read_csv("../data/raw/BNEF_lithium-ion_cost_per_kwh.csv")
+c_icev_raw <- read_csv("../data/raw/fredgraph - brent and gasoline.csv")
 
 # Tidy lithium-ion EV data
 k_g_vehicle_tidy <- left_join(k_ev_raw, def_tidy, by = c("dollar_year" = "Date")) %>%
@@ -432,7 +432,7 @@ historical_vehicle_tidy <- inner_join(k_g_vehicle_tidy, c_f_vehicle_tidy)
 
 ``` r
 full_join(historical_power_tidy, historical_vehicle_tidy) %>% 
-    write_csv("../data/historical.csv")
+    write_csv("../data/tidy/historical.csv")
 ```
 
     ## Joining with `by = join_by(date)`
