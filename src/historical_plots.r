@@ -3,7 +3,8 @@
 save_historical_plots <- function(
     data,                       # Needs to have date, c_f, and k_g columns and no NAs
     V_funcs,                    # Value functions, listed in order: "f" option, "g" option, "all" option
-    V_func_params,              # Parameters of value functions, as a 3-row tibble: c_f, k_g, k_f, c_g, mu_f, mu_g, sigma_f, sigma_g, option, start_assets
+    V_func_params,              # Parameters of value functions, as a 3-row tibble: c_f, k_g, k_f, c_g, mu_f, mu_g, sigma_f, sigma_g, option
+    t,                          # Number of assets
     y_axis_title_k_g,
     y_axis_title_c_f,
     y_axis_title_N_f,
