@@ -2,15 +2,19 @@
 
 save_historical_plots <- function(
     data,                       # Needs to have date, c_f, and k_g columns and no NAs
+    V_funcs,                    # Value functions, listed in order: "f" option, "g" option, "all" option
+    V_func_params,              # Parameters of value functions, as a 3-row tibble: c_f, k_g, k_f, c_g, mu_f, mu_g, sigma_f, sigma_g, option, start_assets
     y_axis_title_k_g,
     y_axis_title_c_f,
     y_axis_title_N_f,
     y_max_k_g,
     y_max_c_f,
     y_max_annual_cost,
-    multiplier,
+    multiplier = 1,
     plot_filename
 ) {
+
+    iterations <- c(1,2,3,3) # Run once for "f" option, once for "g" option, once for "all, start f", and once for "all, start g"
 
     # Plots of k_g and c_f data
 
@@ -40,7 +44,7 @@ save_historical_plots <- function(
 
     # Deterministic model run using `monte_carlo()`
 
-    historical_mc_params <- V_func_params[c(4,5,6,6),] %>% # Select power-plant data
+    historical_mc_params <- V_func_params[iterations,] %>% # Select power-plant data
         mutate(
             start_assets = rep(
                 c(
@@ -54,7 +58,7 @@ save_historical_plots <- function(
     historical_N_f <- list()
     historical_realized_costs <- list()
 
-    for (i in 1:nrow(historical_mc_params)) {
+    for (i in 1:length(iterations)) {
 
         historical_results[[i]] <- monte_carlo(
             c_f_vals = as.numeric(historical_mc_params[i,"c_f"]) * c_f_multiples,
@@ -72,7 +76,7 @@ save_historical_plots <- function(
             skipVFI = TRUE,
             deterministic_prices = data,
             option = historical_mc_params[i,"option"],          
-            V_init = V_funcs[[as.numeric(historical_mc_params[i,"V_id"])]],               
+            V_init = V_funcs[[iterations[i]]],               
             start_assets = historical_mc_params[i,"start_assets"],
         )
 

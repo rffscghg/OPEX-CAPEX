@@ -180,6 +180,8 @@ h_vehic <- historical %>%
 
 save_historical_plots(
     data = h_power,
+    V_funcs = V_funcs[4:6],
+    V_func_params = V_func_params[4:6,],
     y_axis_title_k_g = "Wind Power CAPEX",
     y_axis_title_c_f = "Natural Gas Power OPEX",
     y_axis_title_N_f = "# of legacy fossil-fuel plants",
@@ -188,4 +190,17 @@ save_historical_plots(
     y_max_annual_cost = 1.25e9,
     multiplier = 1e6,
     plot_filename = "figures/temporal_power.png"
+)
+
+save_historical_plots(
+    data = h_vehic,
+    V_funcs = V_funcs[7:9],
+    V_func_params = V_func_params[7:9,],
+    y_axis_title_k_g = "Electric vehicle CAPEX",
+    y_axis_title_c_f = "Gas-powered vehicle OPEX",
+    y_axis_title_N_f = "# of legacy gas-powered vehicles",
+    y_max_k_g = 1.25e5,
+    y_max_c_f = 2500,
+    y_max_annual_cost = 1.5e5,
+    plot_filename = "figures/temporal_vehicle.png"
 )
