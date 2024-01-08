@@ -112,8 +112,8 @@ save_historical_plots <- function(
         mutate(date = data$date) %>%
         pivot_longer(-date) %>%
         ggplot(aes(x = date, y = value*multiplier, color = name)) +
-        geom_line(show.legend = FALSE) +
-        geom_point(show.legend = FALSE) +
+        geom_line() +
+        geom_point() +
         theme_bw() +
         scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
         scale_y_continuous(
@@ -121,7 +121,8 @@ save_historical_plots <- function(
             expand = c(0,0),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
         ) +
-        labs(x = "Year", y = "Annual costs", color = "")
+        labs(x = "Year", y = "Annual costs", color = "") +
+        theme(legend.position = "bottom")
 
     # Save plot
 
