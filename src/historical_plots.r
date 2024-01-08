@@ -28,6 +28,7 @@ save_historical_plots <- function(
             expand = c(0,0),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
         ) +
+        scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
         labs(x = "Year", y = y_axis_title_k_g)
 
     c_f_plot <- data %>%
@@ -40,6 +41,7 @@ save_historical_plots <- function(
             expand = c(0,0),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
         ) +
+        scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
         labs(x = "Year", y = y_axis_title_c_f)
 
     # Deterministic model run using `monte_carlo()`
@@ -99,6 +101,7 @@ save_historical_plots <- function(
         geom_point(show.legend = FALSE) +
         theme_bw() +
         scale_y_continuous(breaks = 0:10, minor_breaks = NULL) +
+        scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
         scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
         labs(x = "Year", y = y_axis_title_N_f)
 
@@ -121,6 +124,7 @@ save_historical_plots <- function(
             expand = c(0,0),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
         ) +
+        scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
         labs(x = "Year", y = "Annual costs", color = "") +
         theme(legend.position = "bottom")
 

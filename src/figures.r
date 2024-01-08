@@ -179,28 +179,28 @@ h_vehic <- historical %>%
     filter(!is.na(c_f), !is.na(k_g))
 
 save_historical_plots(
-    data = h_power,
+    data = filter(h_power, date > 2011),
     V_funcs = V_funcs[4:6],
     V_func_params = V_func_params[4:6,],
     y_axis_title_k_g = "Wind Power CAPEX",
     y_axis_title_c_f = "Natural Gas Power OPEX",
     y_axis_title_N_f = "# of legacy fossil-fuel plants",
     y_max_k_g = 1e9,
-    y_max_c_f = 1.1e8,
-    y_max_annual_cost = 1.25e9,
+    y_max_c_f = 6e7,
+    y_max_annual_cost = 1e9,
     multiplier = 1e6,
     plot_filename = "figures/temporal_power.png"
 )
 
 save_historical_plots(
-    data = h_vehic,
+    data = filter(h_vehic, date > 2012),
     V_funcs = V_funcs[7:9],
     V_func_params = V_func_params[7:9,],
     y_axis_title_k_g = "Electric vehicle CAPEX",
     y_axis_title_c_f = "Gas-powered vehicle OPEX",
     y_axis_title_N_f = "# of legacy gas-powered vehicles",
-    y_max_k_g = 1.5e5,
-    y_max_c_f = 2500,
-    y_max_annual_cost = 1.6e5,
+    y_max_k_g = 1e5,
+    y_max_c_f = 2100,
+    y_max_annual_cost = 1e5,
     plot_filename = "figures/temporal_vehicle.png"
 )
