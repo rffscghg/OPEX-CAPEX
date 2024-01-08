@@ -245,11 +245,13 @@ write.csv(results, "../data/scenarios.csv")
 
 ## Converting historical data for simulation
 
-We used the value functions we calculated in conjunction with historical data to portray a real-world example. We focused specifically on the power plant example because of the availability of price data for land-based wind and natural gas. Because our model runs in a state space with degrees of freedom for only $c_f$ and $k_g$ (not $c_g$ and $k_f$), we only used historical data for those variables. The others were held constant at the values used to train the value functions.
+We used the value functions we calculated in conjunction with historical data to illustrate our findings. Because our model runs in a state space with degrees of freedom for only $c_f$ and $k_g$ (not $c_g$ and $k_f$), we only used historical data for those variables. The others were held constant at the values used to train the value functions.
+
+### Power plants
 
 Annual data are available from 1998 to 2022 for both [Henry Hub Natural Gas Spot Price](https://www.eia.gov/dnav/ng/hist/rngwhhdA.htm) and [installed wind power project costs](https://emp.lbl.gov/wind-technologies-market-report/). We used the same methods for conversion as were used to parameterize the value functions. Perhaps we should use historical data for other variables like capacity factor and O&M too? 
 
-Also, the wind power data specify that they use 2022 dollars. The Henry Hub natural gas data gives no year, so we assume that it needs to be corrected for inflation. We do so with the [GDP price deflator data from FRED](https://fred.stlouisfed.org/series/GDPDEF), scaling to 2022 dollars to match the wind power data.
+Also, the wind power data specify that they use 2022 dollars. The Henry Hub natural gas data appears to use nominal dollars. We will correct these data for inflation using the [GDP price deflator data from FRED](https://fred.stlouisfed.org/series/GDPDEF), scaling to 2023 dollars for both time series.
 
 ```{r, message = FALSE}
 
@@ -259,32 +261,79 @@ k_g_raw <- read_csv("../data/2023_DOE_land_based_wind_market_report_installed_pr
 c_f_raw <- read_csv("../data/henry_hub_natural_gas.csv")
 gdp_def <- read_csv("../data/GDPDEF.csv")
 
-# Combine Henry Hub and deflator data
-c_f_def <- gdp_def %>% 
+# Aggregate deflator data by year
+def_tidy <- gdp_def %>% 
     group_by(Date = as.numeric(format(DATE, "%Y"))) %>%
-    summarise(deflate = mean(GDPDEF)) %>%
-    right_join(c_f_raw)
+    summarise(deflate = mean(GDPDEF))
 
 # Get 2022 deflate value
-def_2022 <- c_f_def %>%
+def_2022 <- def_tidy %>%
     filter(Date == 2022) %>%
     .$deflate
 
-# Correct Henry Hub data
-c_f_2022 <- c_f_def %>%
-    transmute(date = Date, c_f_def = `Henry Hub Natural Gas Spot Price (Dollars per Million Btu)` * def_2022/deflate)
+# Get 2023 deflate value
+def_2023 <- def_tidy %>%
+    filter(Date == 2023) %>%
+    .$deflate
 
-k_g_tidy <- k_g_raw %>%
+# Tidy Henry Hub data
+c_f_power_tidy <- c_f_raw %>%
+    rename("c_f_raw" = 2) %>% # Get rid of long variable name for values
+    left_join(def_tidy) %>%
+    transmute(
+        date = Date, 
+        c_f_power = c_f_raw * def_2023/deflate * heat_rate + var_onm
+    )
+
+# Tidy wind power data
+k_g_power_tidy <- k_g_raw %>%
     select(1,2) %>% # other columns were empty
-    transmute(date = Date, onshore_wind_installed = parse_number(`2022 $/kW`)) %>%
+    transmute(date = Date, onshore_wind_installed = parse_number(`2022 $/kW`)*def_2023/def_2022) %>%
     filter(!is.na(onshore_wind_installed)) %>%
-    transmute(date, k_g = k_unit_conversion(onshore_wind_installed, onm_g_2023, CF_g, dr, T, q))
+    transmute(
+        date, 
+        k_g_power = k_unit_conversion(onshore_wind_installed, onm_g_2023, CF_g, dr, T, q)
+    )
 
-c_f_tidy <- c_f_2022 %>%
-    # Convert based on heat rate, as above
-    transmute(date, c_f = c_f_def * heat_rate + var_onm)
+historical_power_tidy <- inner_join(k_g_power_tidy, c_f_power_tidy)
 
-inner_join(k_g_tidy, c_f_tidy) %>%
+```
+
+### Vehicles
+
+For the EV battery pack prices, I found two sources of historical data: [BloombergNEF](https://about.bnef.com/blog/lithium-ion-battery-pack-prices-hit-record-low-of-139-kwh/) and [DOE Fact of the Week](https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly#:~:text=The%20Department%20of%20Energy's%20(DOE's,least%20100%2C000%20units%20per%20year.). The BloombergNEF dataset begins in 2010 (pre-2013 values found [elsewhere](https://about.bnef.com/blog/behind-scenes-take-lithium-ion-battery-prices/)), whereas the DOE one begins in 2008. Generally the BloombergNEF values are higher. There are a few possible explanations but I generally attribute the difference to the BloombergNEF dataset focusing on sales price and the DOE dataset focusing on production price (they specify a scale of 100,000 units per year). The BloombergNEF data seems better adapted to our use case. The data points from the alternative source (pre-2013) will need to be corrected for inflation. 
+
+This data also suggests a far lower cost per kWh than the Rhodium value, so we shouldn't expect past and future values to align. I wrote to our colleagues at Rhodium today (Jan 5, 2024) to try to figure out why their value is so high. Unless/until that changes, I'll just use the y-intercept calculated above for both past and future EVs when scaling to total vehicle price, which I admitted above is a crude method of comparison. Interestingly though, in 2010 dollars, our model backfits a price of $105 thousand for an EV with that range, which fits the $110 thousand price and 244 mile range of the 2010 Tesla Roadster surprisingly well in light of all the caveats. 
+
+I'll use the gasoline data ([GASREGW](https://fred.stlouisfed.org/series/GASREGW)) that Brian downloaded from FRED when he was formulating the conversion from Brent Crude oil prices.
+
+```{r, message = FALSE}
+
+k_ev_raw <- read_csv("../data/BNEF_lithium-ion_cost_per_kwh.csv")
+c_icev_raw <- read_csv("../data/fredgraph - brent and gasoline.csv")
+
+# Tidy lithium-ion EV data
+k_g_vehicle_tidy <- left_join(k_ev_raw, def_tidy, by = c("dollar_year" = "Date")) %>%
+    transmute(date, k_g_vehicle = (EV_yint + price*250*kWh_per_mi)*def_2023/deflate)
+
+# Tidy gasoline data
+c_f_vehicle_tidy <- c_icev_raw %>%
+    filter(str_detect(GASREGW, "\\$")) %>%
+    mutate(date = as.numeric(format(observation_date, "%Y"))) %>%
+    group_by(date) %>%
+    summarise(gas_price = mean(parse_number(GASREGW))) %>%
+    left_join(def_tidy, by = c("date" = "Date")) %>%
+    transmute(date, c_f_vehicle = gas_price/mpg*annual_mileage*def_2023/deflate)
+
+historical_vehicle_tidy <- inner_join(k_g_vehicle_tidy, c_f_vehicle_tidy)
+
+```
+
+### Save historical data
+
+```{r}
+
+full_join(historical_power_tidy, historical_vehicle_tidy) %>% 
     write_csv("../data/historical.csv")
 
 ```
