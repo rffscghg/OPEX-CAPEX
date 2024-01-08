@@ -170,9 +170,13 @@ ggsave("figures/bar_graph.png", bar_graph, width = 7, height = 6)
 
 historical <- read_csv("data/historical.csv")
 
+h_power <- historical %>%
+    transmute(date, c_f = c_f_power, k_g = k_g_power) %>%
+    filter(!is.na(c_f), !is.na(k_g))
+
 # Plots of k_g and c_f data
 
-k_g_plot <- historical %>%
+k_g_plot <- h_power %>%
     ggplot(aes(x = date, y = k_g*1e6)) +
     geom_line(color = "#50B161") +
     geom_point(color = "#50B161") +
@@ -184,7 +188,7 @@ k_g_plot <- historical %>%
     ) +
     labs(x = "Year", y = "Wind Power CAPEX")
 
-c_f_plot <- historical %>%
+c_f_plot <- h_power %>%
     ggplot(aes(x = date, y = c_f*1e6)) +
     geom_line(color = "#ff6663") +
     geom_point(color = "#ff6663") +
@@ -228,7 +232,7 @@ for (i in 1:nrow(historical_mc_params)) {
         t = t,
         const_scrap = TRUE,
         skipVFI = TRUE,
-        deterministic_prices = historical,
+        deterministic_prices = h_power,
         option = historical_mc_params[i,"option"],          
         V_init = V_funcs[[as.numeric(historical_mc_params[i,"V_id"])]],               
         start_assets = historical_mc_params[i,"start_assets"],
@@ -246,7 +250,7 @@ tidy_hist_N_f <- bind_cols(historical_N_f)
 colnames(tidy_hist_N_f) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1))
 
 N_f_plot <- tidy_hist_N_f %>%
-    mutate(date = historical$date) %>%
+    mutate(date = h_power$date) %>%
     pivot_longer(-date) %>%
     ggplot(aes(x = date, y = value, color = name)) +
     geom_line(show.legend = FALSE) +
@@ -263,7 +267,7 @@ tidy_hist_cost <- bind_cols(historical_realized_costs)
 colnames(tidy_hist_cost) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1))
 
 annual_cost_plot <- tidy_hist_cost %>%
-    mutate(date = historical$date) %>%
+    mutate(date = h_power$date) %>%
     pivot_longer(-date) %>%
     ggplot(aes(x = date, y = value*1e6, color = name)) +
     geom_line(show.legend = FALSE) +
