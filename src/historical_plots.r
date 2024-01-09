@@ -8,6 +8,9 @@ save_boxplot <- function(
     V_funcs,                    # Value functions, listed in order: "f" option, "g" option, "all" option
     V_func_params,              # Parameters of value functions, as a 3-row tibble: c_f, k_g, k_f, c_g, mu_f, mu_g, sigma_f, sigma_g, option
     t,                          # Number of assets
+    x_axis_title,
+    y_max,
+    multiplier = 1,
     plot_filename
 ) {
 
@@ -70,8 +73,16 @@ save_boxplot <- function(
     start_N_f[(nrow(data) - t + 2):(2*(nrow(data) - t + 1))] <- "g only"
 
     historical_boxplot <- tibble(start_N_f, total_cost) %>%
-        ggplot(aes(x = factor(start_N_f), y = total_cost)) +
-        geom_boxplot()
+        ggplot(aes(x = factor(start_N_f), y = total_cost*multiplier)) +
+        geom_boxplot() +
+        theme_bw() + 
+        scale_y_continuous(
+            limits = c(0, y_max),
+            expand = c(0,0),
+            labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+        ) +
+        labs(x = x_axis_title, y = "Total 10-year costs")
+
 
     ggsave(plot_filename, historical_boxplot)
 

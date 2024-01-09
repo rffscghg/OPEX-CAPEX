@@ -212,6 +212,9 @@ save_boxplot(
     V_funcs = V_funcs[4:6],
     V_func_params = V_func_params[4:6,],
     t = t,
+    x_axis_title = "# of fossil-fuel plants in year 1",
+    y_max = 1e10,
+    multiplier = 1e6,
     plot_filename = "figures/boxplot_power.png"
 )
 
@@ -220,5 +223,7 @@ save_boxplot(
     V_funcs = V_funcs[7:9],
     V_func_params = V_func_params[7:9,],
     t = t,
+    x_axis_title = "# of gas-powered vehicles in year 1",
+    y_max = 8.5e5,
     plot_filename = "figures/boxplot_vehicle.png"
 )
