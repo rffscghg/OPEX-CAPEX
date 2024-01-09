@@ -29,43 +29,53 @@ save_boxplot <- function(
     historical_realized_costs <- list()
 
     for (i in 1:length(iterations)) {
+        
+        historical_results[[i]] <- list()
+        historical_N_f[[i]] <- list()
+        historical_realized_costs[[i]] <- list()
 
-        historical_results[[i]] <- monte_carlo(
-            c_f_vals = as.numeric(historical_mc_params[i,"c_f"]) * c_f_multiples,
-            k_g_vals = as.numeric(historical_mc_params[i,"k_g"]) * k_g_multiples,
-            k_f = as.numeric(historical_mc_params[i,"k_f"]),
-            c_g = as.numeric(historical_mc_params[i,"c_g"]),
-            mu_cf = as.numeric(historical_mc_params[i,"mu_f"]),
-            mu_kg = as.numeric(historical_mc_params[i,"mu_g"]),
-            sigma_cf = as.numeric(historical_mc_params[i,"sigma_f"]),
-            sigma_kg = as.numeric(historical_mc_params[i,"sigma_g"]),
-            q = 1,
-            r = 0.1,
-            t = t,
-            const_scrap = TRUE,
-            skipVFI = TRUE,
-            deterministic_prices = data,
-            option = historical_mc_params[i,"option"],          
-            V_init = V_funcs[[iterations[i]]],               
-            start_assets = historical_mc_params[i,"start_assets"],
-        )
+        for (j in 1:(nrow(data) - t + 1)) {
 
-        historical_N_f[[i]] <- sapply(as.vector(historical_results[[i]]$legacy_state) - 1, binary_digit_sum)
-        historical_realized_costs[[i]] <- as.vector(historical_results[[i]]$realized_costs)
+            historical_results[[i]][[j]] <- monte_carlo(
+                c_f_vals = as.numeric(historical_mc_params[i,"c_f"]) * c_f_multiples,
+                k_g_vals = as.numeric(historical_mc_params[i,"k_g"]) * k_g_multiples,
+                k_f = as.numeric(historical_mc_params[i,"k_f"]),
+                c_g = as.numeric(historical_mc_params[i,"c_g"]),
+                mu_cf = as.numeric(historical_mc_params[i,"mu_f"]),
+                mu_kg = as.numeric(historical_mc_params[i,"mu_g"]),
+                sigma_cf = as.numeric(historical_mc_params[i,"sigma_f"]),
+                sigma_kg = as.numeric(historical_mc_params[i,"sigma_g"]),
+                q = 1,
+                r = 0.1,
+                t = t,
+                const_scrap = TRUE,
+                skipVFI = TRUE,
+                deterministic_prices = data[j:(j + t - 1),],
+                option = historical_mc_params[i,"option"],          
+                V_init = V_funcs[[iterations[i]]],               
+                start_assets = historical_mc_params[i,"start_assets"],
+            )
+
+            historical_N_f[[i]][[j]] <- sapply(as.vector(historical_results[[i]][[j]]$legacy_state) - 1, binary_digit_sum)
+            historical_realized_costs[[i]][[j]] <- as.vector(historical_results[[i]][[j]]$realized_costs)
+
+        }
 
     }
 
-    start_N_f <- unlist(lapply(historical_N_f, function(x) x[1]))
-    total_cost <- unlist(lapply(historical_realized_costs, sum))
+    start_N_f <- unlist(lapply(unlist(historical_N_f, recursive = FALSE), function(x) x[1]))
+    total_cost <- unlist(lapply(unlist(historical_realized_costs, recursive = FALSE), sum))
 
-    start_N_f[1] <- "f only"
-    start_N_f[2] <- "g only"
+    start_N_f[1:(nrow(data) - t + 1)] <- "f only"
+    start_N_f[(nrow(data) - t + 2):(2*(nrow(data) - t + 1))] <- "g only"
 
     historical_boxplot <- tibble(start_N_f, total_cost) %>%
         ggplot(aes(x = factor(start_N_f), y = total_cost)) +
         geom_boxplot()
 
     ggsave(plot_filename, historical_boxplot)
+
+    # return(list(historical_N_f, historical_realized_costs))
 
 }
 

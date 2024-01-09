@@ -77,6 +77,8 @@ monte_carlo <- function(
         # Use deterministic prices
         random_cf <- matrix(deterministic_prices$c_f)
         random_kg <- matrix(deterministic_prices$k_g)
+        n_mc <- 1
+        t_mc <- nrow(deterministic_prices)
     }
 
     # Copy random-walk dimensions to other variables
