@@ -168,7 +168,7 @@ ggsave("figures/bar_graph.png", bar_graph, width = 7, height = 6)
 
 ### Historical data graphs ###
 
-historical <- read_csv("data/historical.csv")
+historical <- read_csv("data/tidy/historical.csv")
 
 h_power <- historical %>%
     transmute(date, c_f = c_f_power, k_g = k_g_power) %>%

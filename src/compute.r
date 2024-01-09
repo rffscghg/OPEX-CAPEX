@@ -13,7 +13,7 @@ clusterExport(cl, c("k_g_multiples", "c_f_multiples", "t", "n_mc", "t_mc"))
 
 # Create grid of parameterizations
 
-scenarios <- read_csv("data/scenarios.csv", col_select = -1) # See doc/README
+scenarios <- read_csv("data/tidy/scenarios.csv", col_select = -1) # See doc/README
 
 options = tibble(
         opt_name = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
