@@ -206,3 +206,19 @@ save_historical_plots(
     y_max_annual_cost = 1.6e5,
     plot_filename = "figures/temporal_vehicle.png"
 )
+
+save_boxplot(
+    data = h_power,
+    V_funcs = V_funcs[4:6],
+    V_func_params = V_func_params[4:6,],
+    t = t,
+    plot_filename = "figures/boxplot_power.png"
+)
+
+save_boxplot(
+    data = h_vehic,
+    V_funcs = V_funcs[7:9],
+    V_func_params = V_func_params[7:9,],
+    t = t,
+    plot_filename = "figures/boxplot_vehicle.png"
+)

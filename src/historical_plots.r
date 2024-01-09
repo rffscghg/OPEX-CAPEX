@@ -1,5 +1,75 @@
-# Function to save plots based on historical data
+# Historical data functions
 
+# TODO: Function to save geom_smooth plot based on all possible...
+
+# Function to save boxplot based on all possible runs within constraints of historical data
+save_boxplot <- function(
+    data,                       # Needs to have date, c_f, and k_g columns and no NAs
+    V_funcs,                    # Value functions, listed in order: "f" option, "g" option, "all" option
+    V_func_params,              # Parameters of value functions, as a 3-row tibble: c_f, k_g, k_f, c_g, mu_f, mu_g, sigma_f, sigma_g, option
+    t,                          # Number of assets
+    plot_filename
+) {
+
+    iterations <- c(1,2,rep(3, 2^(t-1))) # Run for all possible configurations
+
+    # Deterministic model run using `monte_carlo()`
+
+    historical_mc_params <- V_func_params[iterations,] %>% # Select power-plant data
+        mutate(
+            start_assets = c(
+                paste(rep("f",t-1), collapse = ""), 
+                paste(rep("g",t-1), collapse = ""),
+                bin2string(1:(2^(t-1)), t) # Run for all possible configurations
+            )
+        )
+
+    historical_results <- list()
+    historical_N_f <- list()
+    historical_realized_costs <- list()
+
+    for (i in 1:length(iterations)) {
+
+        historical_results[[i]] <- monte_carlo(
+            c_f_vals = as.numeric(historical_mc_params[i,"c_f"]) * c_f_multiples,
+            k_g_vals = as.numeric(historical_mc_params[i,"k_g"]) * k_g_multiples,
+            k_f = as.numeric(historical_mc_params[i,"k_f"]),
+            c_g = as.numeric(historical_mc_params[i,"c_g"]),
+            mu_cf = as.numeric(historical_mc_params[i,"mu_f"]),
+            mu_kg = as.numeric(historical_mc_params[i,"mu_g"]),
+            sigma_cf = as.numeric(historical_mc_params[i,"sigma_f"]),
+            sigma_kg = as.numeric(historical_mc_params[i,"sigma_g"]),
+            q = 1,
+            r = 0.1,
+            t = t,
+            const_scrap = TRUE,
+            skipVFI = TRUE,
+            deterministic_prices = data,
+            option = historical_mc_params[i,"option"],          
+            V_init = V_funcs[[iterations[i]]],               
+            start_assets = historical_mc_params[i,"start_assets"],
+        )
+
+        historical_N_f[[i]] <- sapply(as.vector(historical_results[[i]]$legacy_state) - 1, binary_digit_sum)
+        historical_realized_costs[[i]] <- as.vector(historical_results[[i]]$realized_costs)
+
+    }
+
+    start_N_f <- unlist(lapply(historical_N_f, function(x) x[1]))
+    total_cost <- unlist(lapply(historical_realized_costs, sum))
+
+    start_N_f[1] <- "f only"
+    start_N_f[2] <- "g only"
+
+    historical_boxplot <- tibble(start_N_f, total_cost) %>%
+        ggplot(aes(x = factor(start_N_f), y = total_cost)) +
+        geom_boxplot()
+
+    ggsave(plot_filename, historical_boxplot)
+
+}
+
+# Function to save timeseries plots based on historical data
 save_historical_plots <- function(
     data,                       # Needs to have date, c_f, and k_g columns and no NAs
     V_funcs,                    # Value functions, listed in order: "f" option, "g" option, "all" option
