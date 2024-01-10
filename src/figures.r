@@ -187,7 +187,8 @@ save_historical_plots(
     y_axis_title_N_f = "# of legacy fossil-fuel plants",
     y_max_k_g = 1e9,
     y_max_c_f = 6e7,
-    y_max_annual_cost = 1e9,
+    y_max_capex_cost = 1e9,
+    y_max_opex_cost = 6e8,
     multiplier = 1e6,
     t = t,
     plot_filename = "figures/temporal_power.png"
@@ -199,10 +200,11 @@ save_historical_plots(
     V_func_params = V_func_params[7:9,],
     y_axis_title_k_g = "Electric vehicle CAPEX",
     y_axis_title_c_f = "Gas-powered vehicle OPEX",
-    y_axis_title_N_f = "# of legacy gas-powered vehicles",
-    y_max_k_g = 1e5,
-    y_max_c_f = 2100,
-    y_max_annual_cost = 1e5,
+    y_axis_title_N_f = "# of legacy gas vehicles",
+    y_max_k_g = 8e4,
+    y_max_c_f = 2000,
+    y_max_capex_cost = 8e4,
+    y_max_opex_cost = 2e4,
     t = t,
     plot_filename = "figures/temporal_vehicle.png"
 )

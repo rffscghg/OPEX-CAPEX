@@ -9,7 +9,8 @@ save_historical_plots <- function(
     y_axis_title_N_f,
     y_max_k_g,
     y_max_c_f,
-    y_max_annual_cost,
+    y_max_capex_cost,
+    y_max_opex_cost,
     multiplier = 1,
     t = t,
     plot_filename
@@ -26,7 +27,6 @@ save_historical_plots <- function(
         theme_bw() +
         scale_y_continuous(
             limits = c(0, y_max_k_g),
-            expand = c(0,0),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
         ) +
         scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
@@ -39,7 +39,6 @@ save_historical_plots <- function(
         theme_bw() +
         scale_y_continuous(
             limits = c(0, y_max_c_f),
-            expand = c(0,0),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
         ) +
         scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
@@ -127,44 +126,51 @@ save_historical_plots <- function(
         geom_point(show.legend = FALSE) +
         theme_bw() +
         scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
-        # scale_y_continuous(
-        #     limits = c(0, y_max_annual_cost),
-        #     expand = c(0,0),
-        #     labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
-        # ) +
+        scale_y_continuous(
+            limits = c(0, y_max_capex_cost),
+            labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+        ) +
         scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
-        labs(x = "Year", y = "Annual CAPEX", color = "") +
+        labs(x = "", y = "Annual CAPEX", color = "") +
         theme(legend.position = "bottom")
 
     annual_opex_plot <- tidy_hist_opex %>%
         mutate(date = data$date) %>%
         pivot_longer(-date) %>%
         ggplot(aes(x = date, y = value*multiplier, color = name)) +
-        geom_line(show.legend = FALSE) +
-        geom_point(show.legend = FALSE) +
+        geom_line() +
+        geom_point() +
         theme_bw() +
         scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
-        # scale_y_continuous(
-        #     limits = c(0, y_max_annual_cost),
-        #     expand = c(0,0),
-        #     labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
-        # ) +
+        scale_y_continuous(
+            limits = c(0, y_max_opex_cost),
+            labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+        ) +
         scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
-        labs(x = "Year", y = "Annual OPEX", color = "") +
-        theme(legend.position = "bottom")
+        labs(x = "", y = "Annual OPEX", color = "") +
+        theme(legend.position = "none")
+
+    legend <- get_legend(annual_opex_plot + theme(legend.position = "bottom"))
 
     # Save plot
 
     ggsave(
         plot_filename, 
         plot_grid(
-            k_g_plot, c_f_plot,
-            annual_capex_plot, annual_opex_plot,
-            N_f_plot,
-            ncol = 2 
+            plot_grid(
+                annual_opex_plot,
+                annual_capex_plot, 
+                N_f_plot,
+                ncol = 1, 
+                align = "hv",
+                labels = c("a", "b", "c")
+            ),
+            legend,
+            ncol = 1,
+            rel_heights = c(.96,.04)
         ),
-        width = 9, 
-        height = 9
+        width = 7, 
+        height = 9,
     )
 
 }
