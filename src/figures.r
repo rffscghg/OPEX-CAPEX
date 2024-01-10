@@ -261,19 +261,21 @@ tidy_tot_f <- indiv_tot_f %>%
     mutate(yearly_min_f = min(tot_f, na.rm = TRUE), yearly_max_f = max(tot_f, na.rm = TRUE))
 
 p_line_indiv <- left_join(tidy_tot_g, tidy_tot_f) %>%
+    filter(start_year == 2014) %>%
+    mutate(year = year + 2013) %>%
     ggplot() +
-    geom_ribbon(aes(x = year, ymin = yearly_min_g, ymax = yearly_max_g), fill = "#50B161", alpha = .1) +
+#    geom_ribbon(aes(x = year, ymin = yearly_min_g, ymax = yearly_max_g), fill = "#50B161", alpha = .1) +
     geom_line(aes(x = year, y = tot_g, group = start_year), col = "#50B161", alpha = .5) +
-    geom_ribbon(aes(x = year, ymin = yearly_min_f, ymax = yearly_max_f), fill = "#ff6663", alpha = .1) +
+#    geom_ribbon(aes(x = year, ymin = yearly_min_f, ymax = yearly_max_f), fill = "#ff6663", alpha = .1) +
     geom_line(aes(x = year, y = tot_f, group = start_year), col = "#ff6663", alpha = .5) +
     theme_bw() +
     scale_y_continuous(
-        limits = c(0, 1.5e5),
+        limits = c(0, 8e4),
         expand = c(0,0),
         labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
     ) +
-    scale_x_continuous(breaks = 1:10, minor_breaks = NULL) +
-    labs(x = "Year in vehicle lifespan", y = "Total OPEX + CAPEX costs")
+    scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
+    labs(x = "Year", y = "Total OPEX + CAPEX costs")
 
 ggsave("figures/individual_assets_line.png", p_line_indiv, height = 7, width = 7)
 
