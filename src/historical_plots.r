@@ -11,6 +11,7 @@ save_historical_plots <- function(
     y_max_c_f,
     y_max_annual_cost,
     multiplier = 1,
+    t = t,
     plot_filename
 ) {
 
@@ -59,6 +60,8 @@ save_historical_plots <- function(
     historical_results <- list()
     historical_N_f <- list()
     historical_realized_costs <- list()
+    historical_opex <- list()
+    historical_capex <- list()
 
     for (i in 1:length(iterations)) {
 
@@ -85,6 +88,9 @@ save_historical_plots <- function(
         historical_N_f[[i]] <- sapply(as.vector(historical_results[[i]]$legacy_state) - 1, binary_digit_sum)
         historical_realized_costs[[i]] <- as.vector(historical_results[[i]]$realized_costs)
 
+        historical_opex[[i]] <- historical_N_f[[i]] * data$c_f + (t - historical_N_f[[i]] - 1) * as.numeric(historical_mc_params[i,"c_g"])
+        historical_capex[[i]] <- (historical_results[[i]]$pick_f * as.numeric(historical_mc_params[i,"k_f"])) + ((!historical_results[[i]]$pick_f) * data$k_g)
+
     }
 
     # N_f figure
@@ -107,25 +113,44 @@ save_historical_plots <- function(
 
     # Annual costs
 
-    tidy_hist_cost <- bind_cols(historical_realized_costs)
+    tidy_hist_opex <- bind_cols(historical_opex)
+    tidy_hist_capex <- bind_cols(historical_capex)
 
-    colnames(tidy_hist_cost) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1))
+    colnames(tidy_hist_opex) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1),"-opex")
+    colnames(tidy_hist_capex) <- paste0(historical_mc_params$option, "-start-", str_sub(historical_mc_params$start_assets,,1),"capex")
 
-    annual_cost_plot <- tidy_hist_cost %>%
+    annual_capex_plot <- tidy_hist_capex %>%
         mutate(date = data$date) %>%
         pivot_longer(-date) %>%
         ggplot(aes(x = date, y = value*multiplier, color = name)) +
-        geom_line() +
-        geom_point() +
+        geom_line(show.legend = FALSE) +
+        geom_point(show.legend = FALSE) +
         theme_bw() +
         scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
-        scale_y_continuous(
-            limits = c(0, y_max_annual_cost),
-            expand = c(0,0),
-            labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
-        ) +
+        # scale_y_continuous(
+        #     limits = c(0, y_max_annual_cost),
+        #     expand = c(0,0),
+        #     labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+        # ) +
         scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
-        labs(x = "Year", y = "Annual costs", color = "") +
+        labs(x = "Year", y = "Annual CAPEX", color = "") +
+        theme(legend.position = "bottom")
+
+    annual_opex_plot <- tidy_hist_opex %>%
+        mutate(date = data$date) %>%
+        pivot_longer(-date) %>%
+        ggplot(aes(x = date, y = value*multiplier, color = name)) +
+        geom_line(show.legend = FALSE) +
+        geom_point(show.legend = FALSE) +
+        theme_bw() +
+        scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
+        # scale_y_continuous(
+        #     limits = c(0, y_max_annual_cost),
+        #     expand = c(0,0),
+        #     labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+        # ) +
+        scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
+        labs(x = "Year", y = "Annual OPEX", color = "") +
         theme(legend.position = "bottom")
 
     # Save plot
@@ -133,13 +158,12 @@ save_historical_plots <- function(
     ggsave(
         plot_filename, 
         plot_grid(
-            k_g_plot, 
-            c_f_plot, 
+            k_g_plot, c_f_plot,
+            annual_capex_plot, annual_opex_plot,
             N_f_plot,
-            annual_cost_plot,
-            ncol = 1, 
-            align = "hv"), 
-        width = 7, 
+            ncol = 2 
+        ),
+        width = 9, 
         height = 9
     )
 
