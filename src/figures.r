@@ -227,3 +227,73 @@ save_boxplot(
     y_max = 8.5e5,
     plot_filename = "figures/boxplot_vehicle.png"
 )
+
+### Individual asset graphs
+
+indiv_tot_f <- tibble(1:10)
+indiv_tot_g <- tibble(1:10)
+
+# Loop over all years in historical data
+for (i in 1:nrow(h_vehic)) {
+    indiv_tot_f[,i] <- h_vehic$c_f[i:(i+9)]
+    indiv_tot_g[,i] <- h_vehic$k_g[i:(i+9)]
+}
+
+# Add k_f to first year of c_f
+indiv_tot_f[1,] <- indiv_tot_f[1,] + V_func_params$k_f[7]
+
+# Replace k_g with c_g in all but first year
+indiv_tot_g[2:10,] <- V_func_params$c_g[7] # 7th row has parameters for vehicle example
+
+colnames(indiv_tot_f) <- h_vehic$date
+colnames(indiv_tot_g) <- h_vehic$date
+
+tidy_tot_g <- indiv_tot_g %>%
+    mutate(year = 1:nrow(indiv_tot_g)) %>%
+    pivot_longer(-year, names_to = "start_year", values_to = "tot_g") %>%
+    group_by(year) %>%
+    mutate(yearly_min_g = min(tot_g, na.rm = TRUE), yearly_max_g = max(tot_g, na.rm = TRUE))
+
+tidy_tot_f <- indiv_tot_f %>%
+    mutate(year = 1:nrow(indiv_tot_f)) %>%
+    pivot_longer(-year, names_to = "start_year", values_to = "tot_f") %>%
+    group_by(year) %>%
+    mutate(yearly_min_f = min(tot_f, na.rm = TRUE), yearly_max_f = max(tot_f, na.rm = TRUE))
+
+p_line_indiv <- left_join(tidy_tot_g, tidy_tot_f) %>%
+    ggplot() +
+    geom_ribbon(aes(x = year, ymin = yearly_min_g, ymax = yearly_max_g), fill = "#50B161", alpha = .1) +
+    geom_line(aes(x = year, y = tot_g, group = start_year), col = "#50B161", alpha = .5) +
+    geom_ribbon(aes(x = year, ymin = yearly_min_f, ymax = yearly_max_f), fill = "#ff6663", alpha = .1) +
+    geom_line(aes(x = year, y = tot_f, group = start_year), col = "#ff6663", alpha = .5) +
+    theme_bw() +
+    scale_y_continuous(
+        limits = c(0, 1.5e5),
+        expand = c(0,0),
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
+    scale_x_continuous(breaks = 1:10, minor_breaks = NULL) +
+    labs(x = "Year in vehicle lifespan", y = "Total OPEX + CAPEX costs")
+
+ggsave("figures/individual_assets_line.png", p_line_indiv, height = 7, width = 7)
+
+p_box_indiv <- left_join(tidy_tot_g, tidy_tot_f) %>%
+    filter(start_year %in% 2010:2014) %>% # Filter out assets with NAs (in future years)
+    group_by(start_year) %>%
+    summarise(
+        `Total lifespan cost of fossil-fuel vehicles` = sum(tot_f), 
+        `Total lifespan cost of EVs` = sum(tot_g)
+    ) %>%
+    pivot_longer(`Total lifespan cost of fossil-fuel vehicles`:`Total lifespan cost of EVs`) %>%
+    ggplot(aes(y = value, x = name, color = name, fill = name)) +
+    geom_boxplot(alpha = .2, show.legend = FALSE) +
+    theme_bw() +
+    scale_y_continuous(
+    limits = c(0, 1.5e5),
+    expand = c(0,0),
+    labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
+    scale_color_manual(values = c("#50B161", "#ff6663"), aesthetics = c("colour", "fill")) +
+    labs(x = "", y = "", title = "Total costs of vehicles purchased in 2010-2014 (10-year lifespans)")
+
+ggsave("figures/individual_assets_box.png", p_box_indiv, height = 7, width = 7)
