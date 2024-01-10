@@ -73,18 +73,19 @@ save_boxplot <- function(
     start_N_f[(nrow(data) - t + 2):(2*(nrow(data) - t + 1))] <- "g only"
 
     historical_boxplot <- tibble(start_N_f, total_cost) %>%
+        filter(!start_N_f %in% c("f only", "g only")) %>%
         ggplot(aes(x = factor(start_N_f), y = total_cost*multiplier)) +
         geom_boxplot() +
         theme_bw() + 
         scale_y_continuous(
-            limits = c(0, y_max),
-            expand = c(0,0),
+            # limits = c(0, y_max),
+            # expand = c(0,0),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
         ) +
         labs(x = x_axis_title, y = "Total 10-year costs")
 
 
-    ggsave(plot_filename, historical_boxplot)
+    ggsave(plot_filename, historical_boxplot, width = 7, height = 7)
 
     # return(list(historical_N_f, historical_realized_costs))
 
