@@ -150,7 +150,7 @@ bar_graph <- central %>%
         OPEX = fct_reorder(factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M/yr")), c_f_multiples)
     ) %>%
     ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
-    geom_col(position = "dodge", show.legend = FALSE, color = "black") +
+    geom_col(position = "dodge", color = "black") +
     theme_bw() +
     scale_y_continuous(
         breaks = c(0, 2.5e8, 5e8, 7.5e8, 1e9, 1.25e9), minor_breaks = NULL,
@@ -161,9 +161,11 @@ bar_graph <- central %>%
     scale_fill_manual(values = c("#88c4f4", "#ff6663")) +
     labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
     theme(
+        legend.position = c(0.85, 0.9),
         panel.grid.major.x = element_blank(),
         plot.background = element_rect(fill = "white", color = "white"), 
         axis.line = element_line(),
+        legend.background = element_blank()
     )
 
 ggsave("figures/central_bar_graph.png", bar_graph, width = 7, height = 6)
