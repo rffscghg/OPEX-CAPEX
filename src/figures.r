@@ -127,7 +127,8 @@ central <- results %>%
 bar_graph <- central %>%
     mutate(opt_name = factor(
         opt_name, 
-        levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green")
+        levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
+        labels = c("Fossil-only\nstrategy","Green-only\nstrategy","Optimal strategy,\nbeginning with\nfossil","Optimal strategy,\nbeginning with\ngreen")
     )) %>%
     select(
         opt_name, 
@@ -160,7 +161,6 @@ bar_graph <- central %>%
     scale_fill_manual(values = c("#88c4f4", "#ff6663")) +
     labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
     theme(
-        axis.text.x = element_text(angle = 45, hjust = 1), 
         panel.grid.major.x = element_blank(),
         plot.background = element_rect(fill = "white", color = "white"), 
         axis.line = element_line(),
@@ -171,7 +171,8 @@ ggsave("figures/central_bar_graph.png", bar_graph, width = 7, height = 6)
 extremes_bar_graph <- extremes %>%
     mutate(opt_name = factor(
         opt_name, 
-        levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green")
+        levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
+        labels = c("Fossil-only","Green-only","Optimal,\nstart\nfossil","Optimal,\nstart\ngreen")
     )) %>%
     select(
         opt_name, 
@@ -209,7 +210,6 @@ extremes_bar_graph <- extremes %>%
     scale_fill_manual(values = c("#88c4f4", "#ff6663")) +
     labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
     theme(
-        axis.text.x = element_text(angle = 45, hjust = 1), 
         plot.background = element_rect(fill = "white", color = "white"), 
         panel.grid.major.x = element_blank(),
         axis.line = element_line(),
