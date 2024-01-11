@@ -637,7 +637,9 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.mhchemParser=void 0;var r=fun
 
 <h1 id="parameterizing-the-opex-capex-model">Parameterizing the
 OPEX-CAPEX model</h1>
-<p>Last updated by Jordan Wingenroth on 12/14/23</p>
+<p>Last updated by Jordan Wingenroth on 01/08/24</p>
+<h2 id="parameterizing-value-functions">Parameterizing value
+functions</h2>
 <h3 id="overview">Overview</h3>
 <p>We intend to run our OPEX-CAPEX model for realistic scenarios. The
 most important parameters we need to determine are <span class="math inline">\(\sigma_f\)</span>, <span class="math inline">\(\sigma_g\)</span>, <span class="math inline">\(\mu_f\)</span>, and <span class="math inline">\(\mu_g\)</span>, which represent uncertanty and
@@ -854,7 +856,10 @@ dollars per million MWh/year is multiply by a <a href="https://www.eia.gov/elect
 rate</a> that was most recently estimated at 7,596 Btu/kWh, converted to
 the correct units: 7.596 mmbtu/MWh. We also want to add variable O&amp;M
 costs, which the NREL ATB estimates at $1.94/MWh for 2023.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>c_f_0_adj <span class="ot">&lt;-</span> c_f_0<span class="sc">*</span><span class="fl">7.596</span> <span class="sc">+</span> <span class="fl">1.94</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>heat_rate <span class="ot">=</span> <span class="fl">7.596</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>var_onm <span class="ot">=</span> <span class="fl">1.94</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>c_f_0_adj <span class="ot">&lt;-</span> c_f_0<span class="sc">*</span>heat_rate <span class="sc">+</span> var_onm</span></code></pre></div>
 <p>$/MWh equals millions of dollars per million MWh so we land at <span class="math inline">\(c_{f,0}\)</span> = $21.213 million per year.</p>
 <p>Many sources describe variable O&amp;M for land-based wind as
 “negligible”, so we assume <span class="math inline">\(c_g\)</span> =
@@ -996,7 +1001,112 @@ drift and equivalent uncertainty for the green and fossil options.</p>
 <span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    <span class="at">sigma_f =</span> <span class="fu">c</span>(sigma_c_f, sigma_c_icev, .<span class="dv">1223</span>)</span>
 <span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>)</span>
 <span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a></span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="fu">write.csv</span>(results, <span class="st">&quot;../data/scenarios.csv&quot;</span>)</span></code></pre></div>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="fu">write.csv</span>(results, <span class="st">&quot;../data/tidy/scenarios.csv&quot;</span>)</span></code></pre></div>
+<h2 id="converting-historical-data-for-simulation">Converting historical
+data for simulation</h2>
+<p>We used the value functions we calculated in conjunction with
+historical data to illustrate our findings. Because our model runs in a
+state space with degrees of freedom for only <span class="math inline">\(c_f\)</span> and <span class="math inline">\(k_g\)</span> (not <span class="math inline">\(c_g\)</span> and <span class="math inline">\(k_f\)</span>), we only used historical data for
+those variables. The others were held constant at the values used to
+train the value functions.</p>
+<h3 id="power-plants-1">Power plants</h3>
+<p>Annual data are available from 1998 to 2022 for both <a href="https://www.eia.gov/dnav/ng/hist/rngwhhdA.htm">Henry Hub Natural
+Gas Spot Price</a> and <a href="https://emp.lbl.gov/wind-technologies-market-report/">installed
+wind power project costs</a>. We used the same methods for conversion as
+were used to parameterize the value functions. Perhaps we should use
+historical data for other variables like capacity factor and O&amp;M
+too?</p>
+<p>Also, the wind power data specify that they use 2022 dollars. The
+Henry Hub natural gas data appears to use nominal dollars. We will
+correct these data for inflation using the <a href="https://fred.stlouisfed.org/series/GDPDEF">GDP price deflator data
+from FRED</a>, scaling to 2023 dollars for both time series.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>k_g_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/2023_DOE_land_based_wind_market_report_installed_project_costs.csv&quot;</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>c_f_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/henry_hub_natural_gas.csv&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>gdp_def <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/GDPDEF.csv&quot;</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co"># Aggregate deflator data by year</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>def_tidy <span class="ot">&lt;-</span> gdp_def <span class="sc">%&gt;%</span> </span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>    <span class="fu">group_by</span>(<span class="at">Date =</span> <span class="fu">as.numeric</span>(<span class="fu">format</span>(DATE, <span class="st">&quot;%Y&quot;</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">deflate =</span> <span class="fu">mean</span>(GDPDEF))</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co"># Get 2022 deflate value</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>def_2022 <span class="ot">&lt;-</span> def_tidy <span class="sc">%&gt;%</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>    <span class="fu">filter</span>(Date <span class="sc">==</span> <span class="dv">2022</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>    .<span class="sc">$</span>deflate</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co"># Get 2023 deflate value</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>def_2023 <span class="ot">&lt;-</span> def_tidy <span class="sc">%&gt;%</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>    <span class="fu">filter</span>(Date <span class="sc">==</span> <span class="dv">2023</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>    .<span class="sc">$</span>deflate</span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="co"># Tidy Henry Hub data</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>c_f_power_tidy <span class="ot">&lt;-</span> c_f_raw <span class="sc">%&gt;%</span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>    <span class="fu">rename</span>(<span class="st">&quot;c_f_raw&quot;</span> <span class="ot">=</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="co"># Get rid of long variable name for values</span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>    <span class="fu">left_join</span>(def_tidy) <span class="sc">%&gt;%</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a>    <span class="fu">transmute</span>(</span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a>        <span class="at">date =</span> Date, </span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>        <span class="at">c_f_power =</span> c_f_raw <span class="sc">*</span> def_2023<span class="sc">/</span>deflate <span class="sc">*</span> heat_rate <span class="sc">+</span> var_onm</span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a>    )</span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co"># Tidy wind power data</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a>k_g_power_tidy <span class="ot">&lt;-</span> k_g_raw <span class="sc">%&gt;%</span></span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a>    <span class="fu">select</span>(<span class="dv">1</span>,<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="co"># other columns were empty</span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a>    <span class="fu">transmute</span>(<span class="at">date =</span> Date, <span class="at">onshore_wind_installed =</span> <span class="fu">parse_number</span>(<span class="st">`</span><span class="at">2022 $/kW</span><span class="st">`</span>)<span class="sc">*</span>def_2023<span class="sc">/</span>def_2022) <span class="sc">%&gt;%</span></span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(onshore_wind_installed)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a>    <span class="fu">transmute</span>(</span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a>        date, </span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a>        <span class="at">k_g_power =</span> <span class="fu">k_unit_conversion</span>(onshore_wind_installed, onm_g_2023, CF_g, dr, T, q)</span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a>    )</span>
+<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a>historical_power_tidy <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(k_g_power_tidy, c_f_power_tidy)</span></code></pre></div>
+<h3 id="vehicles-1">Vehicles</h3>
+<p>For the EV battery pack prices, I found two sources of historical
+data: <a href="https://about.bnef.com/blog/lithium-ion-battery-pack-prices-hit-record-low-of-139-kwh/">BloombergNEF</a>
+and [DOE Fact of the Week](<a href="https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly#">https://www.energy.gov/eere/vehicles/articles/fotw-1272-january-9-2023-electric-vehicle-battery-pack-costs-2022-are-nearly#</a>:~:text=The%20Department%20of%20Energy’s%20(DOE’s,least%20100%2C000%20units%20per%20year.).
+The BloombergNEF dataset begins in 2010 (pre-2013 values found <a href="https://about.bnef.com/blog/behind-scenes-take-lithium-ion-battery-prices/">elsewhere</a>),
+whereas the DOE one begins in 2008. Generally the BloombergNEF values
+are higher. There are a few possible explanations but I generally
+attribute the difference to the BloombergNEF dataset focusing on sales
+price and the DOE dataset focusing on production price (they specify a
+scale of 100,000 units per year). The BloombergNEF data seems better
+adapted to our use case. The data points from the alternative source
+(pre-2013) will need to be corrected for inflation.</p>
+<p>This data also suggests a far lower cost per kWh than the Rhodium
+value, so we shouldn’t expect past and future values to align. I wrote
+to our colleagues at Rhodium today (Jan 5, 2024) to try to figure out
+why their value is so high. Unless/until that changes, I’ll just use the
+y-intercept calculated above for both past and future EVs when scaling
+to total vehicle price, which I admitted above is a crude method of
+comparison. Interestingly though, in 2010 dollars, our model backfits a
+price of $105 thousand for an EV with that range, which fits the $110
+thousand price and 244 mile range of the 2010 Tesla Roadster
+surprisingly well in light of all the caveats.</p>
+<p>I’ll use the gasoline data (<a href="https://fred.stlouisfed.org/series/GASREGW">GASREGW</a>) that
+Brian downloaded from FRED when he was formulating the conversion from
+Brent Crude oil prices.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>k_ev_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/BNEF_lithium-ion_cost_per_kwh.csv&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>c_icev_raw <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/raw/fredgraph - brent and gasoline.csv&quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co"># Tidy lithium-ion EV data</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>k_g_vehicle_tidy <span class="ot">&lt;-</span> <span class="fu">left_join</span>(k_ev_raw, def_tidy, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;dollar_year&quot;</span> <span class="ot">=</span> <span class="st">&quot;Date&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>    <span class="fu">transmute</span>(date, <span class="at">k_g_vehicle =</span> (EV_yint <span class="sc">+</span> price<span class="sc">*</span><span class="dv">250</span><span class="sc">*</span>kWh_per_mi)<span class="sc">*</span>def_2023<span class="sc">/</span>deflate)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co"># Tidy gasoline data</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>c_f_vehicle_tidy <span class="ot">&lt;-</span> c_icev_raw <span class="sc">%&gt;%</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="fu">str_detect</span>(GASREGW, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">$&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">as.numeric</span>(<span class="fu">format</span>(observation_date, <span class="st">&quot;%Y&quot;</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>    <span class="fu">group_by</span>(date) <span class="sc">%&gt;%</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">gas_price =</span> <span class="fu">mean</span>(<span class="fu">parse_number</span>(GASREGW))) <span class="sc">%&gt;%</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>    <span class="fu">left_join</span>(def_tidy, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;date&quot;</span> <span class="ot">=</span> <span class="st">&quot;Date&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>    <span class="fu">transmute</span>(date, <span class="at">c_f_vehicle =</span> gas_price<span class="sc">/</span>mpg<span class="sc">*</span>annual_mileage<span class="sc">*</span>def_2023<span class="sc">/</span>deflate)</span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>historical_vehicle_tidy <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(k_g_vehicle_tidy, c_f_vehicle_tidy)</span></code></pre></div>
+<h3 id="save-historical-data">Save historical data</h3>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">full_join</span>(historical_power_tidy, historical_vehicle_tidy) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>    <span class="fu">write_csv</span>(<span class="st">&quot;../data/tidy/historical.csv&quot;</span>)</span></code></pre></div>
+<pre><code>## Joining with `by = join_by(date)`</code></pre>
 
 </body>
 </html>

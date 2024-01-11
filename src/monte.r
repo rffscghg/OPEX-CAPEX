@@ -18,6 +18,7 @@ monte_carlo <- function(
     verbose = FALSE,                        # Print supplementary information to the console
     V_init = NULL,                          # Starting values for value function iteration (`monte_carlo(...)$value_func` format) 
     skipVFI = FALSE,                        # option to skip the VFI step
+    deterministic_prices = NULL,            # Deterministic prices (tibble or dataframe with `c_f` and `k_g` columns)
     n_mc = 1000,                            # Monte Carlo sample size
     t_mc = 10*t,                            # Monte Carlo time horizon
     start_cf = median(c_f_vals),            # Starting value for c_f
@@ -68,9 +69,15 @@ monte_carlo <- function(
         )
     }
     
-    # Sample random walks
-    random_cf <- random_walk_gbm(n_mc, mu_cf, sigma_cf, t_mc, start_cf)
-    random_kg <- random_walk_gbm(n_mc, mu_kg, sigma_kg, t_mc, start_kg)
+    if (is.null(deterministic_prices)) {
+        # Sample random walks
+        random_cf <- random_walk_gbm(n_mc, mu_cf, sigma_cf, t_mc, start_cf)
+        random_kg <- random_walk_gbm(n_mc, mu_kg, sigma_kg, t_mc, start_kg)
+    } else {
+        # Use deterministic prices
+        random_cf <- matrix(deterministic_prices$c_f)
+        random_kg <- matrix(deterministic_prices$k_g)
+    }
 
     # Copy random-walk dimensions to other variables
     c_f_index <- random_cf
