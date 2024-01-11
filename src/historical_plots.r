@@ -11,6 +11,7 @@ save_historical_plots <- function(
     y_max_c_f,
     y_max_capex_cost,
     y_max_opex_cost,
+    legend_labels,              # all-start-f, all-start-g, f-start-f, g-start-g
     multiplier = 1,
     t = t,
     plot_filename
@@ -142,8 +143,22 @@ save_historical_plots <- function(
         theme(legend.position = "bottom")
 
     annual_opex_plot <- tidy_hist_opex %>%
-        mutate(date = data$date) %>%
+        mutate(
+            date = data$date
+        ) %>%
         pivot_longer(-date) %>%
+        mutate(
+            name = factor(
+                name,
+                levels = c(
+                    "all-start-f-opex",
+                    "all-start-g-opex",
+                    "f-start-f-opex",
+                    "g-start-g-opex"
+                ),
+                labels = legend_labels
+            )
+        ) %>%
         ggplot(aes(x = date, y = value*multiplier, color = name)) +
         geom_line() +
         geom_point() +
@@ -174,7 +189,7 @@ save_historical_plots <- function(
             ),
             legend,
             ncol = 1,
-            rel_heights = c(.96,.04)
+            rel_heights = c(.95,.05)
         ),
         width = 7, 
         height = 9,

@@ -189,6 +189,12 @@ save_historical_plots(
     y_max_c_f = 6e7,
     y_max_capex_cost = 1e9,
     y_max_opex_cost = 6e8,
+    legend_labels = c(
+        "Both options,\nstarting with\nnatural gas",
+        "Both options,\nstarting with\nwind",
+        "Only natural gas",
+        "Only wind"
+    ),
     multiplier = 1e6,
     t = t,
     plot_filename = "figures/temporal_power.png"
@@ -205,6 +211,12 @@ save_historical_plots(
     y_max_c_f = 2000,
     y_max_capex_cost = 8e4,
     y_max_opex_cost = 2e4,
+    legend_labels = c(
+        "Both options,\nstarting with ICEVs",
+        "Both options,\nstarting with EVs",
+        "Only gas vehicles",
+        "Only EVs"
+    ),
     t = t,
     plot_filename = "figures/temporal_vehicle.png"
 )
