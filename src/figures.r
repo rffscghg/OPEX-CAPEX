@@ -148,8 +148,9 @@ bar_graph <- extremes %>%
         CAPEX = fct_reorder(factor(paste0("Green CAPEX = $", k_g_multiples * k_g, "M")), -k_g_multiples),
         OPEX = fct_reorder(factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M/yr")), c_f_multiples)
     ) %>%
+    filter(name == "Long-run") %>%
     ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
-    geom_col(position = "dodge") +
+    geom_col(position = "dodge", show.legend = FALSE) +
     facet_grid(CAPEX~OPEX) +
     theme_bw() +
     scale_y_continuous(
