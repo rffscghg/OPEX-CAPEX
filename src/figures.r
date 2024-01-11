@@ -124,7 +124,7 @@ central <- results %>%
     filter(scenario == "neutral") %>%
     filter(k_g_multiples == 1, c_f_multiples == 1)
 
-bar_graph <- bind_rows(extremes, central) %>%
+bar_graph <- extremes %>%
     mutate(opt_name = factor(
         opt_name, 
         levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green")
@@ -148,21 +148,17 @@ bar_graph <- bind_rows(extremes, central) %>%
         CAPEX = fct_reorder(factor(paste0("Green CAPEX = $", k_g_multiples * k_g, "M")), -k_g_multiples),
         OPEX = fct_reorder(factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M/yr")), c_f_multiples)
     ) %>%
-    filter(name != "Long-run") %>%
-    ggplot(aes(x = opt_name, y = value*1e6)) +
-    geom_col(position = "dodge", fill = "#04273C", color = "#04273C") +
+    ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
+    geom_col(position = "dodge") +
     facet_grid(CAPEX~OPEX) +
     theme_bw() +
     scale_y_continuous(
         breaks = c(0, 2.5e8, 5e8, 7.5e8, 1e9, 1.25e9), 
         labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
     ) +
+    scale_fill_manual(values = c("#04273C", "#88C4F4")) +
     labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
-    theme(
-        axis.text.x = element_text(angle = 45, hjust = 1), 
-        panel.grid.major.x = element_blank(), 
-        panel.grid.minor.x = element_blank()
-    )
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggsave("figures/bar_graph.png", bar_graph, width = 7, height = 6)
 
