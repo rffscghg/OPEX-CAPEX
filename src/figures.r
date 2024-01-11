@@ -124,7 +124,51 @@ central <- results %>%
     filter(scenario == "neutral") %>%
     filter(k_g_multiples == 1, c_f_multiples == 1)
 
-bar_graph <- extremes %>%
+bar_graph <- central %>%
+    mutate(opt_name = factor(
+        opt_name, 
+        levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green")
+    )) %>%
+    select(
+        opt_name, 
+        k_g, 
+        c_f, 
+        k_g_multiples, 
+        c_f_multiples, 
+        SD_PV, 
+        SD_PV_near
+    ) %>%
+    pivot_longer(SD_PV:SD_PV_near) %>%
+    mutate(
+        name = factor(
+            name, 
+            levels = c("SD_PV", "SD_PV_near"), 
+            labels = c("Long-run", "First 10 years only")
+        ),
+        CAPEX = fct_reorder(factor(paste0("Green CAPEX = $", k_g_multiples * k_g, "M")), -k_g_multiples),
+        OPEX = fct_reorder(factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M/yr")), c_f_multiples)
+    ) %>%
+    ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
+    geom_col(position = "dodge", show.legend = FALSE, color = "black") +
+    theme_bw() +
+    scale_y_continuous(
+        breaks = c(0, 2.5e8, 5e8, 7.5e8, 1e9, 1.25e9), minor_breaks = NULL,
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale()),
+        expand = c(0,0),
+        limits = c(0, 8e8)
+    ) +
+    scale_fill_manual(values = c("#88c4f4", "#ff6663")) +
+    labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1), 
+        panel.grid.major.x = element_blank(),
+        plot.background = element_rect(fill = "white", color = "white"), 
+        axis.line = element_line(),
+    )
+
+ggsave("figures/central_bar_graph.png", bar_graph, width = 7, height = 6)
+
+extremes_bar_graph <- extremes %>%
     mutate(opt_name = factor(
         opt_name, 
         levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green")
@@ -150,18 +194,27 @@ bar_graph <- extremes %>%
     ) %>%
     filter(name == "Long-run") %>%
     ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
-    geom_col(position = "dodge", show.legend = FALSE) +
+    geom_col(position = "dodge", show.legend = FALSE, color = "black") +
     facet_grid(CAPEX~OPEX) +
     theme_bw() +
     scale_y_continuous(
-        breaks = c(0, 2.5e8, 5e8, 7.5e8, 1e9, 1.25e9), 
-        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+        breaks = c(0, 2.5e8, 5e8, 7.5e8, 1e9, 1.25e9), minor_breaks = NULL,
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale()),
+        expand = c(0,0),
+        limits = c(0, 1.3e9)
     ) +
-    scale_fill_manual(values = c("#04273C", "#88C4F4")) +
+    scale_fill_manual(values = c("#88c4f4", "#ff6663")) +
     labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1), 
+        plot.background = element_rect(fill = "white", color = "white"), 
+        panel.grid.major.x = element_blank(),
+        axis.line = element_line(),
+        strip.background = element_blank(),
+        panel.spacing = unit(.25, "inch")
+    )
 
-ggsave("figures/bar_graph.png", bar_graph, width = 7, height = 6)
+ggsave("figures/extremes_bar_graph.png", extremes_bar_graph, width = 7, height = 6)
 
 ### Historical data graphs ###
 
