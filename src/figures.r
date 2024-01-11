@@ -220,3 +220,29 @@ save_historical_plots(
     t = t,
     plot_filename = "figures/temporal_vehicle.png"
 )
+
+### Overlaying historical data and optimal-strategy heatmaps
+
+optimal_g_power <- V_funcs[[6]]$V_g < V_funcs[[6]]$V_f
+optimal_g_vehic <- V_funcs[[9]]$V_g < V_funcs[[9]]$V_f
+
+optimal_g_power_all <- apply(optimal_g_power, c(1,2), mean)
+optimal_g_vehic_all <- apply(optimal_g_vehic, c(1,2), mean)
+
+p_opt_vehic <- as.tibble(optimal_g_vehic_all) %>%
+    mutate(c_f = rownames(optimal_g_vehic_all)) %>%
+    pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
+    mutate(across(c(c_f, k_g), as.numeric)) %>%
+    ggplot(aes(x = k_g, y = c_f, fill = factor(value, labels = c("Gas vehicle", "Electric vehicle")))) +
+    geom_tile(color = "white") +
+    geom_text(aes(x = k_g, y = c_f, label = date), data = filter(h_vehic, date %in% c(2010, 2015, 2020, 2023)), inherit.aes = FALSE, nudge_y = c(90,90,0,0), nudge_x = c(3000,-3000,-6000,-6000)) +
+    geom_path(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "#04273C") +
+    geom_point(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "#04273C") +
+    theme_bw() +
+    scale_y_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
+    scale_x_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
+    scale_fill_manual(values = c( "#ff6663","#50B161")) +
+    labs(x = "Electric vehicle CAPEX", y = "Gas vehicle OPEX", fill = "Optimal strategy") +
+    theme(aspect.ratio = 1, legend.position = "bottom")
+
+ggsave("figures/optimal_vehicle.png", p_opt_vehic, width = 7, height = 7)
