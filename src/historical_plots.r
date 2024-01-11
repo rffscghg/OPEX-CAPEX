@@ -87,8 +87,15 @@ save_historical_plots <- function(
         historical_N_f[[i]] <- sapply(as.vector(historical_results[[i]]$legacy_state) - 1, binary_digit_sum)
         historical_realized_costs[[i]] <- as.vector(historical_results[[i]]$realized_costs)
 
-        historical_opex[[i]] <- historical_N_f[[i]] * data$c_f + (t - historical_N_f[[i]] - 1) * as.numeric(historical_mc_params[i,"c_g"])
-        historical_capex[[i]] <- (historical_results[[i]]$pick_f * as.numeric(historical_mc_params[i,"k_f"])) + ((!historical_results[[i]]$pick_f) * data$k_g)
+        historical_opex_f <- (historical_N_f[[i]] + historical_results[[i]]$pick_f) * data$c_f
+        historical_opex_g <- (t - historical_N_f[[i]] - historical_results[[i]]$pick_f) * as.numeric(historical_mc_params[i,"c_g"])
+
+        historical_opex[[i]] <- historical_opex_f + historical_opex_g
+
+        historical_capex_f <- historical_results[[i]]$pick_f * as.numeric(historical_mc_params[i,"k_f"])
+        historical_capex_g <- (!historical_results[[i]]$pick_f) * data$k_g
+
+        historical_capex[[i]] <- historical_capex_f + historical_capex_g
 
     }
 
