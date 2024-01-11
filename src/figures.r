@@ -188,9 +188,12 @@ extremes_bar_graph <- extremes %>%
             name, 
             levels = c("SD_PV", "SD_PV_near"), 
             labels = c("Long-run", "First 10 years only")
-        ),
-        CAPEX = fct_reorder(factor(paste0("Green CAPEX = $", k_g_multiples * k_g, "M")), -k_g_multiples),
-        OPEX = fct_reorder(factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M/yr")), c_f_multiples)
+        )
+    ) %>%
+    filter(name == "Long-run") %>%
+    mutate(
+        CAPEX = fct_reorder(factor(paste0(c("Low", "Low", "High", "High")," Green CAPEX ($", k_g_multiples * k_g, "M)")), -k_g_multiples),
+        OPEX = fct_reorder(factor(paste0(c("Low", "High")," Fossil OPEX ($", c_f_multiples * c_f, "M/yr)")), c_f_multiples)
     ) %>%
     filter(name == "Long-run") %>%
     ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
