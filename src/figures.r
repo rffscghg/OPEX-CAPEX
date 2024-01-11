@@ -229,6 +229,24 @@ optimal_g_vehic <- V_funcs[[9]]$V_g < V_funcs[[9]]$V_f
 optimal_g_power_all <- apply(optimal_g_power, c(1,2), mean)
 optimal_g_vehic_all <- apply(optimal_g_vehic, c(1,2), mean)
 
+p_opt_power <- as.tibble(optimal_g_power_all) %>%
+    mutate(c_f = rownames(optimal_g_power_all)) %>%
+    pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
+    mutate(across(c(c_f, k_g), as.numeric)) %>%
+    ggplot(aes(x = k_g*1e6, y = c_f*1e6, fill = factor(value, labels = c("Natural gas plant", "Wind plant")))) +
+    geom_tile(color = "white") +
+    geom_text(aes(x = k_g*1e6, y = c_f*1e6, label = date), data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), inherit.aes = FALSE, nudge_y = c(0,1e6,0,0), nudge_x = c(7e7,7e7,-7e7,-7e7)) +
+    geom_path(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "#04273C") +
+    geom_point(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "#04273C") +
+    theme_bw() +
+    scale_y_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
+    scale_x_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
+    scale_fill_manual(values = c( "#ff6663","#50B161")) +
+    labs(x = "Wind power CAPEX", y = "Natural gas OPEX", fill = "Optimal strategy") +
+    theme(aspect.ratio = 1, legend.position = "bottom")
+
+ggsave("figures/optimal_power.png", p_opt_power, width = 7, height = 7)
+
 p_opt_vehic <- as.tibble(optimal_g_vehic_all) %>%
     mutate(c_f = rownames(optimal_g_vehic_all)) %>%
     pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
