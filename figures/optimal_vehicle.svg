@@ -496,13 +496,13 @@
 <text x='410.09' y='372.54' text-anchor='middle' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Arial";' textLength='25.45px' lengthAdjust='spacingAndGlyphs'>$160K</text>
 <text x='232.76' y='385.00' text-anchor='middle' style='font-size: 11.00px; font-family: "Arial";' textLength='113.72px' lengthAdjust='spacingAndGlyphs'>Electric vehicle CAPEX</text>
 <text transform='translate(29.20,183.39) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: "Arial";' textLength='91.12px' lengthAdjust='spacingAndGlyphs'>Gas vehicle OPEX</text>
-<rect x='105.13' y='398.28' width='255.27' height='28.24' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<text x='110.61' y='416.34' style='font-size: 11.00px; font-family: "Arial";' textLength='83.17px' lengthAdjust='spacingAndGlyphs'>Optimal strategy:</text>
-<rect x='199.26' y='403.76' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<rect x='199.40' y='403.90' width='17.00' height='17.00' style='stroke-width: 0.21; stroke-linecap: butt; stroke-linejoin: miter; fill: #74645E;' />
-<rect x='273.48' y='403.76' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<rect x='273.62' y='403.90' width='17.00' height='17.00' style='stroke-width: 0.21; stroke-linecap: butt; stroke-linejoin: miter; fill: #50B161;' />
-<text x='222.02' y='415.55' style='font-size: 8.80px; font-family: "Arial";' textLength='45.98px' lengthAdjust='spacingAndGlyphs'>Gas vehicle</text>
-<text x='296.24' y='415.55' style='font-size: 8.80px; font-family: "Arial";' textLength='58.68px' lengthAdjust='spacingAndGlyphs'>Electric vehicle</text>
+<rect x='99.01' y='398.28' width='267.51' height='28.24' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<text x='104.49' y='416.34' style='font-size: 11.00px; font-family: "Arial";' textLength='83.17px' lengthAdjust='spacingAndGlyphs'>Optimal strategy:</text>
+<rect x='193.14' y='403.76' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<rect x='193.28' y='403.90' width='17.00' height='17.00' style='stroke-width: 0.21; stroke-linecap: butt; stroke-linejoin: miter; fill: #74645E;' />
+<rect x='279.60' y='403.76' width='17.28' height='17.28' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<rect x='279.74' y='403.90' width='17.00' height='17.00' style='stroke-width: 0.21; stroke-linecap: butt; stroke-linejoin: miter; fill: #50B161;' />
+<text x='215.90' y='415.55' style='font-size: 8.80px; font-family: "Arial";' textLength='58.22px' lengthAdjust='spacingAndGlyphs'>Gas vehicle     </text>
+<text x='302.36' y='415.55' style='font-size: 8.80px; font-family: "Arial";' textLength='58.68px' lengthAdjust='spacingAndGlyphs'>Electric vehicle</text>
 </g>
 </svg>

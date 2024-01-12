@@ -322,7 +322,7 @@ p_opt_power <- as.tibble(optimal_g_power_all) %>%
     mutate(c_f = rownames(optimal_g_power_all)) %>%
     pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
-    ggplot(aes(x = k_g*1e6, y = c_f*1e6, fill = factor(value, labels = c("Natural gas plant", "Wind turbine")))) +
+    ggplot(aes(x = k_g*1e6, y = c_f*1e6, fill = factor(value, labels = c("Natural gas plant     ", "Wind turbine")))) +
     geom_tile(color = "black") +
     geom_text(aes(x = k_g*1e6, y = c_f*1e6, label = date), data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), inherit.aes = FALSE, nudge_y = 1.1*c(0,1e6,0,0), nudge_x = 1.1*c(7e7,6e7,-7e7,-7e7), color = "white", size = 2.75) +
     geom_path(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "white") +
@@ -340,7 +340,7 @@ p_opt_vehic <- as.tibble(optimal_g_vehic_all) %>%
     mutate(c_f = rownames(optimal_g_vehic_all)) %>%
     pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
-    ggplot(aes(x = k_g, y = c_f, fill = factor(value, labels = c("Gas vehicle", "Electric vehicle")))) +
+    ggplot(aes(x = k_g, y = c_f, fill = factor(value, labels = c("Gas vehicle     ", "Electric vehicle")))) +
     geom_tile(color = "black") +
     geom_text(aes(x = k_g, y = c_f, label = date), data = filter(h_vehic, date %in% c(2010, 2015, 2020, 2023)), inherit.aes = FALSE, nudge_y = 1.1*c(90,90,0,0), nudge_x = 1.1*c(3000,-3000,-5000,-5000), color = "white", size = 2.75) +
     geom_path(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "white") +
