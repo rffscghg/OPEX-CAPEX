@@ -185,7 +185,9 @@ save_historical_plots <- function(
                 N_f_plot,
                 ncol = 1, 
                 align = "hv",
-                labels = c("a", "b", "c")
+                labels = c("(a)", "(b)", "(c)"),
+                hjust = -0.1,
+                scale = 0.97
             ),
             legend,
             ncol = 1,

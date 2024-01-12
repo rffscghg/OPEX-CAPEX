@@ -18,7 +18,7 @@ surface_scenarios <- surface_data %>%
     mutate(opt_name_title = factor(
         opt_name, 
         levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
-        labels = c("Fossil-only strategy","Green-only strategy","Optimal strategy, beginning with fossil","Optimal strategy, beginning with green")
+        labels = c("(a) Fossil-only strategy","(b) Green-only strategy","(c) Optimal strategy, beginning with fossil","(d) Optimal strategy, beginning with green")
     )) %>%
     group_by(scenario, opt_name, opt_name_title, k_g, c_f) %>%
     summarise(zmax = max(SD_PV)) %>% # Decided to set z limits manually
@@ -92,9 +92,9 @@ color_scales_delta <- list(
 )
 
 titles_delta <- c(
-    "Reduced uncertainty when<br>green option is available versus unavailable",
-    "Reduced uncertainty after<br>having acquired green assets with both<br>options available",
-    "Reduced uncertainty when<br>fossil asset is available versus unavailable"
+    "(e) Reduced uncertainty when green option is<br>available versus unavailable, i.e., (c) - (a)",
+    "(g) Reduced uncertainty after having<br>acquired green assets with both<br>options available, i.e., (d) - (c)",
+    "(f) Reduced uncertainty when fossil option is<br>available versus unavailable, i.e., (d) - (b)"
 )
 
 # Change in SD from option, in dollars
