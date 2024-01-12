@@ -43,10 +43,10 @@ surface_scenarios <- surface_data %>%
 # SD_PV
 
 color_scales_sd <- list(
-    both_begin_f = list(list(0, "#ffd1d0"), list(1, "#803332")),
-    both_begin_g = list(list(0, "#dbedfc"), list(1, "#44627a")),
-    only_f = list(list(0, "#d5d1cf"), list(1, "#3a322f")),
-    only_g = list(list(0, "#cbe8d0"), list(1, "#285931"))
+    both_begin_f = list(list(0, "#ffd1d0"), list(1, "#e65c59")),
+    both_begin_g = list(list(0, "#dbedfc"), list(1, "#7ab0dc")),
+    only_f = list(list(0, "#d5d1cf"), list(1, "#685a55")),
+    only_g = list(list(0, "#cbe8d0"), list(1, "#489f57"))
 )
 
 for (i in 1:nrow(surface_scenarios)) {
