@@ -10,7 +10,7 @@ save_surface_plot <- function(
 
     p = layout(
         add_surface(plot_ly(x = coords$x, y = coords$y, z = coords$z), colorscale = color_scale),
-        # title = list(text = title, y = 0.9),
+        title = list(text = title, y = 0.9),
         scene = scene
     ) %>% hide_colorbar()
 

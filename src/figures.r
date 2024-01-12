@@ -15,7 +15,12 @@ surface_data <- results %>%
     )
 
 surface_scenarios <- surface_data %>%
-    group_by(scenario, opt_name, k_g, c_f) %>%
+    mutate(opt_name_title = factor(
+        opt_name, 
+        levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
+        labels = c("Fossil-only strategy","Green-only strategy","Optimal strategy, beginning with fossil","Optimal strategy, beginning with green")
+    )) %>%
+    group_by(scenario, opt_name, opt_name_title, k_g, c_f) %>%
     summarise(zmax = max(SD_PV)) %>% # Decided to set z limits manually
     mutate(
         xtitle = if_else(
@@ -54,7 +59,7 @@ for (i in 1:nrow(surface_scenarios)) {
     save_surface_plot(
         coords = results_to_SD_PV_xyz(surface_data, surface_scenarios$scenario[i], surface_scenarios$opt_name[i]),
         color_scale = color_scales_sd[[i]],
-        title = paste("Std. Dev. of NPV costs", surface_scenarios$scenario[i], surface_scenarios$opt_name[i], sep = ", "),
+        title = surface_scenarios$opt_name_title[i],
         scene = list(
             xaxis = list(
                 title = surface_scenarios$xtitle[i], 
@@ -84,6 +89,12 @@ color_scales_delta <- list(
     bbf_of = list(list(0, "#ff6663"), list(1, "#74645e")),
     bbg_bbf = list(list(0, "#88c4f4"), list(1, "#ff6663")),
     bbg_go = list(list(0, "#88c4f4"), list(1, "#50b161"))
+)
+
+titles_delta <- c(
+    "Reduced uncertainty when<br>green option is available versus unavailable",
+    "Reduced uncertainty after<br>having acquired green assets with both<br>options available",
+    "Reduced uncertainty when<br>fossil asset is available versus unavailable"
 )
 
 # Change in SD from option, in dollars
@@ -118,7 +129,7 @@ for (i in 1:nrow(delta_surface_scenarios)) {
             delta_surface_scenarios$opt_name[i],
             delta_surface_scenarios$opt_b[i]
         ),
-        title = "",
+        title = titles_delta[i],
         scene = scene,
         file = paste0(
             "figures/surfaces/", 
@@ -311,7 +322,7 @@ p_opt_power <- as.tibble(optimal_g_power_all) %>%
     mutate(c_f = rownames(optimal_g_power_all)) %>%
     pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
-    ggplot(aes(x = k_g*1e6, y = c_f*1e6, fill = factor(value, labels = c("Natural gas plant", "Wind plant")))) +
+    ggplot(aes(x = k_g*1e6, y = c_f*1e6, fill = factor(value, labels = c("Natural gas plant", "Wind turbine")))) +
     geom_tile(color = "black") +
     geom_text(aes(x = k_g*1e6, y = c_f*1e6, label = date), data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), inherit.aes = FALSE, nudge_y = c(0,1e6,0,0), nudge_x = c(7e7,7e7,-7e7,-7e7), color = "white") +
     geom_path(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "white") +
