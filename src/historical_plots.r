@@ -179,6 +179,7 @@ save_historical_plots <- function(
     ggsave(
         plot_filename, 
         plot_grid(
+            legend,
             plot_grid(
                 annual_opex_plot,
                 annual_capex_plot, 
@@ -189,9 +190,8 @@ save_historical_plots <- function(
                 hjust = -0.1,
                 scale = 0.97
             ),
-            legend,
             ncol = 1,
-            rel_heights = c(.95,.05)
+            rel_heights = c(.05,.95)
         ),
         width = 7, 
         height = 9,
