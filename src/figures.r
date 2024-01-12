@@ -86,9 +86,9 @@ for (i in 1:nrow(surface_scenarios)) {
 # Delta plots
 
 color_scales_delta <- list(
-    bbf_of = list(list(0, "#ff6663"), list(1, "#74645e")),
-    bbg_bbf = list(list(0, "#88c4f4"), list(1, "#ff6663")),
-    bbg_go = list(list(0, "#88c4f4"), list(1, "#50b161"))
+    bbf_of = list(list(0, "#bbafd2"), list(1, "#6a5595")),
+    bbg_bbf = list(list(0, "#fad1af"), list(1, "#dc9256")),
+    bbg_go = list(list(0, "#f5e9b3"), list(1, "#d4be5d"))
 )
 
 titles_delta <- c(
