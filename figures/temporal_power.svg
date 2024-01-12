@@ -386,25 +386,25 @@
 <text x='274.44' y='604.62' text-anchor='middle' style='font-size: 11.00px; font-family: "Arial";' textLength='22.23px' lengthAdjust='spacingAndGlyphs'>Year</text>
 <text transform='translate(20.92,499.88) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: "Arial";' textLength='135.17px' lengthAdjust='spacingAndGlyphs'># of legacy fossil-fuel plants</text>
 <text x='1.71' y='425.43' style='font-size: 14.00px; font-weight: bold; font-family: "Arial";' textLength='17.10px' lengthAdjust='spacingAndGlyphs'>(c)</text>
-<rect x='70.79' y='612.60' width='362.42' height='38.41' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<rect x='81.75' y='618.07' width='17.28' height='27.45' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<line x1='83.48' y1='631.80' x2='97.30' y2='631.80' style='stroke-width: 1.07; stroke: #74645E; stroke-linecap: butt;' />
-<circle cx='90.39' cy='631.80' r='1.95' style='stroke-width: 0.71; stroke: #74645E; fill: #74645E;' />
-<rect x='174.92' y='618.07' width='17.28' height='27.45' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<line x1='176.65' y1='631.80' x2='190.47' y2='631.80' style='stroke-width: 1.07; stroke: #50B161; stroke-linecap: butt;' />
-<circle cx='183.56' cy='631.80' r='1.95' style='stroke-width: 0.71; stroke: #50B161; fill: #50B161;' />
-<rect x='242.67' y='618.07' width='17.28' height='27.45' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<line x1='244.40' y1='631.80' x2='258.22' y2='631.80' style='stroke-width: 1.07; stroke: #FF6663; stroke-linecap: butt;' />
-<circle cx='251.31' cy='631.80' r='1.95' style='stroke-width: 0.71; stroke: #FF6663; fill: #FF6663;' />
+<rect x='72.39' y='612.60' width='359.22' height='38.41' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<rect x='83.35' y='618.07' width='17.28' height='27.45' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<line x1='85.08' y1='631.80' x2='98.90' y2='631.80' style='stroke-width: 1.07; stroke: #74645E; stroke-linecap: butt;' />
+<circle cx='91.99' cy='631.80' r='1.95' style='stroke-width: 0.71; stroke: #74645E; fill: #74645E;' />
+<rect x='176.52' y='618.07' width='17.28' height='27.45' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<line x1='178.25' y1='631.80' x2='192.08' y2='631.80' style='stroke-width: 1.07; stroke: #50B161; stroke-linecap: butt;' />
+<circle cx='185.16' cy='631.80' r='1.95' style='stroke-width: 0.71; stroke: #50B161; fill: #50B161;' />
+<rect x='244.27' y='618.07' width='17.28' height='27.45' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
+<line x1='246.00' y1='631.80' x2='259.82' y2='631.80' style='stroke-width: 1.07; stroke: #FF6663; stroke-linecap: butt;' />
+<circle cx='252.91' cy='631.80' r='1.95' style='stroke-width: 0.71; stroke: #FF6663; fill: #FF6663;' />
 <rect x='337.94' y='618.07' width='17.28' height='27.45' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
 <line x1='339.67' y1='631.80' x2='353.49' y2='631.80' style='stroke-width: 1.07; stroke: #88C4F4; stroke-linecap: butt;' />
 <circle cx='346.58' cy='631.80' r='1.95' style='stroke-width: 0.71; stroke: #88C4F4; fill: #88C4F4;' />
-<text x='104.51' y='634.95' style='font-size: 8.80px; font-family: "Arial";' textLength='63.60px' lengthAdjust='spacingAndGlyphs'>Natural gas only</text>
-<text x='197.68' y='634.95' style='font-size: 8.80px; font-family: "Arial";' textLength='38.64px' lengthAdjust='spacingAndGlyphs'>Wind only</text>
-<text x='265.43' y='625.45' style='font-size: 8.80px; font-family: "Arial";' textLength='65.87px' lengthAdjust='spacingAndGlyphs'>Optimal strategy,</text>
-<text x='265.43' y='634.95' style='font-size: 8.80px; font-family: "Arial";' textLength='46.96px' lengthAdjust='spacingAndGlyphs'>starting with</text>
-<text x='265.43' y='644.45' style='font-size: 8.80px; font-family: "Arial";' textLength='43.55px' lengthAdjust='spacingAndGlyphs'>natural gas</text>
-<text x='360.70' y='625.45' style='font-size: 8.80px; font-family: "Arial";' textLength='65.87px' lengthAdjust='spacingAndGlyphs'>Optimal strategy,</text>
+<text x='106.11' y='634.95' style='font-size: 8.80px; font-family: "Arial";' textLength='63.60px' lengthAdjust='spacingAndGlyphs'>Natural gas only</text>
+<text x='199.28' y='634.95' style='font-size: 8.80px; font-family: "Arial";' textLength='38.64px' lengthAdjust='spacingAndGlyphs'>Wind only</text>
+<text x='267.03' y='625.45' style='font-size: 8.80px; font-family: "Arial";' textLength='64.08px' lengthAdjust='spacingAndGlyphs'>Optimal strategy</text>
+<text x='267.03' y='634.95' style='font-size: 8.80px; font-family: "Arial";' textLength='46.96px' lengthAdjust='spacingAndGlyphs'>starting with</text>
+<text x='267.03' y='644.45' style='font-size: 8.80px; font-family: "Arial";' textLength='43.55px' lengthAdjust='spacingAndGlyphs'>natural gas</text>
+<text x='360.70' y='625.45' style='font-size: 8.80px; font-family: "Arial";' textLength='64.08px' lengthAdjust='spacingAndGlyphs'>Optimal strategy</text>
 <text x='360.70' y='634.95' style='font-size: 8.80px; font-family: "Arial";' textLength='46.96px' lengthAdjust='spacingAndGlyphs'>starting with</text>
 <text x='360.70' y='644.45' style='font-size: 8.80px; font-family: "Arial";' textLength='18.09px' lengthAdjust='spacingAndGlyphs'>wind</text>
 </g>

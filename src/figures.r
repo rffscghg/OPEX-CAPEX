@@ -281,8 +281,8 @@ save_historical_plots(
     legend_labels = c(
         "Natural gas only",
         "Wind only",
-        "Optimal strategy,\nstarting with\nnatural gas",
-        "Optimal strategy,\nstarting with\nwind"
+        "Optimal strategy\nstarting with\nnatural gas",
+        "Optimal strategy\nstarting with\nwind"
     ),
     multiplier = 1e6,
     t = t,
@@ -303,8 +303,8 @@ save_historical_plots(
     legend_labels = c(
         "Gas vehicles only",
         "Electric vehicles only",
-        "Optimal strategy,\nstarting with\ngas vehicles",
-        "Optimal strategy,\nstarting with\nelectric vehicles"
+        "Optimal strategy\nstarting with\ngas vehicles",
+        "Optimal strategy\nstarting with\nelectric vehicles"
     ),
     t = t,
     plot_filename = "figures/temporal_vehicle.svg"
