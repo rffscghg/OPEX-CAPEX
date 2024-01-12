@@ -161,7 +161,7 @@ bar_graph <- central %>%
     mutate(opt_name = factor(
         opt_name, 
         levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
-        labels = c("Fossil-only\nstrategy","Green-only\nstrategy","Optimal strategy,\nbeginning with\nfossil","Optimal strategy,\nbeginning with\ngreen")
+        labels = c("Fossil-only\nstrategy","Green-only\nstrategy","Optimal strategy\nbeginning with\nfossil","Optimal strategy\nbeginning with\ngreen")
     )) %>%
     select(
         opt_name, 
@@ -202,13 +202,13 @@ bar_graph <- central %>%
         legend.background = element_blank()
     )
 
-ggsave("figures/central_bar_graph.png", bar_graph, width = 7, height = 6)
+ggsave("figures/central_bar_graph.svg", bar_graph, width = 5, height = 4)
 
 extremes_bar_graph <- extremes %>%
     mutate(opt_name = factor(
         opt_name, 
         levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
-        labels = c("Fossil-only","Green-only","Optimal,\nstart\nfossil","Optimal,\nstart\ngreen")
+        labels = c("Fossil\nonly","Green\nonly","Optimal,\nstart\nfossil","Optimal,\nstart\ngreen")
     )) %>%
     select(
         opt_name, 
@@ -253,7 +253,7 @@ extremes_bar_graph <- extremes %>%
         panel.spacing = unit(.25, "inch")
     )
 
-ggsave("figures/extremes_bar_graph.png", extremes_bar_graph, width = 7, height = 6)
+ggsave("figures/extremes_bar_graph.svg", extremes_bar_graph, width = 6, height = 5)
 
 ### Historical data graphs ###
 
@@ -286,7 +286,7 @@ save_historical_plots(
     ),
     multiplier = 1e6,
     t = t,
-    plot_filename = "figures/temporal_power.png"
+    plot_filename = "figures/temporal_power.svg"
 )
 
 save_historical_plots(
@@ -307,7 +307,7 @@ save_historical_plots(
         "Optimal strategy,\nstarting with\nelectric vehicles"
     ),
     t = t,
-    plot_filename = "figures/temporal_vehicle.png"
+    plot_filename = "figures/temporal_vehicle.svg"
 )
 
 ### Overlaying historical data and optimal-strategy heatmaps
@@ -324,7 +324,7 @@ p_opt_power <- as.tibble(optimal_g_power_all) %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
     ggplot(aes(x = k_g*1e6, y = c_f*1e6, fill = factor(value, labels = c("Natural gas plant", "Wind turbine")))) +
     geom_tile(color = "black") +
-    geom_text(aes(x = k_g*1e6, y = c_f*1e6, label = date), data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), inherit.aes = FALSE, nudge_y = c(0,1e6,0,0), nudge_x = c(7e7,7e7,-7e7,-7e7), color = "white") +
+    geom_text(aes(x = k_g*1e6, y = c_f*1e6, label = date), data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), inherit.aes = FALSE, nudge_y = 1.1*c(0,1e6,0,0), nudge_x = 1.1*c(7e7,6e7,-7e7,-7e7), color = "white", size = 2.75) +
     geom_path(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "white") +
     geom_point(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "white") +
     theme_bw() +
@@ -334,7 +334,7 @@ p_opt_power <- as.tibble(optimal_g_power_all) %>%
     labs(x = "Wind power CAPEX", y = "Natural gas OPEX", fill = "Optimal strategy:") +
     theme(aspect.ratio = 1, legend.position = "bottom")
 
-ggsave("figures/optimal_power.png", p_opt_power, width = 7, height = 7)
+ggsave("figures/optimal_power.svg", p_opt_power, width = 6, height = 6)
 
 p_opt_vehic <- as.tibble(optimal_g_vehic_all) %>%
     mutate(c_f = rownames(optimal_g_vehic_all)) %>%
@@ -342,7 +342,7 @@ p_opt_vehic <- as.tibble(optimal_g_vehic_all) %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
     ggplot(aes(x = k_g, y = c_f, fill = factor(value, labels = c("Gas vehicle", "Electric vehicle")))) +
     geom_tile(color = "black") +
-    geom_text(aes(x = k_g, y = c_f, label = date), data = filter(h_vehic, date %in% c(2010, 2015, 2020, 2023)), inherit.aes = FALSE, nudge_y = c(90,90,0,0), nudge_x = c(3000,-3000,-6000,-6000), color = "white") +
+    geom_text(aes(x = k_g, y = c_f, label = date), data = filter(h_vehic, date %in% c(2010, 2015, 2020, 2023)), inherit.aes = FALSE, nudge_y = 1.1*c(90,90,0,0), nudge_x = 1.1*c(3000,-3000,-5000,-5000), color = "white", size = 2.75) +
     geom_path(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "white") +
     geom_point(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "white") +
     theme_bw() +
@@ -352,4 +352,4 @@ p_opt_vehic <- as.tibble(optimal_g_vehic_all) %>%
     labs(x = "Electric vehicle CAPEX", y = "Gas vehicle OPEX", fill = "Optimal strategy:") +
     theme(aspect.ratio = 1, legend.position = "bottom")
 
-ggsave("figures/optimal_vehicle.png", p_opt_vehic, width = 7, height = 7)
+ggsave("figures/optimal_vehicle.svg", p_opt_vehic, width = 6, height = 6)
