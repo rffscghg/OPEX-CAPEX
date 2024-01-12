@@ -11,6 +11,7 @@ surface_data <- results %>%
         k_g_multiples <= plot_multiples[2],
         c_f_multiples >= plot_multiples[1],
         c_f_multiples <= plot_multiples[2],
+        scenario == "neutral"
     )
 
 surface_scenarios <- surface_data %>%
@@ -41,21 +42,33 @@ surface_scenarios <- surface_data %>%
 
 # SD_PV
 
+color_scales_sd <- list(
+    both_begin_f = list(list(0, "#ffd1d0"), list(1, "#803332")),
+    both_begin_g = list(list(0, "#dbedfc"), list(1, "#44627a")),
+    only_f = list(list(0, "#d5d1cf"), list(1, "#3a322f")),
+    only_g = list(list(0, "#cbe8d0"), list(1, "#285931"))
+)
+
 for (i in 1:nrow(surface_scenarios)) {
 
     save_surface_plot(
         coords = results_to_SD_PV_xyz(surface_data, surface_scenarios$scenario[i], surface_scenarios$opt_name[i]),
+        color_scale = color_scales_sd[[i]],
         title = paste("Std. Dev. of NPV costs", surface_scenarios$scenario[i], surface_scenarios$opt_name[i], sep = ", "),
         scene = list(
             xaxis = list(
-                title = surface_scenarios$xtitle[i]
+                title = surface_scenarios$xtitle[i], 
+                showline = TRUE, linewidth = 4, gridcolor = "black"
             ),
             yaxis = list(
-                title = surface_scenarios$ytitle[i]
+                title = surface_scenarios$ytitle[i], 
+                range = list(3,49), 
+                showline = TRUE, linewidth = 4, gridcolor = "black"
             ),
             zaxis = list(
                 title = surface_scenarios$ztitle[i],
-                range = c(0, surface_scenarios$ztop[i])
+                range = c(0, surface_scenarios$ztop[i]), 
+                showline = TRUE, zerolinewidth = 4, linewidth = 4, gridcolor = "black", tickvals = list(200,400,600,800,1000,1200)
             ),
             camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))
             # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
@@ -67,10 +80,19 @@ for (i in 1:nrow(surface_scenarios)) {
 
 # Delta plots
 
+color_scales_delta <- list(
+    bbf_of = list(list(0, "#ff6663"), list(1, "#74645e")),
+    bbg_bbf = list(list(0, "#88c4f4"), list(1, "#ff6663")),
+    bbg_go = list(list(0, "#88c4f4"), list(1, "#50b161"))
+)
+
 # Change in SD from option, in dollars
-scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)'),
-                      yaxis=list(title='Fossil OPEX<br> ($M/year)'),
-                      zaxis=list(title='$M', range=c(-1050,50)),
+scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)', 
+                showline = TRUE, linewidth = 4, gridcolor = "black"),
+                      yaxis=list(title='Fossil OPEX<br> ($M/year)', 
+                showline = TRUE, linewidth = 4, gridcolor = "black", range = list(3,49)),
+                      zaxis=list(title='$M', range=c(-1050,50), 
+                showline = TRUE, zerolinewidth = 1, linewidth = 4, gridcolor = "black"),
                       camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
 
 scene_ev_delta = list(xaxis=list(title='Green CAPEX<br>     ($)'),
@@ -107,7 +129,7 @@ for (i in 1:nrow(delta_surface_scenarios)) {
             delta_surface_scenarios$opt_b[i],
             ".png"
         ),
-        color_scale = list(c(0, 1), c("blue", "#dfd8d4"))
+        color_scale = color_scales_delta[[i]]
     )
 }
 
