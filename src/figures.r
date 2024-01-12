@@ -149,8 +149,9 @@ bar_graph <- central %>%
         CAPEX = fct_reorder(factor(paste0("Green CAPEX = $", k_g_multiples * k_g, "M")), -k_g_multiples),
         OPEX = fct_reorder(factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M/yr")), c_f_multiples)
     ) %>%
-    ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
-    geom_col(position = "dodge", color = "black") +
+    filter(name == "Long-run") %>%
+    ggplot(aes(x = opt_name, fill = opt_name, y = value*1e6)) +
+    geom_col(position = "dodge", color = "black", show.legend = FALSE) +
     theme_bw() +
     scale_y_continuous(
         breaks = c(0, 2.5e8, 5e8, 7.5e8, 1e9, 1.25e9), minor_breaks = NULL,
@@ -158,7 +159,7 @@ bar_graph <- central %>%
         expand = c(0,0),
         limits = c(0, 8e8)
     ) +
-    scale_fill_manual(values = c("#88c4f4", "#ff6663")) +
+    scale_fill_manual(values = c("#74645E","#50B161","#ff6663","#88c4f4")) +
     labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
     theme(
         legend.position = c(0.85, 0.9),
@@ -199,7 +200,7 @@ extremes_bar_graph <- extremes %>%
         OPEX = fct_reorder(factor(paste0(c("Low", "High")," Fossil OPEX ($", c_f_multiples * c_f, "M/yr)")), c_f_multiples)
     ) %>%
     filter(name == "Long-run") %>%
-    ggplot(aes(x = opt_name, fill = name, y = value*1e6)) +
+    ggplot(aes(x = opt_name, fill = opt_name, y = value*1e6)) +
     geom_col(position = "dodge", show.legend = FALSE, color = "black") +
     facet_grid(CAPEX~OPEX) +
     theme_bw() +
@@ -209,7 +210,7 @@ extremes_bar_graph <- extremes %>%
         expand = c(0,0),
         limits = c(0, 1.3e9)
     ) +
-    scale_fill_manual(values = c("#88c4f4", "#ff6663")) +
+    scale_fill_manual(values = c("#74645E","#50B161","#ff6663","#88c4f4")) +
     labs(x = "", y = "Standard Deviation of NPV Costs", fill = "") +
     theme(
         plot.background = element_rect(fill = "white", color = "white"), 
@@ -245,10 +246,10 @@ save_historical_plots(
     y_max_capex_cost = 1e9,
     y_max_opex_cost = 6e8,
     legend_labels = c(
-        "Both options,\nstarting with\nnatural gas",
-        "Both options,\nstarting with\nwind",
-        "Only natural gas",
-        "Only wind"
+        "Natural gas only",
+        "Wind only",
+        "Optimal strategy,\nstarting with\nnatural gas",
+        "Optimal strategy,\nstarting with\nwind"
     ),
     multiplier = 1e6,
     t = t,
@@ -267,10 +268,10 @@ save_historical_plots(
     y_max_capex_cost = 8e4,
     y_max_opex_cost = 2e4,
     legend_labels = c(
-        "Both options,\nstarting with ICEVs",
-        "Both options,\nstarting with EVs",
-        "Only gas vehicles",
-        "Only EVs"
+        "Gas vehicles only",
+        "Electric vehicles only",
+        "Optimal strategy,\nstarting with\ngas vehicles",
+        "Optimal strategy,\nstarting with\nelectric vehicles"
     ),
     t = t,
     plot_filename = "figures/temporal_vehicle.png"
@@ -289,15 +290,15 @@ p_opt_power <- as.tibble(optimal_g_power_all) %>%
     pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
     ggplot(aes(x = k_g*1e6, y = c_f*1e6, fill = factor(value, labels = c("Natural gas plant", "Wind plant")))) +
-    geom_tile(color = "white") +
-    geom_text(aes(x = k_g*1e6, y = c_f*1e6, label = date), data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), inherit.aes = FALSE, nudge_y = c(0,1e6,0,0), nudge_x = c(7e7,7e7,-7e7,-7e7)) +
-    geom_path(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "#04273C") +
-    geom_point(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "#04273C") +
+    geom_tile(color = "black") +
+    geom_text(aes(x = k_g*1e6, y = c_f*1e6, label = date), data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), inherit.aes = FALSE, nudge_y = c(0,1e6,0,0), nudge_x = c(7e7,7e7,-7e7,-7e7), color = "white") +
+    geom_path(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "white") +
+    geom_point(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "white") +
     theme_bw() +
     scale_y_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
     scale_x_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
-    scale_fill_manual(values = c( "#ff6663","#50B161")) +
-    labs(x = "Wind power CAPEX", y = "Natural gas OPEX", fill = "Optimal strategy") +
+    scale_fill_manual(values = c( "#74645e","#50B161")) +
+    labs(x = "Wind power CAPEX", y = "Natural gas OPEX", fill = "Optimal strategy:") +
     theme(aspect.ratio = 1, legend.position = "bottom")
 
 ggsave("figures/optimal_power.png", p_opt_power, width = 7, height = 7)
@@ -307,15 +308,15 @@ p_opt_vehic <- as.tibble(optimal_g_vehic_all) %>%
     pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
     ggplot(aes(x = k_g, y = c_f, fill = factor(value, labels = c("Gas vehicle", "Electric vehicle")))) +
-    geom_tile(color = "white") +
-    geom_text(aes(x = k_g, y = c_f, label = date), data = filter(h_vehic, date %in% c(2010, 2015, 2020, 2023)), inherit.aes = FALSE, nudge_y = c(90,90,0,0), nudge_x = c(3000,-3000,-6000,-6000)) +
-    geom_path(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "#04273C") +
-    geom_point(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "#04273C") +
+    geom_tile(color = "black") +
+    geom_text(aes(x = k_g, y = c_f, label = date), data = filter(h_vehic, date %in% c(2010, 2015, 2020, 2023)), inherit.aes = FALSE, nudge_y = c(90,90,0,0), nudge_x = c(3000,-3000,-6000,-6000), color = "white") +
+    geom_path(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "white") +
+    geom_point(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "white") +
     theme_bw() +
     scale_y_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
     scale_x_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
-    scale_fill_manual(values = c( "#ff6663","#50B161")) +
-    labs(x = "Electric vehicle CAPEX", y = "Gas vehicle OPEX", fill = "Optimal strategy") +
+    scale_fill_manual(values = c( "#74645e","#50B161")) +
+    labs(x = "Electric vehicle CAPEX", y = "Gas vehicle OPEX", fill = "Optimal strategy:") +
     theme(aspect.ratio = 1, legend.position = "bottom")
 
 ggsave("figures/optimal_vehicle.png", p_opt_vehic, width = 7, height = 7)

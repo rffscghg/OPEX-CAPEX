@@ -115,7 +115,7 @@ save_historical_plots <- function(
         theme_bw() +
         scale_y_continuous(breaks = 0:10, minor_breaks = NULL) +
         scale_x_continuous(breaks = 1:3000, minor_breaks = NULL) +
-        scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
+        scale_color_manual(values = c("#ff6663","#88c4f4","#74645E","#50B161")) +
         labs(x = "Year", y = y_axis_title_N_f)
 
     # Annual costs
@@ -133,7 +133,7 @@ save_historical_plots <- function(
         geom_line(show.legend = FALSE) +
         geom_point(show.legend = FALSE) +
         theme_bw() +
-        scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
+        scale_color_manual(values = c("#ff6663","#88c4f4","#74645E","#50B161")) +
         scale_y_continuous(
             limits = c(0, y_max_capex_cost),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
@@ -151,10 +151,10 @@ save_historical_plots <- function(
             name = factor(
                 name,
                 levels = c(
-                    "all-start-f-opex",
-                    "all-start-g-opex",
                     "f-start-f-opex",
-                    "g-start-g-opex"
+                    "g-start-g-opex",
+                    "all-start-f-opex",
+                    "all-start-g-opex"
                 ),
                 labels = legend_labels
             )
@@ -163,7 +163,7 @@ save_historical_plots <- function(
         geom_line() +
         geom_point() +
         theme_bw() +
-        scale_color_manual(values = c("#755EA6","#74645E","#ff6663","#50B161")) +
+        scale_color_manual(values = c("#74645E","#50B161","#ff6663","#88c4f4")) +
         scale_y_continuous(
             limits = c(0, y_max_opex_cost),
             labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
