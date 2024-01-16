@@ -3,7 +3,8 @@ save_surface_plot <- function(
     title, 
     scene, 
     file,
-    color_scale = "RdOrYl"
+    color_scale = "RdOrYl",
+    size = 500
 
     ) {
 
@@ -11,9 +12,9 @@ save_surface_plot <- function(
         add_surface(plot_ly(x = coords$x, y = coords$y, z = coords$z), colorscale = color_scale),
         title = list(text = title, y = 0.9),
         scene = scene
-    )
+    ) %>% hide_colorbar()
 
-    orca(p, file = file, scale=0.75, width=800*0.8, height=800*0.8)
+    orca(p, file = file, scale=1.6, width=size, height=size)
 
 }
 
