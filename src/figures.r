@@ -18,7 +18,12 @@ surface_scenarios <- surface_data %>%
     mutate(opt_name_title = factor(
         opt_name, 
         levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
-        labels = c("(a) Fossil-only strategy","(b) Green-only strategy","(c) Optimal strategy, beginning with fossil","(d) Optimal strategy, beginning with green")
+        labels = c(
+            "(a) Fossil-only strategy",
+            "(b) Green-only strategy",
+            "(c) Optimal strategy, beginning with fossil",
+            "(d) Optimal strategy, beginning with green"
+        )
     )) %>%
     group_by(scenario, opt_name, opt_name_title, k_g, c_f) %>%
     summarise(zmax = max(SD_PV)) %>% # Decided to set z limits manually
@@ -57,28 +62,59 @@ color_scales_sd <- list(
 for (i in 1:nrow(surface_scenarios)) {
 
     save_surface_plot(
-        coords = results_to_SD_PV_xyz(surface_data, surface_scenarios$scenario[i], surface_scenarios$opt_name[i]),
+        coords = results_to_SD_PV_xyz(
+            surface_data, 
+            surface_scenarios$scenario[i], 
+            surface_scenarios$opt_name[i]
+        ),
         color_scale = color_scales_sd[[i]],
         title = surface_scenarios$opt_name_title[i],
         scene = list(
             xaxis = list(
-                title = surface_scenarios$xtitle[i], 
-                showline = TRUE, linewidth = 4, gridcolor = "black"
+                title = list(
+                    text = surface_scenarios$xtitle[i], 
+                    font = list(family = "Calibre Regular")
+                ),
+                tickfont = list(family = "Calibre Regular"),
+                showline = TRUE, 
+                linewidth = 4, 
+                color = "#04273C", gridcolor = "#04273C"
             ),
             yaxis = list(
-                title = surface_scenarios$ytitle[i], 
+                title = list(
+                    text = surface_scenarios$ytitle[i], 
+                    font = list(family = "Calibre Regular")
+                ),
+                tickfont = list(family = "Calibre Regular"),
                 range = list(3,49), 
-                showline = TRUE, linewidth = 4, gridcolor = "black"
+                showline = TRUE, 
+                linewidth = 4, 
+                color = "#04273C", 
+                gridcolor = "#04273C"
             ),
             zaxis = list(
-                title = surface_scenarios$ztitle[i],
+                title = list(
+                    text = surface_scenarios$ztitle[i], 
+                    font = list(family = "Calibre Regular")
+                ),
+                tickfont = list(family = "Calibre Regular"),
                 range = c(0, surface_scenarios$ztop[i]), 
-                showline = TRUE, zerolinewidth = 4, linewidth = 4, gridcolor = "black", tickvals = list(200,400,600,800,1000,1200)
+                showline = TRUE, 
+                zerolinewidth = 4, 
+                linewidth = 4, 
+                color = "#04273C", gridcolor = "#04273C", 
+                tickvals = list(200,400,600,800,1000,1200)
             ),
             camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))
             # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
         ),
-        file = paste0("figures/surfaces/", surface_scenarios$scenario[i], "---", surface_scenarios$opt_name[i],".png")
+        file = paste0(
+            "figures/surfaces/", 
+            surface_scenarios$scenario[i], 
+            "---", 
+            surface_scenarios$opt_name[i],
+            ".svg"
+        )
     )
 
 }
@@ -98,20 +134,55 @@ titles_delta <- c(
 )
 
 # Change in SD from option, in dollars
-scene_sd_delta = list(xaxis=list(title='Green CAPEX<br>     ($M)', 
-                showline = TRUE, linewidth = 4, gridcolor = "black"),
-                      yaxis=list(title='Fossil OPEX<br> ($M/year)', 
-                showline = TRUE, linewidth = 4, gridcolor = "black", range = list(3,49)),
-                      zaxis=list(title='$M', range=c(-1050,50), 
-                showline = TRUE, zerolinewidth = 1, linewidth = 4, gridcolor = "black"),
-                      camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+scene_sd_delta = list(
+    xaxis = list(
+        title = list(
+            text='Green CAPEX<br>     ($M)', 
+            font = list(family = "Calibre Regular")
+        ), 
+        tickfont = list(family = "Calibre Regular"),
+        showline = TRUE, 
+        linewidth = 4, 
+        color = "#04273C", gridcolor = "#04273C"
+    ),
+    yaxis=list(
+        title=list(
+            text='Fossil OPEX<br> ($M/year)', 
+            font = list(family = "Calibre Regular")
+        ), 
+        tickfont = list(family = "Calibre Regular"),
+        showline = TRUE, 
+        linewidth = 4, 
+        color = "#04273C", gridcolor = "#04273C", 
+        range = list(3,49)
+    ),
+    zaxis=list(
+        title=list(
+            text='$M', 
+            font = list(family = "Calibre Regular")
+        ), 
+        range=c(-1050,50), 
+        tickfont = list(family = "Calibre Regular"),
+        showline = TRUE, 
+        zerolinewidth = 1, 
+        linewidth = 4, 
+        color = "#04273C", gridcolor = "#04273C"
+    ),
+    # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+    camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) 
 
-scene_ev_delta = list(xaxis=list(title='Green CAPEX<br>     ($)'),
-                yaxis=list(title='Fossil OPEX<br> ($/year)'),
-                zaxis=list(title='$', range=c(-6e4,1e4)),
-                camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))) # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+scene_ev_delta = list(
+    xaxis=list(title='Green CAPEX<br>     ($)'),
+    yaxis=list(title='Fossil OPEX<br> ($/year)'),
+    zaxis=list(title='$', range=c(-6e4,1e4)),
+    # default angles for x, y, and z are 1.25. Multiply by proportions to adjust
+    camera=list(eye=list(x=1.25*-1*1.5, y=1.25*-1*1.5, z=1.25*0.75*1.5))
+) 
 
-delta_surface_scenarios <- expand_grid(surface_scenarios, opt_b = surface_scenarios$opt_name) %>%
+delta_surface_scenarios <- expand_grid(
+    surface_scenarios, 
+    opt_b = surface_scenarios$opt_name
+    ) %>%
     filter(
         opt_name != opt_b, 
         !str_detect(opt_name, "only"),
@@ -121,7 +192,13 @@ delta_surface_scenarios <- expand_grid(surface_scenarios, opt_b = surface_scenar
     distinct_all()
 
 for (i in 1:nrow(delta_surface_scenarios)) {
-    if (delta_surface_scenarios$scenario[i] == "vehicle") {scene <- scene_ev_delta} else {scene <- scene_sd_delta}
+    
+    if (delta_surface_scenarios$scenario[i] == "vehicle") {
+        scene <- scene_ev_delta
+    } else {
+        scene <- scene_sd_delta
+    }
+    
     save_surface_plot(
         coords = a_minus_b_SD_PV_xyz(
             surface_data, 
@@ -138,7 +215,7 @@ for (i in 1:nrow(delta_surface_scenarios)) {
             delta_surface_scenarios$opt_name[i],
             "---",
             delta_surface_scenarios$opt_b[i],
-            ".png"
+            ".svg"
         ),
         color_scale = color_scales_delta[[i]]
     )
@@ -161,7 +238,12 @@ bar_graph <- central %>%
     mutate(opt_name = factor(
         opt_name, 
         levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
-        labels = c("Fossil-only\nstrategy","Green-only\nstrategy","Optimal strategy\nbeginning with\nfossil","Optimal strategy\nbeginning with\ngreen")
+        labels = c(
+            "Fossil-only\nstrategy",
+            "Green-only\nstrategy",
+            "Optimal strategy\nbeginning with\nfossil",
+            "Optimal strategy\nbeginning with\ngreen"
+        )
     )) %>%
     select(
         opt_name, 
@@ -179,8 +261,14 @@ bar_graph <- central %>%
             levels = c("SD_PV", "SD_PV_near"), 
             labels = c("Long-run", "First 10 years only")
         ),
-        CAPEX = fct_reorder(factor(paste0("Green CAPEX = $", k_g_multiples * k_g, "M")), -k_g_multiples),
-        OPEX = fct_reorder(factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M per year")), c_f_multiples)
+        CAPEX = fct_reorder(
+            factor(paste0("Green CAPEX = $", k_g_multiples * k_g, "M")), 
+            -k_g_multiples
+        ),
+        OPEX = fct_reorder(
+            factor(paste0("Fossil OPEX = $", c_f_multiples * c_f, "M per year")), 
+            c_f_multiples
+        )
     ) %>%
     filter(name == "Long-run") %>%
     ggplot(aes(x = opt_name, fill = opt_name, y = value*1e6)) +
@@ -208,7 +296,12 @@ extremes_bar_graph <- extremes %>%
     mutate(opt_name = factor(
         opt_name, 
         levels = c("fossil-only", "green-only", "both-begin-fossil", "both-begin-green"),
-        labels = c("Fossil\nonly","Green\nonly","Optimal,\nstart\nfossil","Optimal,\nstart\ngreen")
+        labels = c(
+            "Fossil\nonly",
+            "Green\nonly",
+            "Optimal,\nstart\nfossil",
+            "Optimal,\nstart\ngreen"
+        )
     )) %>%
     select(
         opt_name, 
@@ -229,8 +322,24 @@ extremes_bar_graph <- extremes %>%
     ) %>%
     filter(name == "Long-run") %>%
     mutate(
-        CAPEX = fct_reorder(factor(paste0(c("Low", "Low", "High", "High")," Green CAPEX ($", k_g_multiples * k_g, "M)")), -k_g_multiples),
-        OPEX = fct_reorder(factor(paste0(c("Low", "High")," Fossil OPEX ($", c_f_multiples * c_f, "M per year)")), c_f_multiples)
+        CAPEX = fct_reorder(
+            factor(paste0(
+                c("Low", "Low", "High", "High"),
+                " Green CAPEX ($", 
+                k_g_multiples * k_g, 
+                "M)"
+            )), 
+            -k_g_multiples
+        ),
+        OPEX = fct_reorder(
+            factor(paste0(
+                c("Low", "High"),
+                " Fossil OPEX ($", 
+                c_f_multiples * c_f, 
+                "M per year)"
+            )), 
+            c_f_multiples
+        )
     ) %>%
     filter(name == "Long-run") %>%
     ggplot(aes(x = opt_name, fill = opt_name, y = value*1e6)) +
@@ -322,16 +431,48 @@ p_opt_power <- as.tibble(optimal_g_power_all) %>%
     mutate(c_f = rownames(optimal_g_power_all)) %>%
     pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
-    ggplot(aes(x = k_g*1e6, y = c_f*1e6, fill = factor(value, labels = c("Natural gas plant     ", "Wind turbine")))) +
+    ggplot(aes(
+        x = k_g*1e6, 
+        y = c_f*1e6, 
+        fill = factor(value, labels = c("Natural gas plant     ", "Wind turbine"))
+    )) +
     geom_tile(color = "black") +
-    geom_text(aes(x = k_g*1e6, y = c_f*1e6, label = date), data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), inherit.aes = FALSE, nudge_y = 1.1*c(0,1e6,0,0), nudge_x = 1.1*c(7e7,6e7,-7e7,-7e7), color = "white", size = 2.75) +
-    geom_path(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "white") +
-    geom_point(aes(x = k_g*1e6, y = c_f*1e6), data = filter(h_power, date >= 2010), inherit.aes = FALSE, color = "white") +
+    geom_text(
+        aes(x = k_g*1e6, y = c_f*1e6, label = date), 
+        data = filter(h_power, date %in% c(2010, 2015, 2020, 2022)), 
+        inherit.aes = FALSE, 
+        nudge_y = 1.1*c(0,1e6,0,0), 
+        nudge_x = 1.1*c(7e7,6e7,-7e7,-7e7), 
+        color = "white", 
+        size = 2.75
+    ) +
+    geom_path(
+        aes(x = k_g*1e6, y = c_f*1e6), 
+        data = filter(h_power, date >= 2010), 
+        inherit.aes = FALSE, 
+        color = "white"
+    ) +
+    geom_point(
+        aes(x = k_g*1e6, y = c_f*1e6), 
+        data = filter(h_power, date >= 2010), 
+        inherit.aes = FALSE, 
+        color = "white"
+    ) +
     theme_bw() +
-    scale_y_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
-    scale_x_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
+    scale_y_continuous(
+        expand = c(0,0), 
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
+    scale_x_continuous(
+        expand = c(0,0), 
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
     scale_fill_manual(values = c( "#74645e","#50B161")) +
-    labs(x = "Wind power CAPEX", y = "Natural gas OPEX", fill = "Optimal strategy:") +
+    labs(
+        x = "Wind power CAPEX", 
+        y = "Natural gas OPEX", 
+        fill = "Optimal strategy:"
+    ) +
     theme(aspect.ratio = 1, legend.position = "bottom")
 
 ggsave("figures/optimal_power.svg", p_opt_power, width = 6, height = 6)
@@ -340,16 +481,48 @@ p_opt_vehic <- as.tibble(optimal_g_vehic_all) %>%
     mutate(c_f = rownames(optimal_g_vehic_all)) %>%
     pivot_longer(1:length(k_g_multiples), names_to = "k_g") %>%
     mutate(across(c(c_f, k_g), as.numeric)) %>%
-    ggplot(aes(x = k_g, y = c_f, fill = factor(value, labels = c("Gas vehicle     ", "Electric vehicle")))) +
+    ggplot(aes(
+        x = k_g, 
+        y = c_f, 
+        fill = factor(value, labels = c("Gas vehicle     ", "Electric vehicle"))
+    )) +
     geom_tile(color = "black") +
-    geom_text(aes(x = k_g, y = c_f, label = date), data = filter(h_vehic, date %in% c(2010, 2015, 2020, 2023)), inherit.aes = FALSE, nudge_y = 1.1*c(90,90,0,0), nudge_x = 1.1*c(3000,-3000,-5000,-5000), color = "white", size = 2.75) +
-    geom_path(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "white") +
-    geom_point(aes(x = k_g, y = c_f), data = h_vehic, inherit.aes = FALSE, color = "white") +
+    geom_text(
+        aes(x = k_g, y = c_f, label = date), 
+        data = filter(h_vehic, date %in% c(2010, 2015, 2020, 2023)), 
+        inherit.aes = FALSE, 
+        nudge_y = 1.1*c(90,90,0,0), 
+        nudge_x = 1.1*c(3000,-3000,-5000,-5000), 
+        color = "white", 
+        size = 2.75
+    ) +
+    geom_path(
+        aes(x = k_g, y = c_f), 
+        data = h_vehic, 
+        inherit.aes = FALSE, 
+        color = "white"
+    ) +
+    geom_point(
+        aes(x = k_g, y = c_f), 
+        data = h_vehic, 
+        inherit.aes = FALSE, 
+        color = "white"
+    ) +
     theme_bw() +
-    scale_y_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
-    scale_x_continuous(expand = c(0,0), labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
+    scale_y_continuous(
+        expand = c(0,0), 
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
+    scale_x_continuous(
+        expand = c(0,0), 
+        labels = scales::label_dollar(scale_cut = scales::cut_short_scale())
+    ) +
     scale_fill_manual(values = c( "#74645e","#50B161")) +
-    labs(x = "Electric vehicle CAPEX", y = "Gas vehicle OPEX", fill = "Optimal strategy:") +
+    labs(
+        x = "Electric vehicle CAPEX", 
+        y = "Gas vehicle OPEX", 
+        fill = "Optimal strategy:"
+    ) +
     theme(aspect.ratio = 1, legend.position = "bottom")
 
 ggsave("figures/optimal_vehicle.svg", p_opt_vehic, width = 6, height = 6)
